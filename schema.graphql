@@ -74,9 +74,19 @@ type CarSpecifications {
 type Query {
   listings(category: CategoryType, limit: Int, offset: Int): [Listing!]!
   listing(id: ID!): Listing
-  searchListings(query: String!, category: CategoryType, limit: Int, offset: Int): [Listing!]!
+  searchListings(query: String!, category: CategoryType, limit: Int, offset: Int, filters: SearchFilters): [Listing!]!
   user(id: ID!): User
   me: User
+}
+
+input SearchFilters {
+  priceMin: Int
+  priceMax: Int
+  location: String
+  yearMin: Int
+  yearMax: Int
+  make: String
+  model: String
 }
 
 type Mutation {

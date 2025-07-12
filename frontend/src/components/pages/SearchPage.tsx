@@ -1,9 +1,11 @@
 import { useLazyLoadQuery } from 'react-relay';
 import { useSearchParams } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingGrid from '../features/ListingGrid';
+import SearchFilters, { SearchFilters as SearchFiltersType } from '../features/SearchFilters';
 import { CategoryType } from '../../types';
 import { SearchListingsQuery } from '../../queries/listings';
 import type { listingsSearchQuery as SearchListingsQueryType } from '../../__generated__/listingsSearchQuery.graphql';
@@ -22,9 +24,16 @@ export default function SearchPage() {
   const categoryParam = searchParams.get('category');
   const categoryEnum = categoryParam ? categoryMap[categoryParam] : undefined;
   
+  const [filters, setFilters] = useState<SearchFiltersType>({});
+  
+  const handleFiltersChange = useCallback((newFilters: SearchFiltersType) => {
+    setFilters(newFilters);
+  }, []);
+  
   const data = useLazyLoadQuery<SearchListingsQueryType>(SearchListingsQuery, {
     query,
-    category: categoryEnum
+    category: categoryEnum,
+    filters
   });
 
   const resultCount = data.searchListings.length;
@@ -58,6 +67,11 @@ export default function SearchPage() {
               </p>
             </div>
           </div>
+
+          <SearchFilters 
+            onFiltersChange={handleFiltersChange}
+            initialFilters={filters}
+          />
 
           {hasResults ? (
             <ListingGrid 

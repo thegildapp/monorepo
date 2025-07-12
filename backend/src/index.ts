@@ -5,6 +5,8 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import prisma from './config/prisma';
 import { CategoryType } from '@prisma/client';
+import { searchListings } from './services/searchService';
+import { ensureListingsIndex } from './config/opensearch';
 
 // Read the schema from the single source of truth
 const schemaPath = join(__dirname, '../schema.graphql');
@@ -57,43 +59,67 @@ const resolvers = {
       };
     },
     
-    searchListings: async (_: any, args: { query: string; category?: CategoryType; limit?: number | null; offset?: number | null }) => {
-      const { query, category, limit, offset } = args;
+    searchListings: async (_: any, args: { query: string; category?: CategoryType; limit?: number | null; offset?: number | null; filters?: any }) => {
+      const { query, category, limit, offset, filters } = args;
       
-      const where = {
-        AND: [
-          category ? { category } : {},
-          {
-            OR: [
-              { title: { contains: query, mode: 'insensitive' as const } },
-              { description: { contains: query, mode: 'insensitive' as const } },
-            ],
-          },
-        ],
-      };
-      
-      const queryOptions: any = {
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: { seller: true },
-      };
-      
-      // Only add pagination options if they are actual numbers
-      if (typeof limit === 'number') {
-        queryOptions.take = limit;
+      try {
+        const result = await searchListings({
+          query,
+          category,
+          limit: typeof limit === 'number' ? limit : 20,
+          offset: typeof offset === 'number' ? offset : 0,
+          filters: filters ? {
+            priceMin: filters.priceMin,
+            priceMax: filters.priceMax,
+            location: filters.location,
+            specifications: {
+              ...(filters.yearMin && { year: { gte: filters.yearMin } }),
+              ...(filters.yearMax && { year: { lte: filters.yearMax } }),
+              ...(filters.make && { make: filters.make }),
+              ...(filters.model && { model: filters.model })
+            }
+          } : undefined
+        });
+        
+        console.log(`Search completed in ${result.took}ms, found ${result.total} results`);
+        return result.listings;
+      } catch (error) {
+        console.error('Search failed:', error);
+        
+        // Fallback to basic database search
+        const where = {
+          AND: [
+            category ? { category } : {},
+            {
+              OR: [
+                { title: { contains: query, mode: 'insensitive' as const } },
+                { description: { contains: query, mode: 'insensitive' as const } },
+              ],
+            },
+          ],
+        };
+        
+        const queryOptions: any = {
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: { seller: true },
+        };
+        
+        if (typeof limit === 'number') {
+          queryOptions.take = limit;
+        }
+        if (typeof offset === 'number') {
+          queryOptions.skip = offset;
+        }
+        
+        const listings = await prisma.listing.findMany(queryOptions);
+        
+        return listings.map(listing => ({
+          ...listing,
+          createdAt: listing.createdAt.toISOString(),
+          updatedAt: listing.updatedAt.toISOString(),
+        }));
       }
-      if (typeof offset === 'number') {
-        queryOptions.skip = offset;
-      }
-      
-      const listings = await prisma.listing.findMany(queryOptions);
-      
-      // Convert dates to ISO strings
-      return listings.map(listing => ({
-        ...listing,
-        createdAt: listing.createdAt.toISOString(),
-        updatedAt: listing.updatedAt.toISOString(),
-      }));
     },
     
     user: async (_: any, { id }: { id: string }) => {
@@ -225,9 +251,18 @@ async function startServer(): Promise<void> {
   // Test database connection
   try {
     await prisma.$connect();
+    console.log('✅ Database connected successfully');
   } catch (error) {
-    console.error('Database connection failed:', error);
+    console.error('❌ Database connection failed:', error);
     throw error;
+  }
+
+  // Initialize OpenSearch index
+  try {
+    await ensureListingsIndex();
+    console.log('✅ OpenSearch index initialized');
+  } catch (error) {
+    console.warn('⚠️ OpenSearch initialization failed, will use database fallback:', error);
   }
   
   const app = express();

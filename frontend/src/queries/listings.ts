@@ -18,8 +18,8 @@ export const GetListingQuery = graphql`
 `;
 
 export const SearchListingsQuery = graphql`
-  query listingsSearchQuery($query: String!, $category: CategoryType, $limit: Int, $offset: Int) {
-    searchListings(query: $query, category: $category, limit: $limit, offset: $offset) {
+  query listingsSearchQuery($query: String!, $category: CategoryType, $limit: Int, $offset: Int, $filters: SearchFilters) {
+    searchListings(query: $query, category: $category, limit: $limit, offset: $offset, filters: $filters) {
       ...ListingCard_listing
     }
   }
