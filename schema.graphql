@@ -1,0 +1,177 @@
+enum CategoryType {
+  BOATS
+  PLANES
+  BIKES
+  CARS
+}
+
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  phone: String
+  avatarUrl: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Listing {
+  id: ID!
+  title: String!
+  description: String!
+  price: Int!
+  category: CategoryType!
+  images: [String!]!
+  city: String
+  state: String
+  latitude: Float
+  longitude: Float
+  seller: User!
+  specifications: ListingSpecifications!
+  createdAt: String!
+  updatedAt: String!
+}
+
+union ListingSpecifications = BoatSpecifications | PlaneSpecifications | BikeSpecifications | CarSpecifications
+
+type BoatSpecifications {
+  length: Float
+  year: Int
+  make: String
+  model: String
+  hullMaterial: String
+  engineType: String
+  horsepower: Int
+}
+
+type PlaneSpecifications {
+  year: Int
+  make: String
+  model: String
+  hours: Float
+  engineType: String
+  seats: Int
+}
+
+type BikeSpecifications {
+  year: Int
+  make: String
+  model: String
+  engineSize: Float
+  mileage: Int
+}
+
+type CarSpecifications {
+  year: Int
+  make: String
+  model: String
+  mileage: Int
+  transmission: String
+  fuelType: String
+}
+
+type Query {
+  listings(category: CategoryType, limit: Int, offset: Int): [Listing!]!
+  listing(id: ID!): Listing
+  searchListings(query: String!, category: CategoryType, limit: Int, offset: Int): [Listing!]!
+  user(id: ID!): User
+  me: User
+}
+
+type Mutation {
+  createListing(input: CreateListingInput!): Listing!
+  updateListing(id: ID!, input: UpdateListingInput!): Listing!
+  deleteListing(id: ID!): Boolean!
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  updateProfile(input: UpdateProfileInput!): User!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
+  name: String!
+  phone: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input UpdateProfileInput {
+  name: String
+  phone: String
+  avatarUrl: String
+}
+
+input CreateListingInput {
+  title: String!
+  description: String!
+  price: Int!
+  category: CategoryType!
+  images: [String!]!
+  city: String!
+  state: String!
+  specifications: ListingSpecificationsInput!
+}
+
+input UpdateListingInput {
+  title: String
+  description: String
+  price: Int
+  category: CategoryType
+  images: [String!]
+  city: String
+  state: String
+  specifications: ListingSpecificationsInput
+}
+
+input ListingSpecificationsInput {
+  boat: BoatSpecificationsInput
+  plane: PlaneSpecificationsInput
+  bike: BikeSpecificationsInput
+  car: CarSpecificationsInput
+}
+
+input BoatSpecificationsInput {
+  length: Float
+  year: Int
+  make: String
+  model: String
+  hullMaterial: String
+  engineType: String
+  horsepower: Int
+}
+
+input PlaneSpecificationsInput {
+  year: Int
+  make: String
+  model: String
+  hours: Float
+  engineType: String
+  seats: Int
+}
+
+input BikeSpecificationsInput {
+  year: Int
+  make: String
+  model: String
+  engineSize: Float
+  mileage: Int
+}
+
+input CarSpecificationsInput {
+  year: Int
+  make: String
+  model: String
+  mileage: Int
+  transmission: String
+  fuelType: String
+}

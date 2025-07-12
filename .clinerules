@@ -1,0 +1,24 @@
+# Sapling Repository
+This is a Sapling (sl) repository, not Git.
+
+## Command Execution Rules:
+- ALWAYS use MCP commands (mcp__command-runner__run_command) instead of Bash tool
+- NEVER run commands with & (background processes)
+- NEVER run commands that block/run in foreground (like servers, interactive commands, watch modes)
+- If a blocking command is needed, use mcp__command-runner__speak to notify the user instead
+- Examples of blocking commands to avoid: skaffold dev, npm run dev, server processes, interactive tools
+
+## Version Control Commands:
+- Use `sl` commands instead of `git`
+- Use `sl smartlog` or `sl sl` to view commit history
+- Use `sl commit` instead of `git commit`
+- Use `sl push` instead of `git push`
+- Use `sl status` instead of `git status`
+
+## Sapling Workflow:
+- `sl smartlog` - View commit stack and branch relationships
+- `sl status` - Check working directory status
+- `sl commit -m "message"` - Commit changes
+- `sl amend` - Amend the current commit
+- `sl rebase` - Rebase commits
+- `sl push` - Push commits to remote

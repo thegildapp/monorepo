@@ -1,0 +1,147 @@
+/* Header */
+.header {
+  background: var(--color-background);
+  padding: var(--space-4) 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0;
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerBorder {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-4) var(--space-16) 0;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-text-primary);
+  transition: opacity 0.2s;
+}
+
+.backButton:hover {
+  opacity: 0.7;
+}
+
+.backButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.categoryIcon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+.profilePicture {
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+
+.logoTitle {
+  font-size: 24px;
+  font-weight: 100;
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 24px;
+}
+
+.logoText {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logoText:hover {
+  opacity: 0.7;
+}
+
+.dot {
+  margin: 0 var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.categoryName {
+  color: var(--color-text-secondary);
+  font-weight: 300;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.categoryName:hover {
+  opacity: 0.7;
+}
+
+.searchInput {
+  margin: 0 auto;
+}
+
+.headerSpacer {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-4) 0 0;
+  }
+
+  .headerContent {
+    padding: 0 var(--space-4);
+  }
+
+  .headerBorder {
+    margin: var(--space-4) var(--space-8) 0;
+  }
+
+  .logoTitle {
+    font-size: 30px;
+    line-height: 30px;
+  }
+  
+  .searchInput {
+    display: none;
+  }
+}
+
+/* Desktop override - non-sticky header */
+@media (min-width: 1024px) {
+  .header {
+    position: relative;
+  }
+}

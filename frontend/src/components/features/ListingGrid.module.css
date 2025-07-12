@@ -1,0 +1,28 @@
+.listingGridContainer {
+  min-height: calc(100vh - 200px);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.listingGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 60px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .listingGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .listingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

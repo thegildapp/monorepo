@@ -1,0 +1,112 @@
+.searchPage {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.searchHeader {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.searchTitle {
+  font-size: 32px;
+  font-weight: normal;
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-text-primary);
+  font-family: 'Tinos', serif;
+}
+
+.searchInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.searchQuery {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.categoryFilter {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.resultCount {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* No results state */
+.noResults {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.noResultsIcon {
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-6);
+  display: flex;
+  justify-content: center;
+}
+
+.noResultsTitle {
+  font-size: 24px;
+  font-weight: normal;
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-text-primary);
+  font-family: 'Tinos', serif;
+}
+
+.noResultsText {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .searchPage {
+    padding: var(--space-4);
+  }
+  
+  .searchTitle {
+    font-size: 28px;
+  }
+  
+  .searchHeader {
+    margin-bottom: var(--space-6);
+  }
+  
+  .searchInfo {
+    text-align: left;
+    align-items: flex-start;
+  }
+  
+  .searchQuery {
+    font-size: 15px;
+  }
+  
+  .resultCount {
+    font-size: 13px;
+  }
+  
+  .noResults {
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .noResultsTitle {
+    font-size: 20px;
+  }
+  
+  .noResultsText {
+    font-size: 15px;
+  }
+}

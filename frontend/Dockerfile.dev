@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the shared schema file for code generation
+COPY schema.graphql ./
+
+# Copy source code
+COPY frontend/ .
+
+# Expose port 5173 (Vite's default port)
+EXPOSE 5173
+
+# Generate types and start dev server
+CMD ["sh", "-c", "npm run relay && npm run dev -- --host 0.0.0.0"]

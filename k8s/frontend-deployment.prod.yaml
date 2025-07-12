@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: frontend
+        image: ghcr.io/antonky/gildv2/frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5173
+        env:
+        - name: VITE_GRAPHQL_URL
+          value: "https://api.thegild.app/graphql"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 5173
+      targetPort: 5173
+  type: ClusterIP

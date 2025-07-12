@@ -1,0 +1,29 @@
+{
+  "name": "Gild",
+  "short_name": "Gild",
+  "description": "Gild",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "rgb(250, 249, 248)",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icongild.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icongild.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "id": "gild"
+}

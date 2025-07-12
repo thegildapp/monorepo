@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__command-runner__run_command",
+      "mcp__command-runner__speak"
+    ],
+    "deny": []
+  }
+}

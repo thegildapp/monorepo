@@ -1,0 +1,8 @@
+/* Main Content */
+.main {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(100vh - 80px);
+}
