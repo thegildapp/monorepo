@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<db899b98182884c60bc296cd8a511762>>
+ * @generated SignedSource<<541f51b3b8ea64f64e6ae3a3aeab80ce>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,8 +9,10 @@
 // @ts-nocheck
 
 import { ReaderFragment } from 'relay-runtime';
+export type CategoryType = "BIKES" | "BOATS" | "CARS" | "PLANES" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
 export type ListingCard_listing$data = {
+  readonly category: CategoryType;
   readonly city: string | null | undefined;
   readonly createdAt: string;
   readonly id: string;
@@ -56,6 +58,13 @@ const node: ReaderFragment = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "category",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "images",
       "storageKey": null
     },
@@ -85,6 +94,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "0a1d855e80bb2d301d66ff96ca7ae36a";
+(node as any).hash = "803cff7871a33e384e74919f2034636e";
 
 export default node;

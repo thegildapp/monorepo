@@ -6,7 +6,7 @@ interface SearchFiltersProps {
   initialFilters?: SearchFilters;
 }
 
-export interface SearchFilters {
+export type SearchFilters = {
   priceMin?: number;
   priceMax?: number;
   location?: string;

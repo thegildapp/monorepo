@@ -7,7 +7,7 @@ import styles from './ListingGrid.module.css'
 
 interface ListingGridProps {
   listings: ReadonlyArray<ListingCard_listing$key>;
-  category: CategoryType;
+  category?: CategoryType;
   loading?: boolean;
   error?: string | null;
 }

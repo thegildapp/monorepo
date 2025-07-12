@@ -11,6 +11,7 @@ const ListingCardFragment = graphql`
     id
     title
     price
+    category
     images
     city
     state
@@ -20,7 +21,7 @@ const ListingCardFragment = graphql`
 
 interface ListingCardProps {
   listing: ListingCard_listing$key;
-  category: CategoryType;
+  category?: CategoryType;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef, category }) => {
@@ -130,7 +131,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef, category
         return
       }
     }
-    navigate(`/${category.toLowerCase()}/${listing.id}`)
+    navigate(`/${(category || listing.category).toLowerCase()}/${listing.id}`)
   }
 
   const handlePrevImage = (e: React.MouseEvent) => {

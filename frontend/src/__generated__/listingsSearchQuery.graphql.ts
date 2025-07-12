@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<cb641fe3d1781edbefb288b50f317272>>
+ * @generated SignedSource<<d16305dc1bd9ed9cc671ef452aa60d21>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -168,6 +168,13 @@ return {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
+            "name": "category",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
             "name": "images",
             "storageKey": null
           },
@@ -198,12 +205,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "c00cc4f364aa92d83de271b5903ce6b8",
+    "cacheID": "1b3dbb43dabc821aac53f4cea7138a08",
     "id": null,
     "metadata": {},
     "name": "listingsSearchQuery",
     "operationKind": "query",
-    "text": "query listingsSearchQuery(\n  $query: String!\n  $category: CategoryType\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, category: $category, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsSearchQuery(\n  $query: String!\n  $category: CategoryType\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, category: $category, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  category\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();
