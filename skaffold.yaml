@@ -8,26 +8,26 @@ build:
   local:
     push: false
   artifacts:
-  - image: backend-dev
-    context: .
-    docker:
-      dockerfile: backend/Dockerfile.dev
-    sync:
-      manual:
-      - src: "backend/src/**/*.ts"
-        dest: /app/src
-  - image: frontend-dev
-    context: .
-    docker:
-      dockerfile: frontend/Dockerfile.dev
-    sync:
-      infer:
-      - "frontend/src/**/*"
+    - image: backend-dev
+      context: .
+      docker:
+        dockerfile: backend/Dockerfile.dev
+      sync:
+        manual:
+          - src: "backend/src/**/*.ts"
+            dest: /app/src
+    - image: frontend-dev
+      context: .
+      docker:
+        dockerfile: frontend/Dockerfile.dev
+      sync:
+        infer:
+          - "frontend/src/**/*"
 manifests:
   rawYaml:
-  - k8s/database-secret.yaml
-  - k8s/backend-deployment.yaml
-  - k8s/frontend-deployment.yaml
+    - k8s/database-secret.yaml
+    - k8s/backend-deployment.yaml
+    - k8s/frontend-deployment.yaml
 
 deploy:
   kubeContext: kind-gild-dev
@@ -35,54 +35,54 @@ deploy:
     defaultNamespace: default
 
 portForward:
-- resourceType: service
-  resourceName: backend-service
-  namespace: default
-  port: 4000
-  localPort: 4000
-- resourceType: service
-  resourceName: frontend-service
-  namespace: default
-  port: 5173
-  localPort: 5173
+  - resourceType: service
+    resourceName: backend-service
+    namespace: default
+    port: 4000
+    localPort: 4000
+  - resourceType: service
+    resourceName: frontend-service
+    namespace: default
+    port: 5173
+    localPort: 5173
 
-# Development Profile  
+# Development Profile
 profiles:
-- name: dev
-  build:
-    local:
-      push: false
-  deploy:
-    kubectl:
-      defaultNamespace: default
-      
-# Production Profile
-- name: production
-  build:
-    artifacts:
-    - image: ghcr.io/antonky/gildv2/backend
-      context: .
-      docker:
-        dockerfile: backend/Dockerfile
-        buildArgs:
-          TARGETPLATFORM: linux/amd64
-      platforms: ["linux/amd64"]
-    - image: ghcr.io/antonky/gildv2/frontend
-      context: .
-      docker:
-        dockerfile: frontend/Dockerfile
-        buildArgs:
-          TARGETPLATFORM: linux/amd64
-          VITE_GRAPHQL_URL: "https://api.thegild.app/graphql"
-      platforms: ["linux/amd64"]
-  manifests:
-    rawYaml:
-    - k8s/database-secret.yaml
-    - k8s/backend-deployment.prod.yaml
-    - k8s/frontend-deployment.prod.yaml
-    - k8s/ingress.yaml
-    - k8s/letsencrypt-issuer.yaml
-  deploy:
-    kubeContext: do-sfo3-gildk8s
-    kubectl:
-      defaultNamespace: default
+  - name: dev
+    build:
+      local:
+        push: false
+    deploy:
+      kubectl:
+        defaultNamespace: default
+
+  # Production Profile
+  - name: production
+    build:
+      artifacts:
+        - image: ghcr.io/thegildapp/monorepo/backend
+          context: .
+          docker:
+            dockerfile: backend/Dockerfile
+            buildArgs:
+              TARGETPLATFORM: linux/amd64
+          platforms: ["linux/amd64"]
+        - image: ghcr.io/thegildapp/monorepo/frontend
+          context: .
+          docker:
+            dockerfile: frontend/Dockerfile
+            buildArgs:
+              TARGETPLATFORM: linux/amd64
+              VITE_GRAPHQL_URL: "https://api.thegild.app/graphql"
+          platforms: ["linux/amd64"]
+    manifests:
+      rawYaml:
+        - k8s/database-secret.yaml
+        - k8s/backend-deployment.prod.yaml
+        - k8s/frontend-deployment.prod.yaml
+        - k8s/ingress.yaml
+        - k8s/letsencrypt-issuer.yaml
+    deploy:
+      kubeContext: do-sfo3-gildk8s
+      kubectl:
+        defaultNamespace: default

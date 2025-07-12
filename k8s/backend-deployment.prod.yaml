@@ -15,45 +15,45 @@ spec:
         app: backend
     spec:
       imagePullSecrets:
-      - name: regcred
+        - name: regcred
       containers:
-      - name: backend
-        image: ghcr.io/antonky/gildv2/backend:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 4000
-        env:
-        - name: PORT
-          value: "4000"
-        - name: NODE_ENV
-          value: "production"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: database-secret
-              key: DATABASE_URL
-        - name: OPENSEARCH_CONNECTION_STRING
-          valueFrom:
-            secretKeyRef:
-              name: opensearch-secret
-              key: OPENSEARCH_CONNECTION_STRING
-        - name: OPENSEARCH_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: opensearch-secret
-              key: OPENSEARCH_USERNAME
-        - name: OPENSEARCH_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: opensearch-secret
-              key: OPENSEARCH_PASSWORD
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: backend
+          image: ghcr.io/thegildapp/monorepo/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+          env:
+            - name: PORT
+              value: "4000"
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: DATABASE_URL
+            - name: OPENSEARCH_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-secret
+                  key: OPENSEARCH_CONNECTION_STRING
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-secret
+                  key: OPENSEARCH_USERNAME
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-secret
+                  key: OPENSEARCH_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

@@ -15,16 +15,16 @@ spec:
         app: frontend
     spec:
       imagePullSecrets:
-      - name: regcred
+        - name: regcred
       containers:
-      - name: frontend
-        image: ghcr.io/antonky/gildv2/frontend:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 5173
-        env:
-        - name: VITE_GRAPHQL_URL
-          value: "https://api.thegild.app/graphql"
+        - name: frontend
+          image: ghcr.io/thegildapp/monorepo/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5173
+          env:
+            - name: VITE_GRAPHQL_URL
+              value: "https://api.thegild.app/graphql"
 ---
 apiVersion: v1
 kind: Service
