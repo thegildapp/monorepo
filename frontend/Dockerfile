@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS build
 
+# Accept build arguments
+ARG VITE_GRAPHQL_URL
+
 WORKDIR /app
 
 # Copy package files
@@ -17,6 +20,9 @@ COPY frontend/ .
 
 # Generate types from GraphQL schema
 RUN npm run relay
+
+# Set environment variable for build
+ENV VITE_GRAPHQL_URL=$VITE_GRAPHQL_URL
 
 # Build the app
 RUN npm run build
