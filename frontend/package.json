@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build && vite --host 0.0.0.0 --port 5173",
-    "build": "relay-compiler && tsc -b && vite build",
+    "build": "npm run copy-schema && relay-compiler && tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "preview": "vite preview",
-    "relay": "relay-compiler"
+    "relay": "npm run copy-schema && relay-compiler",
+    "copy-schema": "cp ../schema.graphql ./schema.graphql 2>/dev/null || cp schema.graphql ./schema.graphql 2>/dev/null || true"
   },
   "dependencies": {
     "graphql": "^16.11.0",
