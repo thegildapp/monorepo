@@ -131,13 +131,15 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
   console.log('OpenSearch query:', JSON.stringify(searchBody, null, 2));
 
   // Execute search
-  const response = await client.search({
+  const response: any = await client.search({
     index: LISTINGS_INDEX,
     body: searchBody
   });
 
   const hits = response.body.hits.hits;
-  const total = response.body.hits.total.value || response.body.hits.total;
+  const total = typeof response.body.hits.total === 'object' 
+    ? response.body.hits.total.value 
+    : response.body.hits.total || 0;
   const took = response.body.took;
 
   // Extract listing IDs and fetch full data from database
@@ -252,7 +254,7 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
 
   if (useOpenSearch) {
     try {
-      const response = await client.search({
+      const response: any = await client.search({
         index: LISTINGS_INDEX,
         body: {
           suggest: {
@@ -269,7 +271,11 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
         }
       });
 
-      return response.body.suggest.title_suggest[0].options.map((option: any) => option.text);
+      const suggestions = response.body.suggest?.title_suggest?.[0]?.options;
+      if (Array.isArray(suggestions)) {
+        return suggestions.map((option: any) => option.text);
+      }
+      return [];
     } catch (error) {
       console.warn('OpenSearch suggestions failed:', error);
     }

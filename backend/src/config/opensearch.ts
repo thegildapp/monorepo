@@ -124,10 +124,12 @@ export async function ensureListingsIndex(): Promise<void> {
             analysis: {
               analyzer: {
                 autocomplete: {
+                  type: 'custom',
                   tokenizer: 'autocomplete',
                   filter: ['lowercase']
                 },
                 autocomplete_search: {
+                  type: 'custom',
                   tokenizer: 'lowercase'
                 }
               },
