@@ -77,6 +77,14 @@ jobs:
             --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create OpenSearch secret
+        run: |
+          kubectl create secret generic opensearch-secret \
+            --from-literal=OPENSEARCH_CONNECTION_STRING="${{ secrets.OPENSEARCH_CONNECTION_STRING }}" \
+            --from-literal=OPENSEARCH_USERNAME="${{ secrets.OPENSEARCH_USERNAME }}" \
+            --from-literal=OPENSEARCH_PASSWORD="${{ secrets.OPENSEARCH_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         run: |
           # Apply deployments
