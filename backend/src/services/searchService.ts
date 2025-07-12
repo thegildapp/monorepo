@@ -163,11 +163,11 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
 
   // Reorder listings to match OpenSearch score order
   const orderedListings = listingIds
-    .map(id => listings.find(listing => listing.id === id))
+    .map((id: string) => listings.find((listing: any) => listing.id === id))
     .filter(Boolean);
 
   return {
-    listings: orderedListings.map(listing => ({
+    listings: orderedListings.map((listing: any) => ({
       ...listing,
       createdAt: listing!.createdAt.toISOString(),
       updatedAt: listing!.updatedAt.toISOString(),
@@ -236,7 +236,7 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
   const took = Date.now() - startTime;
 
   return {
-    listings: listings.map(listing => ({
+    listings: listings.map((listing: any) => ({
       ...listing,
       createdAt: listing.createdAt.toISOString(),
       updatedAt: listing.updatedAt.toISOString(),
@@ -293,5 +293,5 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
     take: limit
   });
 
-  return suggestions.map(s => s.title);
+  return suggestions.map((s: any) => s.title);
 }
