@@ -1,44 +1,57 @@
-.searchPage {
-  padding: var(--space-6);
+.searchHeader {
+  background: var(--color-background);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.searchForm {
   max-width: 1200px;
   margin: 0 auto;
+  padding: var(--space-6);
 }
 
-.searchHeader {
-  margin-bottom: var(--space-8);
-  text-align: center;
-}
-
-.searchTitle {
-  font-size: 32px;
-  font-weight: normal;
-  margin: 0 0 var(--space-4) 0;
-  color: var(--color-text-primary);
-  font-family: 'Tinos', serif;
-}
-
-.searchInfo {
+.searchInputContainer {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
   align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  padding: 16px 0;
+  transition: border-color 0.3s ease;
+  width: 100%;
+  max-width: 600px;
 }
 
-.searchQuery {
-  font-size: 16px;
-  color: var(--color-text-secondary);
-  margin: 0;
+.searchInputContainer:focus-within {
+  border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
-.categoryFilter {
-  color: var(--color-text-primary);
-  font-weight: 500;
+.searchPageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6);
 }
 
-.resultCount {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: 0;
+.searchIcon {
+  color: rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.9);
+  background: transparent;
+  font-family: 'Tinos', serif;
+  font-weight: 400;
+}
+
+.searchInput::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+  font-weight: 400;
 }
 
 /* No results state */
@@ -73,29 +86,21 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .searchPage {
+  .searchForm {
     padding: var(--space-4);
   }
   
-  .searchTitle {
-    font-size: 28px;
+  .searchInputContainer {
+    max-width: none;
+    padding: 14px 0;
   }
   
-  .searchHeader {
-    margin-bottom: var(--space-6);
+  .searchInput {
+    font-size: 16px; /* Prevent zoom on iOS */
   }
   
-  .searchInfo {
-    text-align: left;
-    align-items: flex-start;
-  }
-  
-  .searchQuery {
-    font-size: 15px;
-  }
-  
-  .resultCount {
-    font-size: 13px;
+  .searchPageContainer {
+    padding: var(--space-4);
   }
   
   .noResults {

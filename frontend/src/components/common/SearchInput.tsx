@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styles from './SearchInput.module.css';
 
 interface SearchInputProps {
@@ -15,6 +15,7 @@ export default function SearchInput({
 }: SearchInputProps) {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const { category } = useParams<{ category: string }>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +23,9 @@ export default function SearchInput({
       if (onSearch) {
         onSearch(query.trim());
       } else {
-        navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+        // Navigate to category-specific search if we're in a category, otherwise general search
+        const searchPath = category ? `/${category}/search` : '/search';
+        navigate(`${searchPath}?q=${encodeURIComponent(query.trim())}`);
       }
     }
   };

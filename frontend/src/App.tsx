@@ -13,6 +13,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/:category" element={<CategoryPage />} />
+        <Route path="/:category/search" element={<SearchPage />} />
         <Route path="/:category/:itemId" element={<ItemPage />} />
       </Routes>
     </>
