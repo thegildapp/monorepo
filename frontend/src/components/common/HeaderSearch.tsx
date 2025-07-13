@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './SearchInput.module.css';
+import styles from './HeaderSearch.module.css';
 
-interface SearchInputProps {
+interface HeaderSearchProps {
   placeholder?: string;
   onSearch?: (query: string) => void;
   className?: string;
 }
 
-export default function SearchInput({ 
-  placeholder = "Search listings...", 
+export default function HeaderSearch({ 
+  placeholder = "Search...", 
   onSearch,
   className = ''
-}: SearchInputProps) {
+}: HeaderSearchProps) {
   const [query, setQuery] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,15 +32,35 @@ export default function SearchInput({
     setQuery(e.target.value);
   };
 
+  const handleFocus = () => {
+    setIsExpanded(true);
+  };
+
+  const handleBlur = () => {
+    if (!query.trim()) {
+      setIsExpanded(false);
+    }
+  };
+
+  const handleIconClick = () => {
+    setIsExpanded(true);
+    // Focus the input after a brief delay to allow the animation
+    setTimeout(() => {
+      const input = document.querySelector(`.${styles.searchInput}`) as HTMLInputElement;
+      input?.focus();
+    }, 100);
+  };
+
   return (
     <form className={`${styles.searchForm} ${className}`} onSubmit={handleSubmit}>
-      <div className={styles.searchContainer}>
+      <div className={`${styles.searchContainer} ${isExpanded ? styles.expanded : ''}`}>
         <svg 
           className={styles.searchIcon} 
-          width="24" 
-          height="24" 
+          width="20" 
+          height="20" 
           viewBox="0 0 24 24" 
           fill="none"
+          onClick={handleIconClick}
         >
           <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
           <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -48,6 +69,8 @@ export default function SearchInput({
           type="text"
           value={query}
           onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={styles.searchInput}
         />
@@ -55,7 +78,10 @@ export default function SearchInput({
           <button
             type="button"
             className={styles.clearButton}
-            onClick={() => setQuery('')}
+            onClick={() => {
+              setQuery('');
+              setIsExpanded(false);
+            }}
             aria-label="Clear search"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

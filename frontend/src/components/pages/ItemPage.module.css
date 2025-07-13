@@ -149,7 +149,6 @@
 /* Content */
 .content {
   padding: 24px;
-  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -274,6 +273,12 @@
 
 /* Mobile adjustments */
 @media (max-width: 640px) {
+  .page {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
   .backButton {
     top: 16px;
     left: 16px;
@@ -282,10 +287,14 @@
   .imageGallery {
     height: 40vh;
     min-height: 250px;
+    width: 100%;
   }
   
   .content {
     padding: 20px 16px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
   }
   
   .title {
@@ -435,6 +444,7 @@
   /* Right column - Content */
   .content {
     width: 450px;
+    max-width: 450px;
     flex-shrink: 0;
     background: transparent;
     border-radius: 12px;

@@ -5,6 +5,7 @@ import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
 import ListingGrid from '../features/ListingGrid';
+import SearchInput from '../common/SearchInput';
 import type { Category } from '../features/CategoryGrid';
 import { CategoryType } from '../../types';
 import { GetListingsQuery } from '../../queries/listings';

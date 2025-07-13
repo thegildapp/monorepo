@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import SearchInput from '../common/SearchInput';
+import HeaderSearch from '../common/HeaderSearch';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -53,10 +53,11 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
         </div>
         
         {showSearch && (
-          <SearchInput className={styles.searchInput} />
+          <HeaderSearch 
+            placeholder="Search..." 
+            className={styles.headerSearch}
+          />
         )}
-        
-        <div className={styles.headerSpacer}></div>
       </div>
       <div className={styles.headerBorder}></div>
     </header>

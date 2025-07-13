@@ -1,6 +1,7 @@
 .searchForm {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .searchContainer {
@@ -9,35 +10,55 @@
   align-items: center;
   background: transparent;
   border: none;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0;
-  padding: 16px 0;
-  width: 100%;
-  max-width: 600px;
-  transition: border-color 0.3s ease;
+  border-bottom: 1px solid transparent;
+  padding: 8px 0;
+  width: 32px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  justify-content: flex-end;
+}
+
+.searchContainer.expanded {
+  width: 240px;
+  border-bottom-color: rgba(0, 0, 0, 0.2);
 }
 
 .searchContainer:focus-within {
-  border-bottom-color: rgba(0, 0, 0, 0.3);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
 .searchIcon {
-  color: rgba(0, 0, 0, 0.4);
-  margin-right: 16px;
+  color: rgba(0, 0, 0, 0.6);
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  order: 0;
+}
+
+.searchIcon:hover {
+  color: rgba(0, 0, 0, 0.8);
 }
 
 .searchInput {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 18px;
+  font-size: 14px;
   color: rgba(0, 0, 0, 0.9);
   background: transparent;
   font-family: 'Tinos', serif;
   font-weight: 400;
+  margin-left: 8px;
+  width: 0;
+  opacity: 0;
+  transition: all 0.3s ease;
+  order: 1;
+  text-align: left;
+}
+
+.searchContainer.expanded .searchInput {
+  width: 100%;
+  opacity: 1;
 }
 
 .searchInput::placeholder {
@@ -49,16 +70,18 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  margin-left: 16px;
+  padding: 4px;
+  margin-right: 8px;
   color: rgba(0, 0, 0, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  order: 2;
 }
 
 .clearButton:hover {
@@ -68,17 +91,17 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .searchContainer {
-    padding: 12px 0;
+  .searchContainer.expanded {
+    width: 200px;
   }
   
   .searchInput {
     font-size: 16px; /* Prevent zoom on iOS */
   }
-  
-  .searchIcon {
-    margin-right: 12px;
-    width: 20px;
-    height: 20px;
+}
+
+@media (max-width: 480px) {
+  .searchContainer.expanded {
+    width: 160px;
   }
 }
