@@ -24,7 +24,6 @@ export default function HomePage() {
     <Layout>
       <Header 
         logoText="Gild" 
-        showSearch={false}
       />
       <Main>
         <CategoryGrid 

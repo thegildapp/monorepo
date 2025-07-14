@@ -1,7 +1,6 @@
 import { useLazyLoadQuery } from 'react-relay';
-import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingGrid from '../features/ListingGrid';
@@ -20,7 +19,6 @@ const categoryMap: Record<string, CategoryType> = {
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { category } = useParams<{ category: string }>();
-  const navigate = useNavigate();
   const urlQuery = searchParams.get('q') || '';
   
   // Local state for the search input
