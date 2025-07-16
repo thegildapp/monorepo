@@ -20,7 +20,6 @@ export interface SearchResult {
 }
 
 export async function searchListings(options: SearchOptions): Promise<SearchResult> {
-  const { query, limit = 20, offset = 0, filters } = options;
 
   // Try OpenSearch first, fallback to database search
   const useOpenSearch = await isOpenSearchAvailable();

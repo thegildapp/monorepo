@@ -2,17 +2,17 @@ import { Client } from '@opensearch-project/opensearch';
 
 // OpenSearch client configuration for managed database
 const client = new Client({
-  node: process.env.OPENSEARCH_CONNECTION_STRING || process.env.OPENSEARCH_URL || 'https://localhost:9200',
+  node: process.env['OPENSEARCH_CONNECTION_STRING'] || process.env['OPENSEARCH_URL'] || 'https://localhost:9200',
   // For managed OpenSearch, authentication is typically handled via the connection string
   // or AWS IAM roles, so we'll keep this flexible
-  ...(process.env.OPENSEARCH_USERNAME && process.env.OPENSEARCH_PASSWORD ? {
+  ...(process.env['OPENSEARCH_USERNAME'] && process.env['OPENSEARCH_PASSWORD'] ? {
     auth: {
-      username: process.env.OPENSEARCH_USERNAME,
-      password: process.env.OPENSEARCH_PASSWORD
+      username: process.env['OPENSEARCH_USERNAME'],
+      password: process.env['OPENSEARCH_PASSWORD']
     }
   } : {}),
   ssl: {
-    rejectUnauthorized: process.env.NODE_ENV === 'production'
+    rejectUnauthorized: process.env['NODE_ENV'] === 'production'
   }
 });
 

@@ -121,7 +121,7 @@ const resolvers = {
       });
     },
     
-    me: async (_: any, __: any, context: any) => {
+    me: async (_: any, __: any, _context: any) => {
       // TODO: Implement with authentication context
       // For now, returning null as auth is not implemented
       return null;
@@ -129,35 +129,35 @@ const resolvers = {
   },
   
   Mutation: {
-    createListing: async (_: any, { input }: { input: any }, context: any) => {
+    createListing: async (_: any, { input: _input }: { input: any }, _context: any) => {
       // TODO: Get userId from auth context
       // For now, throwing error as auth is not implemented
       throw new Error('Authentication not implemented');
     },
     
-    updateListing: async (_: any, { id, input }: { id: string; input: any }, context: any) => {
+    updateListing: async (_: any, { id: _id, input: _input }: { id: string; input: any }, _context: any) => {
       // TODO: Verify ownership with auth context
       // For now, throwing error as auth is not implemented
       throw new Error('Authentication not implemented');
     },
     
-    deleteListing: async (_: any, { id }: { id: string }, context: any) => {
+    deleteListing: async (_: any, { id: _id }: { id: string }, _context: any) => {
       // TODO: Verify ownership with auth context
       // For now, throwing error as auth is not implemented
       throw new Error('Authentication not implemented');
     },
     
-    register: async (_: any, { input }: { input: any }) => {
+    register: async (_: any, { input: _input }: { input: any }) => {
       // TODO: Implement with bcrypt and JWT
       throw new Error('Authentication not implemented');
     },
     
-    login: async (_: any, { input }: { input: any }) => {
+    login: async (_: any, { input: _input }: { input: any }) => {
       // TODO: Implement with bcrypt and JWT
       throw new Error('Authentication not implemented');
     },
     
-    updateProfile: async (_: any, { input }: { input: any }, context: any) => {
+    updateProfile: async (_: any, { input: _input }: { input: any }, _context: any) => {
       // TODO: Get userId from auth context
       // For now, throwing error as auth is not implemented
       throw new Error('Authentication not implemented');
@@ -243,7 +243,7 @@ async function startServer(): Promise<void> {
   
   // Configure CORS for production and development
   const corsOptions = {
-    origin: process.env.NODE_ENV === 'production' 
+    origin: process.env['NODE_ENV'] === 'production' 
       ? ['https://thegild.app', 'https://www.thegild.app']
       : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
@@ -260,7 +260,7 @@ async function startServer(): Promise<void> {
     schema,
     graphqlEndpoint: '/graphql',
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
+      origin: process.env['NODE_ENV'] === 'production' 
         ? ['https://thegild.app', 'https://www.thegild.app']
         : ['http://localhost:5173', 'http://localhost:3000'],
       credentials: true,
@@ -269,7 +269,7 @@ async function startServer(): Promise<void> {
   
   app.use('/graphql', yoga);
 
-  const PORT = process.env.PORT || 4000;
+  const PORT = process.env['PORT'] || 4000;
   
   app.listen(PORT, () => {
     console.log(`Server ready at http://localhost:${PORT}/graphql`);
