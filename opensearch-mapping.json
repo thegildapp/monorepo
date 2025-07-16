@@ -20,9 +20,6 @@
       "price": {
         "type": "integer"
       },
-      "category": {
-        "type": "keyword"
-      },
       "images": {
         "type": "keyword",
         "index": false

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFragment, graphql } from 'react-relay'
-import { CategoryType } from '../../types';
 import type { ListingCard_listing$key } from '../../__generated__/ListingCard_listing.graphql'
 import ImageWithFallback from '../common/ImageWithFallback';
 import styles from './ListingCard.module.css'
@@ -11,7 +10,6 @@ const ListingCardFragment = graphql`
     id
     title
     price
-    category
     images
     city
     state
@@ -21,10 +19,9 @@ const ListingCardFragment = graphql`
 
 interface ListingCardProps {
   listing: ListingCard_listing$key;
-  category?: CategoryType;
 }
 
-const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef, category }) => {
+const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const listing = useFragment(ListingCardFragment, listingRef);
   const navigate = useNavigate()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -131,7 +128,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef, category
         return
       }
     }
-    navigate(`/${(category || listing.category).toLowerCase()}/${listing.id}`)
+    navigate(`/listing/${listing.id}`)
   }
 
   const handlePrevImage = (e: React.MouseEvent) => {

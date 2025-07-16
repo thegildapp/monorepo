@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<14c364f5a2fceeeb6639fadcd7e5ff93>>
+ * @generated SignedSource<<405853ea58ccd6c61405f16275f6b3b6>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -43,41 +43,6 @@ v2 = {
   "args": null,
   "kind": "ScalarField",
   "name": "id",
-  "storageKey": null
-},
-v3 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "year",
-  "storageKey": null
-},
-v4 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "make",
-  "storageKey": null
-},
-v5 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "model",
-  "storageKey": null
-},
-v6 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "engineType",
-  "storageKey": null
-},
-v7 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "mileage",
   "storageKey": null
 };
 return {
@@ -139,13 +104,6 @@ return {
             "args": null,
             "kind": "ScalarField",
             "name": "price",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "category",
             "storageKey": null
           },
           {
@@ -226,124 +184,6 @@ return {
           {
             "alias": null,
             "args": null,
-            "concreteType": null,
-            "kind": "LinkedField",
-            "name": "specifications",
-            "plural": false,
-            "selections": [
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "__typename",
-                "storageKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "length",
-                    "storageKey": null
-                  },
-                  (v3/*: any*/),
-                  (v4/*: any*/),
-                  (v5/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "hullMaterial",
-                    "storageKey": null
-                  },
-                  (v6/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "horsepower",
-                    "storageKey": null
-                  }
-                ],
-                "type": "BoatSpecifications",
-                "abstractKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  (v3/*: any*/),
-                  (v4/*: any*/),
-                  (v5/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "hours",
-                    "storageKey": null
-                  },
-                  (v6/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "seats",
-                    "storageKey": null
-                  }
-                ],
-                "type": "PlaneSpecifications",
-                "abstractKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  (v3/*: any*/),
-                  (v4/*: any*/),
-                  (v5/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "engineSize",
-                    "storageKey": null
-                  },
-                  (v7/*: any*/)
-                ],
-                "type": "BikeSpecifications",
-                "abstractKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  (v3/*: any*/),
-                  (v4/*: any*/),
-                  (v5/*: any*/),
-                  (v7/*: any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "transmission",
-                    "storageKey": null
-                  },
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "fuelType",
-                    "storageKey": null
-                  }
-                ],
-                "type": "CarSpecifications",
-                "abstractKey": null
-              }
-            ],
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
             "kind": "ScalarField",
             "name": "updatedAt",
             "storageKey": null
@@ -354,12 +194,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "4285847f2fd62ff8bb92861dd0a3d1d5",
+    "cacheID": "56553ecfcbe15e59c249226a1720089a",
     "id": null,
     "metadata": {},
     "name": "listingsGetListingQuery",
     "operationKind": "query",
-    "text": "query listingsGetListingQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingCard_listing\n    ...listingsListingDetail_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  category\n  images\n  city\n  state\n  createdAt\n}\n\nfragment listingsListingDetail_listing on Listing {\n  id\n  title\n  description\n  price\n  category\n  images\n  city\n  state\n  seller {\n    id\n    name\n    email\n    phone\n    avatarUrl\n  }\n  specifications {\n    __typename\n    ... on BoatSpecifications {\n      length\n      year\n      make\n      model\n      hullMaterial\n      engineType\n      horsepower\n    }\n    ... on PlaneSpecifications {\n      year\n      make\n      model\n      hours\n      engineType\n      seats\n    }\n    ... on BikeSpecifications {\n      year\n      make\n      model\n      engineSize\n      mileage\n    }\n    ... on CarSpecifications {\n      year\n      make\n      model\n      mileage\n      transmission\n      fuelType\n    }\n  }\n  createdAt\n  updatedAt\n}\n"
+    "text": "query listingsGetListingQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingCard_listing\n    ...listingsListingDetail_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n\nfragment listingsListingDetail_listing on Listing {\n  id\n  title\n  description\n  price\n  images\n  city\n  state\n  seller {\n    id\n    name\n    email\n    phone\n    avatarUrl\n  }\n  createdAt\n  updatedAt\n}\n"
   }
 };
 })();

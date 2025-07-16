@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styles from './HeaderSearch.module.css';
 
 interface HeaderSearchProps {
@@ -16,7 +16,6 @@ export default function HeaderSearch({
   const [query, setQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
-  const { category } = useParams<{ category: string }>();
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -25,9 +24,7 @@ export default function HeaderSearch({
       if (onSearch) {
         onSearch(query.trim());
       } else {
-        // Navigate to category-specific search if we're in a category, otherwise general search
-        const searchPath = category ? `/${category}/search` : '/search';
-        navigate(`${searchPath}?q=${encodeURIComponent(query.trim())}`);
+        navigate(`/search?q=${encodeURIComponent(query.trim())}`);
       }
     }
   };
@@ -48,8 +45,7 @@ export default function HeaderSearch({
 
   const handleIconClick = () => {
     // Always navigate directly to search page
-    const searchPath = category ? `/${category}/search` : '/search';
-    navigate(searchPath);
+    navigate('/search');
   };
 
   return (

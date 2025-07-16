@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5e6640eba14a67fe526b51f9a084dceb>>
+ * @generated SignedSource<<2a29108d52032aae3051b648247e7e54>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -10,9 +10,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
-export type CategoryType = "BIKES" | "BOATS" | "CARS" | "PLANES" | "%future added value";
 export type listingsQuery$variables = {
-  category?: CategoryType | null | undefined;
   limit?: number | null | undefined;
   offset?: number | null | undefined;
 };
@@ -31,11 +29,6 @@ var v0 = [
   {
     "defaultValue": null,
     "kind": "LocalArgument",
-    "name": "category"
-  },
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
     "name": "limit"
   },
   {
@@ -45,11 +38,6 @@ var v0 = [
   }
 ],
 v1 = [
-  {
-    "kind": "Variable",
-    "name": "category",
-    "variableName": "category"
-  },
   {
     "kind": "Variable",
     "name": "limit",
@@ -127,13 +115,6 @@ return {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "category",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
             "name": "images",
             "storageKey": null
           },
@@ -164,16 +145,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "02b144ba8c3ade303df79ccb047d11e0",
+    "cacheID": "a9006b2fd116974d416f5b520c4ee132",
     "id": null,
     "metadata": {},
     "name": "listingsQuery",
     "operationKind": "query",
-    "text": "query listingsQuery(\n  $category: CategoryType\n  $limit: Int\n  $offset: Int\n) {\n  listings(category: $category, limit: $limit, offset: $offset) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  category\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsQuery(\n  $limit: Int\n  $offset: Int\n) {\n  listings(limit: $limit, offset: $offset) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();
 
-(node as any).hash = "c6b9d0aaf8dd76c356c3d97a35e4594c";
+(node as any).hash = "77acd9ab68147135bb3bd84aa34b6a6f";
 
 export default node;

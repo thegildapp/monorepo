@@ -4,7 +4,6 @@ import cors from 'cors';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import prisma from './config/prisma';
-import { CategoryType } from '@prisma/client';
 import { searchListings } from './services/searchService';
 import { ensureListingsIndex } from './config/opensearch';
 
@@ -14,10 +13,10 @@ const typeDefs = readFileSync(schemaPath, 'utf8');
 
 const resolvers = {
   Query: {
-    listings: async (_: any, args: { category?: CategoryType; limit?: number | null; offset?: number | null }) => {
-      const { category, limit, offset } = args;
+    listings: async (_: any, args: { limit?: number | null; offset?: number | null }) => {
+      const { limit, offset } = args;
       
-      const where = category ? { category } : {};
+      const where = {};
       
       const queryOptions: any = {
         where,
@@ -59,13 +58,12 @@ const resolvers = {
       };
     },
     
-    searchListings: async (_: any, args: { query: string; category?: CategoryType; limit?: number | null; offset?: number | null; filters?: any }) => {
-      const { query, category, limit, offset, filters } = args;
+    searchListings: async (_: any, args: { query: string; limit?: number | null; offset?: number | null; filters?: any }) => {
+      const { query, limit, offset, filters } = args;
       
       try {
         const result = await searchListings({
           query,
-          category,
           limit: typeof limit === 'number' ? limit : 20,
           offset: typeof offset === 'number' ? offset : 0,
           filters: filters ? {
@@ -88,14 +86,9 @@ const resolvers = {
         
         // Fallback to basic database search
         const where = {
-          AND: [
-            category ? { category } : {},
-            {
-              OR: [
-                { title: { contains: query, mode: 'insensitive' as const } },
-                { description: { contains: query, mode: 'insensitive' as const } },
-              ],
-            },
+          OR: [
+            { title: { contains: query, mode: 'insensitive' as const } },
+            { description: { contains: query, mode: 'insensitive' as const } },
           ],
         };
         
@@ -173,25 +166,6 @@ const resolvers = {
   
   // Field resolvers
   Listing: {
-    specifications: (parent: any) => {
-      if (!parent.specifications) return null;
-      
-      const specs = parent.specifications as any;
-      
-      // Return the specifications with the appropriate __typename
-      switch (parent.category) {
-        case 'BOATS':
-          return { ...specs, __typename: 'BoatSpecifications' };
-        case 'PLANES':
-          return { ...specs, __typename: 'PlaneSpecifications' };
-        case 'BIKES':
-          return { ...specs, __typename: 'BikeSpecifications' };
-        case 'CARS':
-          return { ...specs, __typename: 'CarSpecifications' };
-        default:
-          return null;
-      }
-    },
     createdAt: (parent: any) => {
       // If it's already a Date object, convert to ISO string
       if (parent.createdAt instanceof Date) {

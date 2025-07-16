@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d16305dc1bd9ed9cc671ef452aa60d21>>
+ * @generated SignedSource<<3fc2296c962520536688da6eb154d6e8>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -10,7 +10,6 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
-export type CategoryType = "BIKES" | "BOATS" | "CARS" | "PLANES" | "%future added value";
 export type SearchFilters = {
   location?: string | null | undefined;
   make?: string | null | undefined;
@@ -21,7 +20,6 @@ export type SearchFilters = {
   yearMin?: number | null | undefined;
 };
 export type listingsSearchQuery$variables = {
-  category?: CategoryType | null | undefined;
   filters?: SearchFilters | null | undefined;
   limit?: number | null | undefined;
   offset?: number | null | undefined;
@@ -41,34 +39,24 @@ const node: ConcreteRequest = (function(){
 var v0 = {
   "defaultValue": null,
   "kind": "LocalArgument",
-  "name": "category"
+  "name": "filters"
 },
 v1 = {
   "defaultValue": null,
   "kind": "LocalArgument",
-  "name": "filters"
+  "name": "limit"
 },
 v2 = {
   "defaultValue": null,
   "kind": "LocalArgument",
-  "name": "limit"
+  "name": "offset"
 },
 v3 = {
   "defaultValue": null,
   "kind": "LocalArgument",
-  "name": "offset"
-},
-v4 = {
-  "defaultValue": null,
-  "kind": "LocalArgument",
   "name": "query"
 },
-v5 = [
-  {
-    "kind": "Variable",
-    "name": "category",
-    "variableName": "category"
-  },
+v4 = [
   {
     "kind": "Variable",
     "name": "filters",
@@ -96,8 +84,7 @@ return {
       (v0/*: any*/),
       (v1/*: any*/),
       (v2/*: any*/),
-      (v3/*: any*/),
-      (v4/*: any*/)
+      (v3/*: any*/)
     ],
     "kind": "Fragment",
     "metadata": null,
@@ -105,7 +92,7 @@ return {
     "selections": [
       {
         "alias": null,
-        "args": (v5/*: any*/),
+        "args": (v4/*: any*/),
         "concreteType": "Listing",
         "kind": "LinkedField",
         "name": "searchListings",
@@ -126,18 +113,17 @@ return {
   "kind": "Request",
   "operation": {
     "argumentDefinitions": [
-      (v4/*: any*/),
-      (v0/*: any*/),
-      (v2/*: any*/),
       (v3/*: any*/),
-      (v1/*: any*/)
+      (v1/*: any*/),
+      (v2/*: any*/),
+      (v0/*: any*/)
     ],
     "kind": "Operation",
     "name": "listingsSearchQuery",
     "selections": [
       {
         "alias": null,
-        "args": (v5/*: any*/),
+        "args": (v4/*: any*/),
         "concreteType": "Listing",
         "kind": "LinkedField",
         "name": "searchListings",
@@ -162,13 +148,6 @@ return {
             "args": null,
             "kind": "ScalarField",
             "name": "price",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "category",
             "storageKey": null
           },
           {
@@ -205,16 +184,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "1b3dbb43dabc821aac53f4cea7138a08",
+    "cacheID": "0b9c47760a03d59fcc1cfbd64f0b3aa3",
     "id": null,
     "metadata": {},
     "name": "listingsSearchQuery",
     "operationKind": "query",
-    "text": "query listingsSearchQuery(\n  $query: String!\n  $category: CategoryType\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, category: $category, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  category\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsSearchQuery(\n  $query: String!\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();
 
-(node as any).hash = "787004962f588e7158e0776d8905c16e";
+(node as any).hash = "066de7787cb3dc7e16ffe3896ac5c052";
 
 export default node;

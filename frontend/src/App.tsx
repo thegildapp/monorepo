@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './components/pages/HomePage';
-import CategoryPage from './components/pages/CategoryPage';
 import ItemPage from './components/pages/ItemPage';
 import SearchPage from './components/pages/SearchPage';
 import ScrollToTop from './components/utils/ScrollToTop';
@@ -12,9 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/:category" element={<CategoryPage />} />
-        <Route path="/:category/search" element={<SearchPage />} />
-        <Route path="/:category/:itemId" element={<ItemPage />} />
+        <Route path="/listing/:itemId" element={<ItemPage />} />
       </Routes>
     </>
   );

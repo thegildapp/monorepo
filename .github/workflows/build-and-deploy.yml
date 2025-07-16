@@ -87,6 +87,14 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
+          # Apply nginx configurations
+          kubectl apply -f k8s/nginx-configmap.yaml
+          kubectl apply -f k8s/ingress-nginx-service.yaml
+          
+          # Apply ingress and cert configurations
+          kubectl apply -f k8s/letsencrypt-issuer.yaml
+          kubectl apply -f k8s/ingress.yaml
+          
           # Apply deployments
           kubectl apply -f k8s/backend-deployment.prod.yaml
           kubectl apply -f k8s/frontend-deployment.prod.yaml

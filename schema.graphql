@@ -1,10 +1,3 @@
-enum CategoryType {
-  BOATS
-  PLANES
-  BIKES
-  CARS
-}
-
 
 type User {
   id: ID!
@@ -21,60 +14,20 @@ type Listing {
   title: String!
   description: String!
   price: Int!
-  category: CategoryType!
   images: [String!]!
   city: String
   state: String
   latitude: Float
   longitude: Float
   seller: User!
-  specifications: ListingSpecifications!
   createdAt: String!
   updatedAt: String!
 }
 
-union ListingSpecifications = BoatSpecifications | PlaneSpecifications | BikeSpecifications | CarSpecifications
-
-type BoatSpecifications {
-  length: Float
-  year: Int
-  make: String
-  model: String
-  hullMaterial: String
-  engineType: String
-  horsepower: Int
-}
-
-type PlaneSpecifications {
-  year: Int
-  make: String
-  model: String
-  hours: Float
-  engineType: String
-  seats: Int
-}
-
-type BikeSpecifications {
-  year: Int
-  make: String
-  model: String
-  engineSize: Float
-  mileage: Int
-}
-
-type CarSpecifications {
-  year: Int
-  make: String
-  model: String
-  mileage: Int
-  transmission: String
-  fuelType: String
-}
-
 type Query {
-  listings(category: CategoryType, limit: Int, offset: Int): [Listing!]!
+  listings(limit: Int, offset: Int): [Listing!]!
   listing(id: ID!): Listing
-  searchListings(query: String!, category: CategoryType, limit: Int, offset: Int, filters: SearchFilters): [Listing!]!
+  searchListings(query: String!, limit: Int, offset: Int, filters: SearchFilters): [Listing!]!
   user(id: ID!): User
   me: User
 }
@@ -125,63 +78,17 @@ input CreateListingInput {
   title: String!
   description: String!
   price: Int!
-  category: CategoryType!
   images: [String!]!
   city: String!
   state: String!
-  specifications: ListingSpecificationsInput!
 }
 
 input UpdateListingInput {
   title: String
   description: String
   price: Int
-  category: CategoryType
   images: [String!]
   city: String
   state: String
-  specifications: ListingSpecificationsInput
 }
 
-input ListingSpecificationsInput {
-  boat: BoatSpecificationsInput
-  plane: PlaneSpecificationsInput
-  bike: BikeSpecificationsInput
-  car: CarSpecificationsInput
-}
-
-input BoatSpecificationsInput {
-  length: Float
-  year: Int
-  make: String
-  model: String
-  hullMaterial: String
-  engineType: String
-  horsepower: Int
-}
-
-input PlaneSpecificationsInput {
-  year: Int
-  make: String
-  model: String
-  hours: Float
-  engineType: String
-  seats: Int
-}
-
-input BikeSpecificationsInput {
-  year: Int
-  make: String
-  model: String
-  engineSize: Float
-  mileage: Int
-}
-
-input CarSpecificationsInput {
-  year: Int
-  make: String
-  model: String
-  mileage: Int
-  transmission: String
-  fuelType: String
-}

@@ -5,19 +5,10 @@ import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
-import type { Category } from '../features/CategoryGrid';
-import { CategoryType } from '../../types';
 import { GetListingQuery } from '../../queries/listings';
 import type { listingsGetListingQuery as GetListingQueryType } from '../../__generated__/listingsGetListingQuery.graphql';
 import type { listingsListingDetail_listing$key } from '../../__generated__/listingsListingDetail_listing.graphql';
 import styles from './ItemPage.module.css';
-
-const mainCategories: Category[] = [
-  { id: 1, name: 'Boats', icon: '/boats.svg' },
-  { id: 2, name: 'Planes', icon: '/planes.svg' },
-  { id: 3, name: 'Bikes', icon: '/bikes.svg' },
-  { id: 4, name: 'Cars', icon: '/cars.svg' }
-];
 
 import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
@@ -277,18 +268,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           </div>
         </div>
 
-        {/* Specifications */}
-        {listing.specifications && (
-          <>
-            <div className={styles.divider}></div>
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Specifications</h2>
-              <div className={styles.specifications}>
-                {renderSpecifications(listing.specifications)}
-              </div>
-            </div>
-          </>
-        )}
       </div>
 
       {/* Fullscreen Image Viewer */}
@@ -360,44 +339,8 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   );
 }
 
-function renderSpecifications(specs: any) {
-  const entries = Object.entries(specs).filter(([key]) => key !== '__typename');
-  
-  return (
-    <div className={styles.specsGrid}>
-      {entries.map(([key, value]) => (
-        <div key={key} className={styles.specItem}>
-          <span className={styles.specLabel}>{formatSpecLabel(key)}</span>
-          <span className={styles.specValue}>{formatSpecValue(key, value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function formatSpecLabel(key: string): string {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, str => str.toUpperCase())
-    .trim();
-}
-
-function formatSpecValue(key: string, value: any): string {
-  if (value === null || value === undefined) return 'N/A';
-  
-  // Format specific fields
-  if (key === 'mileage') return `${value.toLocaleString()} miles`;
-  if (key === 'hours') return `${value.toLocaleString()} hours`;
-  if (key === 'length') return `${value} ft`;
-  if (key === 'engineSize') return `${value} cc`;
-  if (key === 'horsepower') return `${value} hp`;
-  if (key === 'seats') return `${value} seats`;
-  
-  return String(value);
-}
-
 export default function ItemPage() {
-  const { category, itemId } = useParams<{ category: string; itemId: string }>();
+  const { itemId } = useParams<{ itemId: string }>();
   
   if (!itemId) {
     return <NotFound />;
@@ -406,27 +349,6 @@ export default function ItemPage() {
   const data = useLazyLoadQuery<GetListingQueryType>(GetListingQuery, {
     id: itemId
   });
-
-  // Check if category exists
-  const categoryData = mainCategories.find(cat => cat.name.toLowerCase() === category);
-  if (!categoryData) {
-    return <NotFound />;
-  }
-
-  // Map URL category to GraphQL enum
-  const categoryMap: Record<string, CategoryType> = {
-    'boats': CategoryType.Boats,
-    'planes': CategoryType.Planes,
-    'bikes': CategoryType.Bikes,
-    'cars': CategoryType.Cars
-  };
-  
-  const categoryEnum = categoryMap[category || ''];
-  
-  // Check if it's a valid enum value
-  if (!categoryEnum) {
-    return <NotFound />;
-  }
 
   // Check if item exists
   if (!data.listing) {
@@ -437,7 +359,6 @@ export default function ItemPage() {
     <Layout>
       <Header 
         logoText="Gild" 
-        categoryName={categoryData.name}
       />
       <Main>
         <ListingDetailView listingRef={data.listing} />

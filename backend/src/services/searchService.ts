@@ -1,10 +1,8 @@
 import client, { LISTINGS_INDEX, isOpenSearchAvailable } from '../config/opensearch';
 import prisma from '../config/prisma';
-import { CategoryType } from '@prisma/client';
 
 export interface SearchOptions {
   query: string;
-  category?: CategoryType;
   limit?: number;
   offset?: number;
   filters?: {
@@ -22,7 +20,7 @@ export interface SearchResult {
 }
 
 export async function searchListings(options: SearchOptions): Promise<SearchResult> {
-  const { query, category, limit = 20, offset = 0, filters } = options;
+  const { query, limit = 20, offset = 0, filters } = options;
 
   // Try OpenSearch first, fallback to database search
   const useOpenSearch = await isOpenSearchAvailable();
@@ -40,7 +38,7 @@ export async function searchListings(options: SearchOptions): Promise<SearchResu
 }
 
 async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResult> {
-  const { query, category, limit = 20, offset = 0, filters } = options;
+  const { query, limit = 20, offset = 0, filters } = options;
 
   // Build OpenSearch query
   const searchBody: any = {
@@ -79,13 +77,6 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     // If no query, match all
     searchBody.query.bool.must.push({
       match_all: {}
-    });
-  }
-
-  // Add category filter
-  if (category) {
-    searchBody.query.bool.filter.push({
-      term: { category: category }
     });
   }
 
@@ -178,16 +169,11 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
 }
 
 async function searchWithDatabase(options: SearchOptions): Promise<SearchResult> {
-  const { query, category, limit = 20, offset = 0, filters } = options;
+  const { query, limit = 20, offset = 0, filters } = options;
 
   const where: any = {
     AND: []
   };
-
-  // Add category filter
-  if (category) {
-    where.AND.push({ category });
-  }
 
   // Add text search
   if (query && query.trim()) {

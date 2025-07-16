@@ -59,7 +59,6 @@ export async function ensureListingsIndex(): Promise<void> {
                 analyzer: 'standard'
               },
               price: { type: 'integer' },
-              category: { type: 'keyword' },
               images: { type: 'keyword', index: false },
               city: {
                 type: 'text',

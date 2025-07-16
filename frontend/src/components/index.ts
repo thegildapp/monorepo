@@ -15,9 +15,7 @@ export { default as ListingCard } from './features/ListingCard';
 
 // Page components
 export { default as HomePage } from './pages/HomePage';
-export { default as CategoryPage } from './pages/CategoryPage';
 export { default as ItemPage } from './pages/ItemPage';
 
 // Types
 export type { Category } from './features/CategoryGrid';
-export { CategoryType } from '../types';
