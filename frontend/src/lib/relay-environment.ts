@@ -1,9 +1,10 @@
 import { Environment, Network, RecordSource, Store } from 'relay-runtime';
+import { authFetch } from '../utils/authFetch';
 
 const graphqlUrl = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:4000/graphql';
 
 async function fetchQuery(operation: any, variables: any) {
-  const response = await fetch(graphqlUrl, {
+  const response = await authFetch(graphqlUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

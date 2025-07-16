@@ -1,11 +1,17 @@
 import express from 'express';
-import { createYoga, createSchema } from 'graphql-yoga';
+import { createYoga, createSchema, YogaInitialContext } from 'graphql-yoga';
 import cors from 'cors';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import prisma from './config/prisma';
 import { searchListings } from './services/searchService';
 import { ensureListingsIndex } from './config/opensearch';
+import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
+
+// Context type
+interface Context {
+  userId: string | undefined;
+}
 
 // Read the schema from the single source of truth
 const schemaPath = join(__dirname, '../schema.graphql');
@@ -121,46 +127,187 @@ const resolvers = {
       });
     },
     
-    me: async (_: any, __: any, _context: any) => {
-      // TODO: Implement with authentication context
-      // For now, returning null as auth is not implemented
-      return null;
+    me: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) return null;
+      
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+      });
+      
+      if (!user) return null;
+      
+      return {
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      };
     },
   },
   
   Mutation: {
-    createListing: async (_: any, { input: _input }: { input: any }, _context: any) => {
-      // TODO: Get userId from auth context
-      // For now, throwing error as auth is not implemented
-      throw new Error('Authentication not implemented');
+    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string } }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to create a listing');
+      }
+      
+      const listing = await prisma.listing.create({
+        data: {
+          ...input,
+          sellerId: context.userId,
+        },
+        include: { seller: true },
+      });
+      
+      return {
+        ...listing,
+        createdAt: listing.createdAt.toISOString(),
+        updatedAt: listing.updatedAt.toISOString(),
+      };
     },
     
-    updateListing: async (_: any, { id: _id, input: _input }: { id: string; input: any }, _context: any) => {
-      // TODO: Verify ownership with auth context
-      // For now, throwing error as auth is not implemented
-      throw new Error('Authentication not implemented');
+    updateListing: async (_: any, { id, input }: { id: string; input: any }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to update a listing');
+      }
+      
+      // Check ownership
+      const listing = await prisma.listing.findUnique({
+        where: { id },
+        select: { sellerId: true },
+      });
+      
+      if (!listing) {
+        throw new Error('Listing not found');
+      }
+      
+      if (listing.sellerId !== context.userId) {
+        throw new Error('You can only update your own listings');
+      }
+      
+      const updatedListing = await prisma.listing.update({
+        where: { id },
+        data: input,
+        include: { seller: true },
+      });
+      
+      return {
+        ...updatedListing,
+        createdAt: updatedListing.createdAt.toISOString(),
+        updatedAt: updatedListing.updatedAt.toISOString(),
+      };
     },
     
-    deleteListing: async (_: any, { id: _id }: { id: string }, _context: any) => {
-      // TODO: Verify ownership with auth context
-      // For now, throwing error as auth is not implemented
-      throw new Error('Authentication not implemented');
+    deleteListing: async (_: any, { id }: { id: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to delete a listing');
+      }
+      
+      // Check ownership
+      const listing = await prisma.listing.findUnique({
+        where: { id },
+        select: { sellerId: true },
+      });
+      
+      if (!listing) {
+        throw new Error('Listing not found');
+      }
+      
+      if (listing.sellerId !== context.userId) {
+        throw new Error('You can only delete your own listings');
+      }
+      
+      await prisma.listing.delete({
+        where: { id },
+      });
+      
+      return true;
     },
     
-    register: async (_: any, { input: _input }: { input: any }) => {
-      // TODO: Implement with bcrypt and JWT
-      throw new Error('Authentication not implemented');
+    register: async (_: any, { input }: { input: { email: string; password: string; name: string; phone?: string } }) => {
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email: input.email },
+      });
+      
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+      
+      // Hash password
+      const hashedPassword = await hashPassword(input.password);
+      
+      // Create user
+      const user = await prisma.user.create({
+        data: {
+          email: input.email,
+          password: hashedPassword,
+          name: input.name,
+          phone: input.phone,
+        },
+      });
+      
+      // Generate token
+      const token = generateToken(user.id);
+      
+      return {
+        token,
+        user: {
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
+      };
     },
     
-    login: async (_: any, { input: _input }: { input: any }) => {
-      // TODO: Implement with bcrypt and JWT
-      throw new Error('Authentication not implemented');
+    login: async (_: any, { input }: { input: { email: string; password: string } }) => {
+      // Find user
+      const user = await prisma.user.findUnique({
+        where: { email: input.email },
+      });
+      
+      if (!user) {
+        throw new Error('Invalid email or password');
+      }
+      
+      // Check password
+      const validPassword = await comparePassword(input.password, user.password);
+      
+      if (!validPassword) {
+        throw new Error('Invalid email or password');
+      }
+      
+      // Generate token
+      const token = generateToken(user.id);
+      
+      return {
+        token,
+        user: {
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
+      };
     },
     
-    updateProfile: async (_: any, { input: _input }: { input: any }, _context: any) => {
-      // TODO: Get userId from auth context
-      // For now, throwing error as auth is not implemented
-      throw new Error('Authentication not implemented');
+    updateProfile: async (_: any, { input }: { input: { name?: string; phone?: string; avatarUrl?: string } }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to update your profile');
+      }
+      
+      const user = await prisma.user.update({
+        where: { id: context.userId },
+        data: {
+          ...(input.name && { name: input.name }),
+          ...(input.phone !== undefined && { phone: input.phone }),
+          ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
+        },
+      });
+      
+      return {
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      };
     },
   },
   
@@ -264,6 +411,26 @@ async function startServer(): Promise<void> {
         ? ['https://thegild.app', 'https://www.thegild.app']
         : ['http://localhost:5173', 'http://localhost:3000'],
       credentials: true,
+    },
+    context: async (initialContext) => {
+      // Extract token from Authorization header
+      const token = extractTokenFromHeader(initialContext.request.headers.get('authorization') || undefined);
+      
+      let userId: string | undefined;
+      
+      if (token) {
+        try {
+          const payload = verifyToken(token);
+          userId = payload.userId;
+        } catch (error) {
+          // Invalid token, continue without user context
+        }
+      }
+      
+      return {
+        ...initialContext,
+        userId,
+      };
     },
   });
   
