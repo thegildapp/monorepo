@@ -89,24 +89,37 @@ a {
   text-decoration: none;
 }
 
-/* Remove tap highlights and add focus styles */
+/* Remove tap highlights and focus outlines */
 button, a, input, textarea, select {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Remove all focus outlines */
+button:focus,
+a:focus,
+input:focus,
+textarea:focus,
+select:focus,
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: none;
 }
 
-/* Focus styles */
+/* Remove focus outline from all elements */
 :focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: none;
+}
+
+/* Remove focus outline from all elements when clicked */
+* {
+  outline: none;
+}
+
+*:focus {
+  outline: none;
 }
 
 /* Selection styles */

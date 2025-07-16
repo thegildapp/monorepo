@@ -5,6 +5,8 @@ import ItemPage from './components/pages/ItemPage';
 import SearchPage from './components/pages/SearchPage';
 import SignInPage from './components/pages/SignInPage';
 import ProfilePage from './components/pages/ProfilePage';
+import EditProfilePage from './components/pages/EditProfilePage';
+import CreateListingPage from './components/pages/CreateListingPage';
 import ScrollToTop from './components/utils/ScrollToTop';
 
 function App() {
@@ -16,7 +18,9 @@ function App() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/listing/:itemId" element={<ItemPage />} />
         <Route path="/signin" element={<SignInPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/me" element={<ProfilePage />} />
+        <Route path="/me/profile" element={<EditProfilePage />} />
+        <Route path="/me/new" element={<CreateListingPage />} />
       </Routes>
     </AuthProvider>
   );

@@ -40,7 +40,7 @@ export default function SignInPage() {
         onCompleted: (response) => {
           if (response.register) {
             login(response.register.token, response.register.user);
-            navigate('/');
+            navigate('/me');
           }
         },
         onError: (error) => {
@@ -58,7 +58,7 @@ export default function SignInPage() {
         onCompleted: (response) => {
           if (response.login) {
             login(response.login.token, response.login.user);
-            navigate('/');
+            navigate('/me');
           }
         },
         onError: (error) => {

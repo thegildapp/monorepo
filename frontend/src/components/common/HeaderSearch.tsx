@@ -59,8 +59,8 @@ export default function HeaderSearch({
           fill="none"
           onClick={handleIconClick}
         >
-          <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-          <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="2"/>
+          <path d="m16 16 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
         <input
           type="text"

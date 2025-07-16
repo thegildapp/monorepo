@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderSearch from '../common/HeaderSearch';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './Header.module.css';
@@ -12,7 +12,10 @@ interface HeaderProps {
 
 export default function Header({ logoText, categoryName, onBackClick, showSearch = true }: HeaderProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  
+  const isOnProfilePage = location.pathname === '/me';
 
   const handleLogoClick = () => {
     navigate('/');
@@ -25,7 +28,11 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
   };
 
   const handleProfileClick = () => {
-    navigate(user ? '/profile' : '/signin');
+    if (user) {
+      navigate('/me');
+    } else {
+      navigate('/signin');
+    }
   };
 
   return (
@@ -42,7 +49,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
                 </div>
               )
             ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="6.5" r="5" fill="white"/>
                 <path d="M0 26c0-6.63 5.37-12 12-12s12 5.37 12 12" fill="white"/>
               </svg>
@@ -74,12 +81,50 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
           </h1>
         </div>
         
-        {showSearch && (
-          <HeaderSearch 
-            placeholder="Search..." 
-            className={styles.headerSearch}
-          />
-        )}
+        <div className={styles.rightSection}>
+          {user && isOnProfilePage && (
+            <>
+              <button 
+                onClick={() => navigate('/me/new')} 
+                className={styles.listButton}
+                title="Create new listing"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                List
+              </button>
+              <button
+                onClick={() => navigate('/me/profile')}
+                className={styles.headerActionLink}
+              >
+                Profile
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className={styles.headerActionLink}
+              >
+                Browse
+              </button>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
+                className={styles.headerActionLink}
+              >
+                Sign Out
+              </button>
+            </>
+          )}
+          
+          {showSearch && (
+            <HeaderSearch 
+              placeholder="Search..." 
+              className={styles.headerSearch}
+            />
+          )}
+        </div>
       </div>
       <div className={styles.headerBorder}></div>
     </header>
