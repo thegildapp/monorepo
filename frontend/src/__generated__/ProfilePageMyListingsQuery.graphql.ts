@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<16bc202bf2a2f92d56aab05b39ab00c4>>
+ * @generated SignedSource<<593a74fcb2437f779fc5fe4b70c5fe1e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -10,13 +10,12 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
+export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 export type ProfilePageMyListingsQuery$variables = Record<PropertyKey, never>;
 export type ProfilePageMyListingsQuery$data = {
-  readonly listings: ReadonlyArray<{
+  readonly myListings: ReadonlyArray<{
     readonly id: string;
-    readonly seller: {
-      readonly id: string;
-    };
+    readonly status: ListingStatus;
     readonly " $fragmentSpreads": FragmentRefs<"ListingCard_listing">;
   }>;
 };
@@ -36,13 +35,8 @@ var v0 = {
 v1 = {
   "alias": null,
   "args": null,
-  "concreteType": "User",
-  "kind": "LinkedField",
-  "name": "seller",
-  "plural": false,
-  "selections": [
-    (v0/*: any*/)
-  ],
+  "kind": "ScalarField",
+  "name": "status",
   "storageKey": null
 };
 return {
@@ -57,7 +51,7 @@ return {
         "args": null,
         "concreteType": "Listing",
         "kind": "LinkedField",
-        "name": "listings",
+        "name": "myListings",
         "plural": true,
         "selections": [
           (v0/*: any*/),
@@ -85,7 +79,7 @@ return {
         "args": null,
         "concreteType": "Listing",
         "kind": "LinkedField",
-        "name": "listings",
+        "name": "myListings",
         "plural": true,
         "selections": [
           (v0/*: any*/),
@@ -138,16 +132,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "93066507d638369e89800ea2112135a5",
+    "cacheID": "c70337d0145f4611862695208b86041b",
     "id": null,
     "metadata": {},
     "name": "ProfilePageMyListingsQuery",
     "operationKind": "query",
-    "text": "query ProfilePageMyListingsQuery {\n  listings {\n    id\n    seller {\n      id\n    }\n    ...ListingCard_listing\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query ProfilePageMyListingsQuery {\n  myListings {\n    id\n    status\n    ...ListingCard_listing\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();
 
-(node as any).hash = "576f2cdc0f5c94c3d91bc63c3db9fb17";
+(node as any).hash = "600aef6ad9febe23715ab869ce319cdb";
 
 export default node;

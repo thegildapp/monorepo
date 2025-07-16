@@ -98,6 +98,11 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     });
   }
 
+  // Only show approved listings
+  searchBody.query.bool.filter.push({
+    term: { status: 'APPROVED' }
+  });
+
   // Add specification filters
   if (filters?.specifications) {
     Object.entries(filters.specifications).forEach(([key, value]) => {
@@ -171,7 +176,10 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
   const { query, limit = 20, offset = 0, filters } = options;
 
   const where: any = {
-    AND: []
+    AND: [
+      // Only show approved listings
+      { status: 'APPROVED' }
+    ]
   };
 
   // Add text search

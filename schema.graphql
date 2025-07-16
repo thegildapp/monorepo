@@ -9,6 +9,12 @@ type User {
   updatedAt: String!
 }
 
+enum ListingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 type Listing {
   id: ID!
   title: String!
@@ -19,6 +25,7 @@ type Listing {
   state: String
   latitude: Float
   longitude: Float
+  status: ListingStatus!
   seller: User!
   createdAt: String!
   updatedAt: String!
@@ -30,6 +37,7 @@ type Query {
   searchListings(query: String!, limit: Int, offset: Int, filters: SearchFilters): [Listing!]!
   user(id: ID!): User
   me: User
+  myListings: [Listing!]!
 }
 
 input SearchFilters {
@@ -42,10 +50,16 @@ input SearchFilters {
   model: String
 }
 
+type UploadUrl {
+  url: String!
+  key: String!
+}
+
 type Mutation {
   createListing(input: CreateListingInput!): Listing!
   updateListing(id: ID!, input: UpdateListingInput!): Listing!
   deleteListing(id: ID!): Boolean!
+  generateUploadUrl(filename: String!, contentType: String!): UploadUrl!
   register(input: RegisterInput!): AuthPayload!
   login(input: LoginInput!): AuthPayload!
   updateProfile(input: UpdateProfileInput!): User!

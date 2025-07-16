@@ -3,15 +3,29 @@ import { createYoga, createSchema, YogaInitialContext } from 'graphql-yoga';
 import cors from 'cors';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import prisma from './config/prisma';
 import { searchListings } from './services/searchService';
 import { ensureListingsIndex } from './config/opensearch';
 import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
+import { moderateContent, updateListingStatus } from './utils/moderation';
 
 // Context type
 interface Context {
   userId: string | undefined;
 }
+
+// Configure S3 client for Digital Ocean Spaces
+const s3Client = new S3Client({
+  endpoint: process.env['SPACES_ENDPOINT'] || 'https://nyc3.digitaloceanspaces.com',
+  region: process.env['SPACES_REGION'] || 'nyc3',
+  credentials: {
+    accessKeyId: process.env['SPACES_ACCESS_KEY'] || '',
+    secretAccessKey: process.env['SPACES_SECRET_KEY'] || '',
+  },
+});
+
 
 // Read the schema from the single source of truth
 const schemaPath = join(__dirname, '../schema.graphql');
@@ -22,7 +36,9 @@ const resolvers = {
     listings: async (_: any, args: { limit?: number | null; offset?: number | null }) => {
       const { limit, offset } = args;
       
-      const where = {};
+      const where = {
+        status: 'APPROVED',
+      };
       
       const queryOptions: any = {
         where,
@@ -142,6 +158,26 @@ const resolvers = {
         updatedAt: user.updatedAt.toISOString(),
       };
     },
+    
+    myListings: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to view your listings');
+      }
+      
+      const listings = await prisma.listing.findMany({
+        where: {
+          sellerId: context.userId,
+        },
+        include: { seller: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      
+      return listings.map(listing => ({
+        ...listing,
+        createdAt: listing.createdAt.toISOString(),
+        updatedAt: listing.updatedAt.toISOString(),
+      }));
+    },
   },
   
   Mutation: {
@@ -150,12 +186,33 @@ const resolvers = {
         throw new Error('You must be logged in to create a listing');
       }
       
+      // Create listing with PENDING status by default
       const listing = await prisma.listing.create({
         data: {
           ...input,
           sellerId: context.userId,
+          status: 'PENDING',
         },
         include: { seller: true },
+      });
+      
+      // Perform content moderation asynchronously
+      moderateContent(input.title, input.description).then(async (isApproved) => {
+        await updateListingStatus(listing.id, isApproved);
+        
+        // If approved, add to search index
+        if (isApproved) {
+          try {
+            // You might want to implement search indexing here later
+            console.log('Listing approved and ready for search indexing:', listing.id);
+          } catch (error) {
+            console.error('Error indexing listing:', error);
+          }
+        }
+      }).catch(error => {
+        console.error('Error in content moderation:', error);
+        // Default to approved if moderation fails
+        updateListingStatus(listing.id, true);
       });
       
       return {
@@ -163,6 +220,43 @@ const resolvers = {
         createdAt: listing.createdAt.toISOString(),
         updatedAt: listing.updatedAt.toISOString(),
       };
+    },
+    
+    generateUploadUrl: async (_: any, { filename, contentType }: { filename: string; contentType: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to upload files');
+      }
+      
+      // Validate content type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(contentType)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      }
+      
+      // Generate unique key for the file
+      const timestamp = Date.now();
+      const key = `listings/${context.userId}/${timestamp}-${filename}`;
+      
+      const bucketName = process.env['SPACES_BUCKET'] || 'gild-images';
+      
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        ContentType: contentType,
+        ACL: 'public-read',
+      });
+      
+      try {
+        const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 }); // 15 minutes
+        
+        return {
+          url: signedUrl,
+          key: key,
+        };
+      } catch (error) {
+        console.error('Error generating upload URL:', error);
+        throw new Error('Failed to generate upload URL');
+      }
     },
     
     updateListing: async (_: any, { id, input }: { id: string; input: any }, context: YogaInitialContext & Context) => {

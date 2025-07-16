@@ -11,11 +11,9 @@ import styles from './ProfilePage.module.css';
 
 const MyListingsQuery = graphql`
   query ProfilePageMyListingsQuery {
-    listings {
+    myListings {
       id
-      seller {
-        id
-      }
+      status
       ...ListingCard_listing
     }
   }
@@ -26,15 +24,27 @@ function ProfilePageContent() {
   const { user } = useAuth();
   const data = useLazyLoadQuery<ProfilePageMyListingsQuery>(MyListingsQuery, {});
 
-  // Filter listings to only show current user's listings
-  const myListings = data.listings?.filter(listing => listing.seller.id === user?.id) || [];
+  // Get user's listings directly from myListings query
+  const myListings = data.myListings || [];
 
   return (
     <>
       {myListings.length > 0 ? (
         <div className={styles.listingsGrid}>
           {myListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <div key={listing.id} className={styles.listingWrapper}>
+              <ListingCard listing={listing} />
+              {listing.status === 'PENDING' && (
+                <div className={styles.statusBadge}>
+                  Under Review
+                </div>
+              )}
+              {listing.status === 'REJECTED' && (
+                <div className={styles.statusBadge + ' ' + styles.rejected}>
+                  Rejected
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (

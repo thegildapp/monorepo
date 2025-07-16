@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'react-relay';
 import Layout from '../layout/Layout';
@@ -12,7 +12,7 @@ import styles from './SignInPage.module.css';
 
 export default function SignInPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +22,13 @@ export default function SignInPage() {
 
   const [commitLogin, isLoginInFlight] = useMutation<authLoginMutation>(LoginMutation);
   const [commitRegister, isRegisterInFlight] = useMutation<authRegisterMutation>(RegisterMutation);
+
+  // Redirect if already signed in
+  useEffect(() => {
+    if (user) {
+      navigate('/me');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -45,3 +45,34 @@ export const ListingDetailFragment = graphql`
     updatedAt
   }
 `;
+
+export const CreateListingMutation = graphql`
+  mutation listingsCreateListingMutation($input: CreateListingInput!) {
+    createListing(input: $input) {
+      id
+      title
+      description
+      price
+      images
+      city
+      state
+      status
+      createdAt
+      updatedAt
+      seller {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
+
+export const GenerateUploadUrlMutation = graphql`
+  mutation listingsGenerateUploadUrlMutation($filename: String!, $contentType: String!) {
+    generateUploadUrl(filename: $filename, contentType: $contentType) {
+      url
+      key
+    }
+  }
+`;

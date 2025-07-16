@@ -20,6 +20,197 @@
   line-height: 1.2;
 }
 
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  transition: border-color 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-bottom-color: var(--color-text-primary);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.locationRow {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.locationRow .input {
+  flex: 1;
+}
+
+.imageUpload {
+  margin-top: var(--space-4);
+}
+
+.uploadLabel {
+  display: block;
+  padding: var(--space-4);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.uploadLabel:hover {
+  border-color: var(--color-text-primary);
+}
+
+.fileInput {
+  display: none;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.imagePreview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-gray-100);
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeButton {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.removeButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.uploadProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--color-text-primary);
+  transition: width 0.2s;
+}
+
+.imageError {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 0, 0, 0.9);
+  color: white;
+  padding: var(--space-1);
+  font-size: 12px;
+  text-align: center;
+}
+
+.error {
+  color: #c00;
+  font-size: 14px;
+  margin-top: var(--space-2);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.submitButton {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-text-primary);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-family: inherit;
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  color: var(--color-text-secondary);
+  border: none;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: inherit;
+  text-decoration: underline;
+}
+
+.cancelButton:hover {
+  color: var(--color-text-primary);
+}
+
 @media (max-width: 768px) {
   .container {
     padding: var(--space-4);
@@ -27,5 +218,13 @@
 
   .title {
     font-size: 28px;
+  }
+  
+  .locationRow {
+    flex-direction: column;
+  }
+  
+  .imageGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }

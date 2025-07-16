@@ -14,6 +14,8 @@
     "copy-schema": "cp ../schema.graphql ./schema.graphql 2>/dev/null || cp schema.graphql ./schema.graphql 2>/dev/null || true"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.846.0",
+    "browser-image-compression": "^2.0.2",
     "graphql": "^16.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
