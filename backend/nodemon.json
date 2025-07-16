@@ -2,6 +2,7 @@
   "watch": ["src"],
   "ext": "ts,js",
   "ignore": ["src/**/*.test.ts"],
+  "exec": "tsc --noEmit && ts-node src/index.ts",
   "env": {
     "NODE_ENV": "development"
   },

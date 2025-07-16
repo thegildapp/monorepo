@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build && vite --host 0.0.0.0 --port 5173",
-    "build": "npm run copy-schema && relay-compiler && tsc -b && vite build",
-    "typecheck": "tsc -b",
+    "dev": "npm run check && vite --host 0.0.0.0 --port 5173",
+    "build": "npm run check && vite build",
+    "check": "npm run copy-schema && relay-compiler && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview",
     "relay": "npm run copy-schema && relay-compiler",
