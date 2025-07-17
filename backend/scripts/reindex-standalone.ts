@@ -1,10 +1,11 @@
+import { PrismaClient } from '@prisma/client';
 import { Client } from '@opensearch-project/opensearch';
 
-// OpenSearch client configuration for managed database
-const client = new Client({
+const prisma = new PrismaClient();
+
+// OpenSearch client configuration
+const opensearchClient = new Client({
   node: process.env['OPENSEARCH_CONNECTION_STRING'] || process.env['OPENSEARCH_URL'] || 'https://localhost:9200',
-  // For managed OpenSearch, authentication is typically handled via the connection string
-  // or AWS IAM roles, so we'll keep this flexible
   ...(process.env['OPENSEARCH_USERNAME'] && process.env['OPENSEARCH_PASSWORD'] ? {
     auth: {
       username: process.env['OPENSEARCH_USERNAME'],
@@ -16,32 +17,17 @@ const client = new Client({
   }
 });
 
-export default client;
+const LISTINGS_INDEX = 'listings';
 
-// OpenSearch index name
-export const LISTINGS_INDEX = 'listings';
-
-// Helper function to check if OpenSearch is available
-export async function isOpenSearchAvailable(): Promise<boolean> {
+async function ensureListingsIndex() {
   try {
-    await client.ping();
-    return true;
-  } catch (error) {
-    console.warn('OpenSearch not available, falling back to database search:', error);
-    return false;
-  }
-}
-
-// Helper function to ensure index exists
-export async function ensureListingsIndex(): Promise<void> {
-  try {
-    const { body: exists } = await client.indices.exists({
+    const { body: exists } = await opensearchClient.indices.exists({
       index: LISTINGS_INDEX
     });
 
     if (!exists) {
       console.log('Creating listings index...');
-      await client.indices.create({
+      await opensearchClient.indices.create({
         index: LISTINGS_INDEX,
         body: {
           mappings: {
@@ -68,7 +54,6 @@ export async function ensureListingsIndex(): Promise<void> {
                 }
               },
               state: { type: 'keyword' },
-              status: { type: 'keyword' },
               location: { type: 'geo_point' },
               seller: {
                 properties: {
@@ -89,29 +74,6 @@ export async function ensureListingsIndex(): Promise<void> {
                 format: 'strict_date_optional_time'
               }
             }
-          },
-          settings: {
-            analysis: {
-              analyzer: {
-                autocomplete: {
-                  type: 'custom',
-                  tokenizer: 'autocomplete',
-                  filter: ['lowercase']
-                },
-                autocomplete_search: {
-                  type: 'custom',
-                  tokenizer: 'lowercase'
-                }
-              },
-              tokenizer: {
-                autocomplete: {
-                  type: 'edge_ngram',
-                  min_gram: 2,
-                  max_gram: 10,
-                  token_chars: ['letter', 'digit']
-                }
-              }
-            }
           }
         }
       });
@@ -123,10 +85,9 @@ export async function ensureListingsIndex(): Promise<void> {
   }
 }
 
-// Helper function to index a listing
-export async function indexListing(listing: any): Promise<void> {
+async function indexListing(listing: any): Promise<void> {
   try {
-    await client.index({
+    await opensearchClient.index({
       index: LISTINGS_INDEX,
       id: listing.id,
       body: {
@@ -142,15 +103,38 @@ export async function indexListing(listing: any): Promise<void> {
   }
 }
 
-// Helper function to delete a listing from index
-export async function deleteListing(id: string): Promise<void> {
+async function reindexListings() {
+  console.log('🔄 Starting reindex of approved listings...');
+  
   try {
-    await client.delete({
-      index: LISTINGS_INDEX,
-      id
+    // Ensure the index exists
+    await ensureListingsIndex();
+    
+    // Get all approved listings
+    const listings = await prisma.listing.findMany({
+      where: { status: 'APPROVED' },
+      include: { seller: true },
     });
+    
+    console.log(`Found ${listings.length} approved listings to index`);
+    
+    // Index each listing
+    for (const listing of listings) {
+      try {
+        await indexListing(listing);
+        console.log(`✅ Indexed listing: ${listing.id} - ${listing.title}`);
+      } catch (error) {
+        console.error(`❌ Failed to index listing ${listing.id}:`, error);
+      }
+    }
+    
+    console.log('🎉 Reindexing complete!');
   } catch (error) {
-    console.error('Error deleting listing from index:', error);
-    throw error;
+    console.error('Error during reindexing:', error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
   }
 }
+
+reindexListings();

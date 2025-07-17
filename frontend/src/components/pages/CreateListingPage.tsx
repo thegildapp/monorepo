@@ -182,7 +182,7 @@ export default function CreateListingPage() {
         input: {
           title: title.trim(),
           description: description.trim(),
-          price: Math.round(parseFloat(price) * 100), // Convert to cents
+          price: Math.round(parseFloat(price)), // Whole dollars only
           images: imageUrls,
           city: city.trim(),
           state: state.trim(),

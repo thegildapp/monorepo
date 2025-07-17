@@ -29,6 +29,7 @@ function ProfilePageContent() {
 
   return (
     <>
+      <h1 className={styles.pageTitle}>My Listings</h1>
       {myListings.length > 0 ? (
         <div className={styles.listingsGrid}>
           {myListings.map((listing) => (

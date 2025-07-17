@@ -12,6 +12,15 @@
   max-width: 1200px;
 }
 
+.pageTitle {
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin: var(--space-6) 0 0 0;
+  font-family: 'Tinos', serif;
+  padding: 0 24px;
+}
+
 
 .form {
   display: flex;
@@ -166,6 +175,11 @@
 @media (max-width: 768px) {
   .container {
     padding: 0;
+  }
+  
+  .pageTitle {
+    font-size: 20px;
+    margin-top: var(--space-4);
   }
 }
 

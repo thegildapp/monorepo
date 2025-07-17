@@ -7,7 +7,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import prisma from './config/prisma';
 import { searchListings } from './services/searchService';
-import { ensureListingsIndex } from './config/opensearch';
+import { ensureListingsIndex, indexListing } from './config/opensearch';
 import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
 import { moderateContent, updateListingStatus } from './utils/moderation';
 
@@ -203,8 +203,15 @@ const resolvers = {
         // If approved, add to search index
         if (isApproved) {
           try {
-            // You might want to implement search indexing here later
-            console.log('Listing approved and ready for search indexing:', listing.id);
+            // Fetch the full listing with seller info for indexing
+            const fullListing = await prisma.listing.findUnique({
+              where: { id: listing.id },
+              include: { seller: true },
+            });
+            if (fullListing) {
+              await indexListing(fullListing);
+              console.log('Listing indexed successfully:', listing.id);
+            }
           } catch (error) {
             console.error('Error indexing listing:', error);
           }

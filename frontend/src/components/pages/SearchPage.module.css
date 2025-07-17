@@ -4,12 +4,45 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: transform 0.3s ease-in-out;
+}
+
+.searchHeaderHidden {
+  transform: translateY(-100%);
 }
 
 .searchForm {
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-text-primary);
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  margin-left: -8px;
+}
+
+.backButton:hover {
+  opacity: 0.7;
+}
+
+.backButton svg {
+  width: 24px;
+  height: 24px;
 }
 
 .searchInputContainer {
@@ -27,10 +60,11 @@
   border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
-.searchPageContainer {
+.listingGridContainer {
+  min-height: calc(100vh - 200px);
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-6);
 }
 
 .searchIcon {
@@ -88,6 +122,11 @@
 @media (max-width: 768px) {
   .searchForm {
     padding: var(--space-4);
+    gap: var(--space-2);
+  }
+  
+  .backButton {
+    margin-left: -4px;
   }
   
   .searchInputContainer {
@@ -97,10 +136,6 @@
   
   .searchInput {
     font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  .searchPageContainer {
-    padding: var(--space-4);
   }
   
   .noResults {
@@ -113,5 +148,28 @@
   
   .noResultsText {
     font-size: 15px;
+  }
+}
+
+/* Listings grid styling - matches ProfilePage */
+.listingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 60px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .listingsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .listingsGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

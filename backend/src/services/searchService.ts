@@ -63,8 +63,6 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
         fields: [
           'title^3',
           'description^2',
-          'specifications.make^2',
-          'specifications.model^2',
           'city',
           'seller.name'
         ],
@@ -130,6 +128,8 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     index: LISTINGS_INDEX,
     body: searchBody
   });
+
+  console.log('OpenSearch response:', JSON.stringify(response.body, null, 2));
 
   const hits = response.body.hits.hits;
   const total = typeof response.body.hits.total === 'object' 

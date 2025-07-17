@@ -36,6 +36,9 @@
       "state": {
         "type": "keyword"
       },
+      "status": {
+        "type": "keyword"
+      },
       "location": {
         "type": "geo_point"
       },
@@ -51,62 +54,6 @@
           "phone": {
             "type": "keyword",
             "index": false
-          }
-        }
-      },
-      "specifications": {
-        "type": "object",
-        "properties": {
-          "year": {
-            "type": "integer"
-          },
-          "make": {
-            "type": "text",
-            "analyzer": "standard",
-            "fields": {
-              "keyword": {
-                "type": "keyword"
-              }
-            }
-          },
-          "model": {
-            "type": "text",
-            "analyzer": "standard",
-            "fields": {
-              "keyword": {
-                "type": "keyword"
-              }
-            }
-          },
-          "mileage": {
-            "type": "integer"
-          },
-          "engineSize": {
-            "type": "float"
-          },
-          "engineType": {
-            "type": "keyword"
-          },
-          "transmission": {
-            "type": "keyword"
-          },
-          "fuelType": {
-            "type": "keyword"
-          },
-          "length": {
-            "type": "float"
-          },
-          "hullMaterial": {
-            "type": "keyword"
-          },
-          "horsepower": {
-            "type": "integer"
-          },
-          "hours": {
-            "type": "float"
-          },
-          "seats": {
-            "type": "integer"
           }
         }
       },
