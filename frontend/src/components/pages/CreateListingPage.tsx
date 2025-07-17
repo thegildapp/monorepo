@@ -188,6 +188,14 @@ export default function CreateListingPage() {
           state: state.trim(),
         },
       },
+      updater: (store) => {
+        // Invalidate the myListings query to force a refetch
+        const root = store.getRoot();
+        const myListings = root.getLinkedRecords('myListings');
+        if (myListings) {
+          root.invalidateRecord();
+        }
+      },
       onCompleted: (response) => {
         if (response.createListing) {
           navigate('/me');

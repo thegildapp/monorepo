@@ -130,8 +130,8 @@ export async function uploadImagesInParallel(
   onProgress?: (index: number, progress: UploadProgress) => void,
   maxConcurrent: number = 3
 ): Promise<UploadResult[]> {
-  const results: UploadResult[] = [];
-  const executing: Promise<void>[] = [];
+  const results: UploadResult[] = new Array(files.length);
+  const executing: Map<Promise<void>, number> = new Map();
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -143,18 +143,25 @@ export async function uploadImagesInParallel(
       onProgress ? (progress) => onProgress(index, progress) : undefined
     ).then((result) => {
       results[index] = result;
+      executing.delete(uploadPromise);
+    }).catch((error) => {
+      results[index] = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      };
+      executing.delete(uploadPromise);
     });
 
-    executing.push(uploadPromise);
+    executing.set(uploadPromise, index);
 
-    if (executing.length >= maxConcurrent) {
-      await Promise.race(executing);
-      executing.splice(executing.findIndex(p => p === uploadPromise), 1);
+    // If we've reached max concurrent uploads, wait for one to complete
+    if (executing.size >= maxConcurrent) {
+      await Promise.race(executing.keys());
     }
   }
 
   // Wait for all remaining uploads to complete
-  await Promise.all(executing);
+  await Promise.all(executing.keys());
 
   return results;
 }

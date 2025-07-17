@@ -22,7 +22,11 @@ const MyListingsQuery = graphql`
 function ProfilePageContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const data = useLazyLoadQuery<ProfilePageMyListingsQuery>(MyListingsQuery, {});
+  const data = useLazyLoadQuery<ProfilePageMyListingsQuery>(
+    MyListingsQuery, 
+    {},
+    { fetchPolicy: 'store-and-network' }
+  );
 
   // Get user's listings directly from myListings query
   const myListings = data.myListings || [];
