@@ -74,6 +74,7 @@ node_modules/
 # Kubernetes secrets (NEVER commit these)
 k8s/database-secret.yaml
 k8s/opensearch-secret.yaml
+k8s/spaces-secret.yaml
 
 # Generated schema copies
 frontend/schema.graphql

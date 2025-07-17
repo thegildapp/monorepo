@@ -26,6 +26,7 @@ build:
 manifests:
   rawYaml:
     - k8s/database-secret.yaml
+    - k8s/spaces-secret.yaml
     - k8s/backend-deployment.yaml
     - k8s/frontend-deployment.yaml
 
@@ -78,6 +79,7 @@ profiles:
     manifests:
       rawYaml:
         - k8s/database-secret.yaml
+        - k8s/spaces-secret.yaml
         - k8s/backend-deployment.prod.yaml
         - k8s/frontend-deployment.prod.yaml
         - k8s/ingress.yaml

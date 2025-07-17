@@ -18,8 +18,8 @@ interface Context {
 
 // Configure S3 client for Digital Ocean Spaces
 const s3Client = new S3Client({
-  endpoint: process.env['SPACES_ENDPOINT'] || 'https://nyc3.digitaloceanspaces.com',
-  region: process.env['SPACES_REGION'] || 'nyc3',
+  endpoint: process.env['SPACES_ENDPOINT'] || 'https://sfo3.digitaloceanspaces.com',
+  region: process.env['SPACES_REGION'] || 'sfo3',
   credentials: {
     accessKeyId: process.env['SPACES_ACCESS_KEY'] || '',
     secretAccessKey: process.env['SPACES_SECRET_KEY'] || '',
@@ -237,7 +237,7 @@ const resolvers = {
       const timestamp = Date.now();
       const key = `listings/${context.userId}/${timestamp}-${filename}`;
       
-      const bucketName = process.env['SPACES_BUCKET'] || 'gild-images';
+      const bucketName = process.env['SPACES_BUCKET'] || 'gild';
       
       const command = new PutObjectCommand({
         Bucket: bucketName,

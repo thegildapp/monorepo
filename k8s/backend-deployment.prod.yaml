@@ -47,6 +47,36 @@ spec:
                 secretKeyRef:
                   name: opensearch-secret
                   key: OPENSEARCH_PASSWORD
+            - name: SPACES_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: SPACES_ACCESS_KEY
+            - name: SPACES_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: SPACES_SECRET_KEY
+            - name: SPACES_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: SPACES_BUCKET
+            - name: SPACES_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: SPACES_ENDPOINT
+            - name: SPACES_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: SPACES_REGION
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-secret
+                  key: OPENAI_API_KEY
           resources:
             requests:
               memory: "256Mi"

@@ -40,5 +40,22 @@ else
     --dry-run=client -o yaml | kubectl apply -f -
 fi
 
+# Apply Spaces secret
+if [ -f "k8s/spaces-secret.yaml" ]; then
+  echo "Applying Spaces secret..."
+  kubectl apply -f k8s/spaces-secret.yaml
+else
+  echo "Warning: k8s/spaces-secret.yaml not found"
+  echo "Creating placeholder Spaces secret..."
+  kubectl create secret generic spaces-secret \
+    --from-literal=SPACES_ACCESS_KEY="your-access-key" \
+    --from-literal=SPACES_SECRET_KEY="your-secret-key" \
+    --from-literal=SPACES_BUCKET="gild" \
+    --from-literal=SPACES_ENDPOINT="https://sfo3.digitaloceanspaces.com" \
+    --from-literal=SPACES_REGION="sfo3" \
+    --from-literal=OPENAI_API_KEY="your-openai-key" \
+    --dry-run=client -o yaml | kubectl apply -f -
+fi
+
 echo "✅ Local secrets setup complete!"
 kubectl get secrets
