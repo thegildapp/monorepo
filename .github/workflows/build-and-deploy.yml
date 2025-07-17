@@ -43,6 +43,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
           build-args: |
             VITE_GRAPHQL_URL=https://api.thegild.app/graphql
+            VITE_SPACES_ENDPOINT=https://gild.sfo3.digitaloceanspaces.com
 
   deploy:
     needs: build-and-push
@@ -93,6 +94,11 @@ jobs:
             --from-literal=SPACES_BUCKET="${{ secrets.SPACES_BUCKET }}" \
             --from-literal=SPACES_ENDPOINT="${{ secrets.SPACES_ENDPOINT }}" \
             --from-literal=SPACES_REGION="${{ secrets.SPACES_REGION }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create OpenAI secret
+        run: |
+          kubectl create secret generic openai-secret \
             --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 

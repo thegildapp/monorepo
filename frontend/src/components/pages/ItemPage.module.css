@@ -1,6 +1,6 @@
 /* Base styles */
 .page {
-  min-height: 100vh;
+  min-height: calc(100vh - 50px); /* Account for header height */
   background: rgb(250, 249, 248);
   font-family: 'Tinos', serif;
   position: relative;
@@ -328,22 +328,15 @@
 
 /* Desktop layout */
 @media (min-width: 1024px) {
-  /* Make the page container fixed height for desktop item view */
+  /* Make the page container flex for desktop item view */
   .page {
-    position: fixed;
-    top: 80px;
-    left: 0;
-    right: 0;
-    bottom: 0;
     display: flex;
     width: 100%;
     padding: 20px;
     gap: 80px;
     background: rgb(250, 249, 248);
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 50px); /* Match header height */
     align-items: center;
-    overflow: hidden;
-    z-index: 1;
   }
   
   /* Left column - Image Gallery */

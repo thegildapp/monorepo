@@ -358,7 +358,8 @@ export default function ItemPage() {
   return (
     <Layout>
       <Header 
-        logoText="Gild" 
+        logoText="Gild"
+        showSearch={false}
       />
       <Main>
         <ListingDetailView listingRef={data.listing} />

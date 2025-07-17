@@ -54,7 +54,7 @@ export async function uploadImageToSpaces(
 
     if (uploadResult.success) {
       // Construct the public URL for the uploaded file
-      const spacesEndpoint = process.env.REACT_APP_SPACES_ENDPOINT || 'https://gild.sfo3.digitaloceanspaces.com';
+      const spacesEndpoint = import.meta.env.VITE_SPACES_ENDPOINT || 'https://gild.sfo3.digitaloceanspaces.com';
       const publicUrl = `${spacesEndpoint}/${uploadUrlResult.key}`;
       
       return {

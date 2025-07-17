@@ -3,6 +3,7 @@ FROM node:20-alpine AS build
 
 # Accept build arguments
 ARG VITE_GRAPHQL_URL
+ARG VITE_SPACES_ENDPOINT
 
 WORKDIR /app
 
@@ -21,8 +22,9 @@ COPY frontend/ .
 # Generate types from GraphQL schema
 RUN npm run relay
 
-# Set environment variable for build
+# Set environment variables for build
 ENV VITE_GRAPHQL_URL=$VITE_GRAPHQL_URL
+ENV VITE_SPACES_ENDPOINT=$VITE_SPACES_ENDPOINT
 
 # Build the app
 RUN npm run build

@@ -27,6 +27,7 @@ manifests:
   rawYaml:
     - k8s/database-secret.yaml
     - k8s/spaces-secret.yaml
+    - k8s/openai-secret.yaml
     - k8s/backend-deployment.yaml
     - k8s/frontend-deployment.yaml
 
@@ -75,6 +76,7 @@ profiles:
             buildArgs:
               TARGETPLATFORM: linux/amd64
               VITE_GRAPHQL_URL: "https://api.thegild.app/graphql"
+              VITE_SPACES_ENDPOINT: "https://gild.sfo3.digitaloceanspaces.com"
           platforms: ["linux/amd64"]
     manifests:
       rawYaml:

@@ -53,6 +53,17 @@ else
     --from-literal=SPACES_BUCKET="gild" \
     --from-literal=SPACES_ENDPOINT="https://sfo3.digitaloceanspaces.com" \
     --from-literal=SPACES_REGION="sfo3" \
+    --dry-run=client -o yaml | kubectl apply -f -
+fi
+
+# Apply OpenAI secret
+if [ -f "k8s/openai-secret.yaml" ]; then
+  echo "Applying OpenAI secret..."
+  kubectl apply -f k8s/openai-secret.yaml
+else
+  echo "Warning: k8s/openai-secret.yaml not found"
+  echo "Creating placeholder OpenAI secret..."
+  kubectl create secret generic openai-secret \
     --from-literal=OPENAI_API_KEY="your-openai-key" \
     --dry-run=client -o yaml | kubectl apply -f -
 fi

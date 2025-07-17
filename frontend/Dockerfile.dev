@@ -17,5 +17,8 @@ COPY frontend/ .
 # Expose port 5173 (Vite's default port)
 EXPOSE 5173
 
+# Set default environment variables for development
+ENV VITE_SPACES_ENDPOINT=https://gild.sfo3.digitaloceanspaces.com
+
 # Generate types and start dev server
 CMD ["sh", "-c", "npm run relay && npm run dev -- --host 0.0.0.0"]

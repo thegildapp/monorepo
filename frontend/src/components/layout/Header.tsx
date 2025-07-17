@@ -126,7 +126,6 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
           )}
         </div>
       </div>
-      <div className={styles.headerBorder}></div>
     </header>
   );
 }

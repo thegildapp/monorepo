@@ -74,7 +74,7 @@ spec:
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: spaces-secret
+              name: openai-secret
               key: OPENAI_API_KEY
         resources:
           requests:
