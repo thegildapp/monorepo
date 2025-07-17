@@ -83,6 +83,11 @@ const resolvers = {
     searchListings: async (_: any, args: { query: string; limit?: number | null; offset?: number | null; filters?: any }) => {
       const { query, limit, offset, filters } = args;
       
+      // If query is empty or just whitespace, return empty results
+      if (!query || !query.trim()) {
+        return [];
+      }
+      
       try {
         const result = await searchListings({
           query,

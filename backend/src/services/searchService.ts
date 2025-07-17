@@ -71,10 +71,12 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
       }
     });
   } else {
-    // If no query, match all
-    searchBody.query.bool.must.push({
-      match_all: {}
-    });
+    // If no query, return no results
+    return {
+      listings: [],
+      total: 0,
+      took: 0
+    };
   }
 
   // Add price range filter
@@ -192,6 +194,13 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
         { state: { contains: query.trim(), mode: 'insensitive' } }
       ]
     });
+  } else {
+    // If no query, return no results
+    return {
+      listings: [],
+      total: 0,
+      took: 0
+    };
   }
 
   // Add price range filter
