@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -45,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className={styles.modal}>
       <div className={styles.overlay} onClick={onClose} />
       <div className={`${styles.content} ${styles[size]} ${className}`}>
@@ -72,7 +73,8 @@ const Modal: React.FC<ModalProps> = ({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

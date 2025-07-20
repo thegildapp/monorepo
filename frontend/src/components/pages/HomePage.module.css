@@ -28,6 +28,12 @@
     background: var(--color-background);
     position: sticky;
     top: 51px; /* Header height (50px) + border (1px) */
-    z-index: 100; /* Same as search header, below modal */
+    z-index: 99; /* Below header but above content */
+    transition: transform 0.3s ease-in-out, top 0.3s ease-in-out;
+    will-change: transform;
+  }
+  
+  .mobileLocationBarHidden {
+    transform: translateY(calc(-100% - 51px));
   }
 }

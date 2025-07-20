@@ -6,6 +6,7 @@ import Main from '../layout/Main';
 import ListingGrid from '../features/ListingGrid';
 import LoadingGrid from '../features/LoadingGrid';
 import LocationSelector from '../features/LocationSelector';
+import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import { GetListingsQuery } from '../../queries/listings';
 import type { listingsQuery } from '../../__generated__/listingsQuery.graphql';
 import styles from './HomePage.module.css';
@@ -36,6 +37,7 @@ function HomePageContent({ location, radius }: HomePageContentProps) {
 export default function HomePage() {
   const [location, setLocation] = useState<{lat: number; lng: number; city?: string; state?: string} | null>(null);
   const [radius, setRadius] = useState(20);
+  const { isHeaderVisible, isMobile } = useScrollVisibility();
 
   return (
     <Layout>
@@ -53,7 +55,7 @@ export default function HomePage() {
         }
       />
       {/* Mobile location bar */}
-      <div className={styles.mobileLocationBar}>
+      <div className={`${styles.mobileLocationBar} ${!isHeaderVisible && isMobile ? styles.mobileLocationBarHidden : ''}`}>
         <LocationSelector
           onLocationChange={(loc, rad) => {
             setLocation(loc);

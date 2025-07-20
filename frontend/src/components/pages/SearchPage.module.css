@@ -83,10 +83,30 @@
 }
 
 .listingGridContainer {
-  min-height: calc(100vh - 200px);
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.emptyContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.emptyState {
+  text-align: center;
+}
+
+.emptyStateText {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  margin: 0;
+  font-family: 'Tinos', serif;
 }
 
 

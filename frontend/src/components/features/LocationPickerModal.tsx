@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import Modal from '../common/Modal'
 import './LocationPickerModal.css'
 
 // Custom marker icon
@@ -318,25 +319,19 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     onClose()
   }
 
-  if (!isOpen) return null
-
   const center: L.LatLngExpression = selectedLocation 
     ? [selectedLocation.lat, selectedLocation.lng]
     : [37.7749, -122.4194] // Default to San Francisco
 
   return (
-    <div className="location-picker-modal">
-      <div className="location-picker-overlay" onClick={onClose} />
-      <div className="location-picker-content">
-        <div className="location-picker-header">
-          <h2>Select Location</h2>
-          <button className="close-btn" onClick={onClose} aria-label="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </div>
-        <div className="location-picker-map-container">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Select Location"
+      size="large"
+      className="location-picker-modal-content"
+    >
+      <div className="location-picker-map-container">
           <MapContainer
             center={center}
             zoom={getZoomForRadius(selectedRadius)}
@@ -520,8 +515,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

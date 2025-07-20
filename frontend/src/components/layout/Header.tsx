@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderSearch from '../common/HeaderSearch';
 import { useAuth } from '../../contexts/AuthContext';
+import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -16,6 +17,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { isHeaderVisible, isMobile } = useScrollVisibility();
   
   const isOnProfilePage = location.pathname === '/me';
 
@@ -38,7 +40,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
   };
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${!isHeaderVisible && isMobile ? styles.headerHidden : ''}`}>
       <div className={styles.headerContent}>
         <div className={styles.leftSection}>
           <button className={styles.profileButton} onClick={handleProfileClick}>

@@ -6,6 +6,12 @@
   top: 0;
   z-index: 100;
   border-bottom: 1px solid var(--color-border);
+  transition: transform 0.3s ease-in-out;
+  will-change: transform;
+}
+
+.headerHidden {
+  transform: translateY(-100%);
 }
 
 .headerContent {

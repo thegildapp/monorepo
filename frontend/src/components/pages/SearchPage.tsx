@@ -1,11 +1,12 @@
 import { useLazyLoadQuery } from 'react-relay';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingCard from '../features/ListingCard';
 import LocationSelector from '../features/LocationSelector';
 import LoadingGrid from '../features/LoadingGrid';
+import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import { SearchListingsQuery } from '../../queries/listings';
 import type { listingsSearchQuery as SearchListingsQueryType } from '../../__generated__/listingsSearchQuery.graphql';
 import styles from './SearchPage.module.css';
@@ -26,6 +27,23 @@ function SearchResults({ query, location, radius }: SearchResultsProps) {
     } : {}
   });
 
+  if (data.searchListings.length === 0) {
+    return (
+      <div className={styles.noResults}>
+        <div className={styles.noResultsIcon}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </div>
+        <h3 className={styles.noResultsTitle}>No results found</h3>
+        <p className={styles.noResultsText}>
+          Try adjusting your search or changing your location
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.listingsGrid}>
       {data.searchListings.map((listing, index) => (
@@ -39,41 +57,17 @@ export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const urlQuery = searchParams.get('q') || '';
+  const { isHeaderVisible, isMobile } = useScrollVisibility();
   
   // Local state for the search input
   const [searchInput, setSearchInput] = useState(urlQuery);
-  const [isSearchVisible, setIsSearchVisible] = useState(true);
   const [location, setLocation] = useState<{lat: number; lng: number; city?: string; state?: string} | null>(null);
   const [radius, setRadius] = useState(20);
-  const lastScrollY = useRef(0);
   
   // Update input when URL changes
   useEffect(() => {
     setSearchInput(urlQuery);
   }, [urlQuery]);
-  
-  // Handle scroll to hide/show search header on mobile
-  useEffect(() => {
-    const handleScroll = () => {
-      // Only apply on mobile
-      if (window.innerWidth > 768) return;
-      
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-        // Scrolling down & past threshold
-        setIsSearchVisible(false);
-      } else {
-        // Scrolling up
-        setIsSearchVisible(true);
-      }
-      
-      lastScrollY.current = currentScrollY;
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +90,7 @@ export default function SearchPage() {
 
   return (
     <Layout>
-      <div className={`${styles.searchHeader} ${!isSearchVisible ? styles.searchHeaderHidden : ''}`}>
+      <div className={`${styles.searchHeader} ${!isHeaderVisible && isMobile ? styles.searchHeaderHidden : ''}`}>
         <form className={styles.searchForm} onSubmit={handleSearchSubmit}>
           <div className={styles.searchRow}>
             <div className={styles.searchInputContainer}>
@@ -141,10 +135,16 @@ export default function SearchPage() {
       </div>
       
       <Main>
-        <div className={styles.listingGridContainer}>
-          <Suspense fallback={<LoadingGrid />}>
-            <SearchResults query={urlQuery} location={location} radius={radius} />
-          </Suspense>
+        <div className={urlQuery ? styles.listingGridContainer : styles.emptyContainer}>
+          {urlQuery ? (
+            <Suspense fallback={<LoadingGrid />}>
+              <SearchResults query={urlQuery} location={location} radius={radius} />
+            </Suspense>
+          ) : (
+            <div className={styles.emptyState}>
+              <p className={styles.emptyStateText}>Enter a search term to find listings</p>
+            </div>
+          )}
         </div>
       </Main>
     </Layout>

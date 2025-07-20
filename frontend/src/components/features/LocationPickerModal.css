@@ -1,86 +1,11 @@
-.location-picker-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Using Modal component, so we don't need overlay and container styles */
+.location-picker-modal-content {
+  /* Ensure the modal body takes full height */
+  height: 100%;
 }
 
-.location-picker-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.location-picker-content {
-  position: relative;
-  width: 90%;
-  max-width: 800px;
-  height: 85vh;
-  max-height: 700px;
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Keep original height for mobile */
-@media (max-width: 768px) {
-  .location-picker-content {
-    height: 80vh;
-    max-height: 600px;
-  }
-}
-
-.location-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: white;
-}
-
-.location-picker-header h2 {
-  margin: 0;
-  font-family: 'Tinos', serif;
-  font-size: 20px;
-  font-weight: normal;
-  color: #333;
-}
-
-.close-btn {
-  width: 32px;
-  height: 32px;
-  padding: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-secondary, #666);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.close-btn:hover {
-  background: var(--color-gray-50, #f0f0f0);
-  color: var(--color-text-primary, #333);
-}
-
-.close-btn svg {
-  width: 20px;
-  height: 20px;
+.location-picker-modal-content .body {
+  padding: 0 !important;
 }
 
 .location-picker-map-container {
