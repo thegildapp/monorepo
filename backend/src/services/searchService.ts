@@ -1,6 +1,19 @@
 import client, { LISTINGS_INDEX, isOpenSearchAvailable } from '../config/opensearch';
 import prisma from '../config/prisma';
 
+// Helper function to calculate distance between two points using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3959; // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export interface SearchOptions {
   query: string;
   limit?: number;
@@ -9,6 +22,9 @@ export interface SearchOptions {
     priceMin?: number;
     priceMax?: number;
     location?: string;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
     specifications?: Record<string, any>;
   };
 }
@@ -94,6 +110,19 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
         query: filters.location,
         fields: ['city', 'state'],
         type: 'phrase_prefix'
+      }
+    });
+  }
+
+  // Add geospatial filter
+  if (filters?.latitude && filters?.longitude && filters?.radius) {
+    searchBody.query.bool.filter.push({
+      geo_distance: {
+        distance: `${filters.radius}mi`,
+        location: {
+          lat: filters.latitude,
+          lon: filters.longitude
+        }
       }
     });
   }
@@ -221,10 +250,33 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
     });
   }
 
-  const startTime = Date.now();
+  // Add geospatial filter using Haversine formula for distance calculation
+  if (filters?.latitude && filters?.longitude && filters?.radius) {
+    // Convert radius from miles to degrees (approximate)
+    // 1 degree of latitude ≈ 69 miles
+    const radiusInDegrees = filters.radius / 69;
+    
+    // Create a bounding box for initial filtering (more efficient)
+    const minLat = filters.latitude - radiusInDegrees;
+    const maxLat = filters.latitude + radiusInDegrees;
+    const minLng = filters.longitude - radiusInDegrees;
+    const maxLng = filters.longitude + radiusInDegrees;
+    
+    where.AND.push({
+      latitude: {
+        gte: minLat,
+        lte: maxLat,
+        not: null
+      },
+      longitude: {
+        gte: minLng,
+        lte: maxLng,
+        not: null
+      }
+    });
+  }
 
-  // Get total count
-  const total = await prisma.listing.count({ where });
+  const startTime = Date.now();
 
   // Get listings
   const listings = await prisma.listing.findMany({
@@ -237,13 +289,28 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
 
   const took = Date.now() - startTime;
 
+  // Filter by exact distance if geospatial filter was applied
+  let filteredListings = listings;
+  if (filters?.latitude && filters?.longitude && filters?.radius) {
+    filteredListings = listings.filter((listing: any) => {
+      if (!listing.latitude || !listing.longitude) return false;
+      const distance = calculateDistance(
+        filters.latitude!,
+        filters.longitude!,
+        listing.latitude,
+        listing.longitude
+      );
+      return distance <= filters.radius!;
+    });
+  }
+
   return {
-    listings: listings.map((listing: any) => ({
+    listings: filteredListings.map((listing: any) => ({
       ...listing,
       createdAt: listing.createdAt.toISOString(),
       updatedAt: listing.updatedAt.toISOString(),
     })),
-    total,
+    total: filteredListings.length,
     took
   };
 }

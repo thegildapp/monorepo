@@ -8,9 +8,10 @@ interface HeaderProps {
   categoryName?: string;
   onBackClick?: () => void;
   showSearch?: boolean;
+  extraContent?: React.ReactNode;
 }
 
-export default function Header({ logoText, categoryName, onBackClick, showSearch = true }: HeaderProps) {
+export default function Header({ logoText, categoryName, onBackClick, showSearch = true, extraContent }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -116,6 +117,12 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
                 Sign Out
               </button>
             </>
+          )}
+          
+          {extraContent && (
+            <div className={styles.extraContent}>
+              {extraContent}
+            </div>
           )}
           
           {showSearch && (

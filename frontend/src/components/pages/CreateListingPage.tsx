@@ -5,6 +5,7 @@ import { useRelayEnvironment } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
+import LocationSelector from '../features/LocationSelector';
 import { useAuth } from '../../contexts/AuthContext';
 import { CreateListingMutation } from '../../queries/listings';
 import { compressImage, validateImageFile } from '../../utils/imageCompression';
@@ -33,6 +34,8 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
   const [images, setImages] = useState<ImageUploadState[]>([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -186,6 +189,8 @@ export default function CreateListingPage() {
           images: imageUrls,
           city: city.trim(),
           state: state.trim(),
+          latitude,
+          longitude,
         },
       },
       updater: (store) => {
@@ -251,22 +256,21 @@ export default function CreateListingPage() {
               />
               
               <div className={styles.locationRow}>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="City"
-                  className={styles.input}
-                  required
+                <LocationSelector
+                  onLocationChange={(location, radius) => {
+                    if (location) {
+                      setCity(location.city || '');
+                      setState(location.state || '');
+                      setLatitude(location.lat);
+                      setLongitude(location.lng);
+                    }
+                  }}
                 />
-                <input
-                  type="text"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  placeholder="State"
-                  className={styles.input}
-                  required
-                />
+                <div className={styles.locationDisplay}>
+                  {city && state && (
+                    <span className={styles.locationText}>{city}, {state}</span>
+                  )}
+                </div>
               </div>
               
               <div className={styles.imageUpload}>

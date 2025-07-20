@@ -52,7 +52,7 @@ export default function EditProfilePage() {
   };
 
   const handleCancel = () => {
-    navigate('/sell');
+    navigate('/me');
   };
 
   return (

@@ -33,12 +33,35 @@ const typeDefs = readFileSync(schemaPath, 'utf8');
 
 const resolvers = {
   Query: {
-    listings: async (_: any, args: { limit?: number | null; offset?: number | null }) => {
-      const { limit, offset } = args;
+    listings: async (_: any, args: { limit?: number | null; offset?: number | null; filters?: { latitude?: number; longitude?: number; radius?: number } | null }) => {
+      const { limit, offset, filters } = args;
       
-      const where = {
+      const where: any = {
         status: 'APPROVED',
       };
+      
+      // Add location filtering if provided
+      if (filters?.latitude && filters?.longitude && filters?.radius) {
+        // Convert radius from miles to degrees (approximate)
+        const radiusInDegrees = filters.radius / 69;
+        
+        // Create a bounding box for initial filtering
+        const minLat = filters.latitude - radiusInDegrees;
+        const maxLat = filters.latitude + radiusInDegrees;
+        const minLng = filters.longitude - radiusInDegrees;
+        const maxLng = filters.longitude + radiusInDegrees;
+        
+        where.latitude = {
+          gte: minLat,
+          lte: maxLat,
+          not: null
+        };
+        where.longitude = {
+          gte: minLng,
+          lte: maxLng,
+          not: null
+        };
+      }
       
       const queryOptions: any = {
         where,
@@ -54,7 +77,33 @@ const resolvers = {
         queryOptions.skip = offset;
       }
       
-      const listings = await prisma.listing.findMany(queryOptions);
+      let listings = await prisma.listing.findMany(queryOptions);
+      
+      // Filter by exact distance if location filter was applied
+      if (filters?.latitude && filters?.longitude && filters?.radius) {
+        const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+          const R = 3959; // Earth's radius in miles
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return R * c;
+        };
+        
+        listings = listings.filter((listing: any) => {
+          if (!listing.latitude || !listing.longitude) return false;
+          const distance = calculateDistance(
+            filters.latitude!,
+            filters.longitude!,
+            listing.latitude,
+            listing.longitude
+          );
+          return distance <= filters.radius!;
+        });
+      }
       
       // Convert dates to ISO strings
       return listings.map(listing => ({
@@ -97,6 +146,9 @@ const resolvers = {
             priceMin: filters.priceMin,
             priceMax: filters.priceMax,
             location: filters.location,
+            latitude: filters.latitude,
+            longitude: filters.longitude,
+            radius: filters.radius,
             specifications: {
               ...(filters.yearMin && { year: { gte: filters.yearMin } }),
               ...(filters.yearMax && { year: { lte: filters.yearMax } }),
@@ -186,7 +238,7 @@ const resolvers = {
   },
   
   Mutation: {
-    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string } }, context: YogaInitialContext & Context) => {
+    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');
       }

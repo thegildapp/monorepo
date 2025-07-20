@@ -1,8 +1,8 @@
 import { graphql } from 'relay-runtime';
 
 export const GetListingsQuery = graphql`
-  query listingsQuery($limit: Int, $offset: Int) {
-    listings(limit: $limit, offset: $offset) {
+  query listingsQuery($limit: Int, $offset: Int, $filters: LocationFilter) {
+    listings(limit: $limit, offset: $offset, filters: $filters) {
       ...ListingCard_listing
     }
   }

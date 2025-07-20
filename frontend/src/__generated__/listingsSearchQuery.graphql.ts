@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3fc2296c962520536688da6eb154d6e8>>
+ * @generated SignedSource<<b96c7aa1e167b5abcc2c8d49edc7679e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -11,11 +11,14 @@
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
 export type SearchFilters = {
+  latitude?: number | null | undefined;
   location?: string | null | undefined;
+  longitude?: number | null | undefined;
   make?: string | null | undefined;
   model?: string | null | undefined;
   priceMax?: number | null | undefined;
   priceMin?: number | null | undefined;
+  radius?: number | null | undefined;
   yearMax?: number | null | undefined;
   yearMin?: number | null | undefined;
 };

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5884d823bebb37762d8a784ac4c2db6f>>
+ * @generated SignedSource<<bd0f5963a0ab78dcf1751616f9065800>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,6 +14,8 @@ export type CreateListingInput = {
   city: string;
   description: string;
   images: ReadonlyArray<string>;
+  latitude?: number | null | undefined;
+  longitude?: number | null | undefined;
   price: number;
   state: string;
   title: string;

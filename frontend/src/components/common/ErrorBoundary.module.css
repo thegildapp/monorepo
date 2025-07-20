@@ -1,0 +1,107 @@
+.errorBoundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background-color: var(--color-background);
+}
+
+.errorContent {
+  max-width: 600px;
+  text-align: center;
+}
+
+.errorTitle {
+  font-family: 'Tinos', serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-6) 0;
+  line-height: 1.5;
+}
+
+.errorDetails {
+  margin: var(--space-6) 0;
+  text-align: left;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow: hidden;
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.errorStack {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.errorActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.reloadButton,
+.resetButton {
+  padding: var(--space-3) var(--space-5);
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reloadButton {
+  background: var(--color-text-primary);
+  color: white;
+  border: none;
+}
+
+.reloadButton:hover {
+  opacity: 0.8;
+}
+
+.resetButton {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.resetButton:hover {
+  background: var(--color-gray-50);
+}
+
+@media (max-width: 640px) {
+  .errorTitle {
+    font-size: 28px;
+  }
+  
+  .errorActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .reloadButton,
+  .resetButton {
+    width: 100%;
+  }
+}

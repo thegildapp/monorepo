@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2a29108d52032aae3051b648247e7e54>>
+ * @generated SignedSource<<9b850233f222958850d5adecea96098e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -10,7 +10,13 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
+export type LocationFilter = {
+  latitude?: number | null | undefined;
+  longitude?: number | null | undefined;
+  radius?: number | null | undefined;
+};
 export type listingsQuery$variables = {
+  filters?: LocationFilter | null | undefined;
   limit?: number | null | undefined;
   offset?: number | null | undefined;
 };
@@ -25,19 +31,27 @@ export type listingsQuery = {
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
+var v0 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "filters"
+},
+v1 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "limit"
+},
+v2 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "offset"
+},
+v3 = [
   {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "limit"
+    "kind": "Variable",
+    "name": "filters",
+    "variableName": "filters"
   },
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "offset"
-  }
-],
-v1 = [
   {
     "kind": "Variable",
     "name": "limit",
@@ -51,14 +65,18 @@ v1 = [
 ];
 return {
   "fragment": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v0/*: any*/),
+      (v1/*: any*/),
+      (v2/*: any*/)
+    ],
     "kind": "Fragment",
     "metadata": null,
     "name": "listingsQuery",
     "selections": [
       {
         "alias": null,
-        "args": (v1/*: any*/),
+        "args": (v3/*: any*/),
         "concreteType": "Listing",
         "kind": "LinkedField",
         "name": "listings",
@@ -78,13 +96,17 @@ return {
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v1/*: any*/),
+      (v2/*: any*/),
+      (v0/*: any*/)
+    ],
     "kind": "Operation",
     "name": "listingsQuery",
     "selections": [
       {
         "alias": null,
-        "args": (v1/*: any*/),
+        "args": (v3/*: any*/),
         "concreteType": "Listing",
         "kind": "LinkedField",
         "name": "listings",
@@ -145,16 +167,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "a9006b2fd116974d416f5b520c4ee132",
+    "cacheID": "d4aba8c271f73a1b3a023a18fedebd7e",
     "id": null,
     "metadata": {},
     "name": "listingsQuery",
     "operationKind": "query",
-    "text": "query listingsQuery(\n  $limit: Int\n  $offset: Int\n) {\n  listings(limit: $limit, offset: $offset) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsQuery(\n  $limit: Int\n  $offset: Int\n  $filters: LocationFilter\n) {\n  listings(limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();
 
-(node as any).hash = "77acd9ab68147135bb3bd84aa34b6a6f";
+(node as any).hash = "024e002b01accfd75c35858caae0f05c";
 
 export default node;

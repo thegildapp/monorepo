@@ -57,11 +57,19 @@
 
 .locationRow {
   display: flex;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.locationRow .input {
-  flex: 1;
+.locationDisplay {
+  font-family: 'Tinos', serif;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-left: 22px;
+}
+
+.locationText {
+  font-style: italic;
 }
 
 .imageUpload {

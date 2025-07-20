@@ -1,0 +1,79 @@
+.location-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'Tinos', serif;
+  font-size: 1rem;
+  font-weight: normal;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.location-button:hover {
+  border-color: #999;
+  background: #fafafa;
+}
+
+.location-selector-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.location-icon-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-text-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  color: #000;
+  text-align: left;
+}
+
+
+.location-selector-inline .location-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.location-button .location-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.location-text {
+  font-family: 'Tinos', serif;
+  font-weight: normal;
+}
+
+@media (max-width: 640px) {
+  .location-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .location-icon {
+    width: 16px;
+    height: 16px;
+  }
+}

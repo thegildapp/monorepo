@@ -1,0 +1,33 @@
+.headerLocationSelector {
+  display: flex;
+  align-items: center;
+}
+
+/* Desktop: Location selector in header */
+@media (min-width: 769px) {
+  .headerLocationSelector {
+    margin-right: var(--space-3);
+  }
+}
+
+/* Mobile location bar - hidden on desktop */
+.mobileLocationBar {
+  display: none;
+}
+
+/* Mobile: Show location selector below header */
+@media (max-width: 768px) {
+  .headerLocationSelector {
+    display: none;
+  }
+  
+  .mobileLocationBar {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-background);
+    position: sticky;
+    top: 56px;
+    z-index: 50;
+  }
+}

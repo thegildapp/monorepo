@@ -16,8 +16,15 @@
   margin: 0 auto;
   padding: var(--space-6);
   display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.searchRow {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
 }
 
 .backButton {
@@ -28,12 +35,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  color: var(--color-text-primary);
+  width: 24px;
+  height: 24px;
+  color: rgba(0, 0, 0, 0.6);
   transition: opacity 0.2s;
   flex-shrink: 0;
-  margin-left: -8px;
 }
 
 .backButton:hover {
@@ -41,8 +47,24 @@
 }
 
 .backButton svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
+}
+
+.locationSelectorWrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Override location selector styles for search page */
+.locationSelectorWrapper .location-selector-inline {
+  justify-content: flex-start;
+}
+
+.locationSelectorWrapper .location-text-button {
+  text-align: left;
 }
 
 .searchInputContainer {
@@ -67,10 +89,6 @@
   margin: 0 auto;
 }
 
-.searchIcon {
-  color: rgba(0, 0, 0, 0.6);
-  flex-shrink: 0;
-}
 
 .searchInput {
   flex: 1;
@@ -125,13 +143,19 @@
     gap: var(--space-2);
   }
   
-  .backButton {
-    margin-left: -4px;
+  .searchRow {
+    gap: var(--space-2);
   }
   
   .searchInputContainer {
     max-width: none;
     padding: 14px 0;
+    flex: 1;
+  }
+  
+  .locationSelectorWrapper {
+    width: 100%;
+    margin-left: 0;
   }
   
   .searchInput {

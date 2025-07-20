@@ -1,12 +1,39 @@
 import { useLazyLoadQuery } from 'react-relay';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingCard from '../features/ListingCard';
+import LocationSelector from '../features/LocationSelector';
+import LoadingGrid from '../features/LoadingGrid';
 import { SearchListingsQuery } from '../../queries/listings';
 import type { listingsSearchQuery as SearchListingsQueryType } from '../../__generated__/listingsSearchQuery.graphql';
 import styles from './SearchPage.module.css';
+
+interface SearchResultsProps {
+  query: string;
+  location: {lat: number; lng: number; city?: string; state?: string} | null;
+  radius: number;
+}
+
+function SearchResults({ query, location, radius }: SearchResultsProps) {
+  const data = useLazyLoadQuery<SearchListingsQueryType>(SearchListingsQuery, {
+    query: query,
+    filters: location ? {
+      latitude: location.lat,
+      longitude: location.lng,
+      radius: radius
+    } : {}
+  });
+
+  return (
+    <div className={styles.listingsGrid}>
+      {data.searchListings.map((listing, index) => (
+        <ListingCard key={listing.id || `listing-${index}`} listing={listing} />
+      ))}
+    </div>
+  );
+}
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,6 +43,8 @@ export default function SearchPage() {
   // Local state for the search input
   const [searchInput, setSearchInput] = useState(urlQuery);
   const [isSearchVisible, setIsSearchVisible] = useState(true);
+  const [location, setLocation] = useState<{lat: number; lng: number; city?: string; state?: string} | null>(null);
+  const [radius, setRadius] = useState(20);
   const lastScrollY = useRef(0);
   
   // Update input when URL changes
@@ -45,11 +74,6 @@ export default function SearchPage() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
-  const data = useLazyLoadQuery<SearchListingsQueryType>(SearchListingsQuery, {
-    query: urlQuery,
-    filters: {}
-  });
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +81,12 @@ export default function SearchPage() {
       const newParams = new URLSearchParams(searchParams);
       newParams.set('q', searchInput.trim());
       setSearchParams(newParams);
+      
+      // Blur the input to close the keyboard on mobile
+      const searchInputElement = e.currentTarget.querySelector('input[type="text"]');
+      if (searchInputElement instanceof HTMLInputElement) {
+        searchInputElement.blur();
+      }
     }
   };
 
@@ -68,43 +98,43 @@ export default function SearchPage() {
     <Layout>
       <div className={`${styles.searchHeader} ${!isSearchVisible ? styles.searchHeaderHidden : ''}`}>
         <form className={styles.searchForm} onSubmit={handleSearchSubmit}>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className={styles.backButton}
-            aria-label="Back to browse"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <div className={styles.searchInputContainer}>
-            <svg 
-              className={styles.searchIcon} 
-              width="20" 
-              height="20" 
-              viewBox="0 0 24 24" 
-              fill="none"
-            >
-              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-              <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <input
-              type="text"
-              value={searchInput}
-              onChange={handleInputChange}
-              placeholder="Search listings..."
-              className={styles.searchInput}
-              autoFocus
+          <div className={styles.searchRow}>
+            <div className={styles.searchInputContainer}>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className={styles.backButton}
+                aria-label="Back to browse"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={handleInputChange}
+                placeholder="Search listings..."
+                className={styles.searchInput}
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className={styles.locationSelectorWrapper}>
+            <LocationSelector
+              onLocationChange={(loc, rad) => {
+                setLocation(loc);
+                setRadius(rad);
+              }}
             />
           </div>
         </form>
@@ -112,11 +142,9 @@ export default function SearchPage() {
       
       <Main>
         <div className={styles.listingGridContainer}>
-          <div className={styles.listingsGrid}>
-            {data.searchListings.map((listing, index) => (
-              <ListingCard key={listing.id || `listing-${index}`} listing={listing} />
-            ))}
-          </div>
+          <Suspense fallback={<LoadingGrid />}>
+            <SearchResults query={urlQuery} location={location} radius={radius} />
+          </Suspense>
         </div>
       </Main>
     </Layout>
