@@ -90,6 +90,7 @@ export default function SearchPage() {
 
   return (
     <Layout>
+      <div className={styles.searchPageWrapper}>
       <div className={`${styles.searchHeader} ${!isHeaderVisible && isMobile ? styles.searchHeaderHidden : ''}`}>
         <form className={styles.searchForm} onSubmit={handleSearchSubmit}>
           <div className={styles.searchRow}>
@@ -147,6 +148,7 @@ export default function SearchPage() {
           )}
         </div>
       </Main>
+      </div>
     </Layout>
   );
 }
