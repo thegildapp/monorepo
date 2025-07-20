@@ -1,0 +1,87 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.priceInputWrapper {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-6) 0;
+}
+
+.priceInputContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: var(--space-2);
+  transition: border-color 0.2s;
+}
+
+.priceInputContainer:focus-within {
+  border-color: var(--color-text-primary);
+}
+
+.dollarSign {
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  font-family: 'Tinos', serif;
+  line-height: 1;
+}
+
+.priceInput {
+  font-size: 48px;
+  font-weight: 300;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-family: 'Tinos', serif;
+  width: auto;
+  min-width: 100px;
+  max-width: 300px;
+  text-align: left;
+}
+
+.priceInput::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+/* Make the input grow with content */
+.priceInput {
+  width: min-content;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 20px;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+  }
+  
+  .dollarSign {
+    font-size: 32px;
+  }
+  
+  .priceInput {
+    font-size: 40px;
+  }
+}

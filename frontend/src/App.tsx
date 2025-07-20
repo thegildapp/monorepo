@@ -8,7 +8,6 @@ import SearchPage from './components/pages/SearchPage';
 import SignInPage from './components/pages/SignInPage';
 import ProfilePage from './components/pages/ProfilePage';
 import EditProfilePage from './components/pages/EditProfilePage';
-import CreateListingPage from './components/pages/CreateListingPage';
 import ScrollToTop from './components/utils/ScrollToTop';
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
           <Route path="/signin" element={<SignInPage />} errorElement={<PageErrorBoundary />} />
           <Route path="/me" element={<ProfilePage />} errorElement={<PageErrorBoundary />} />
           <Route path="/me/profile" element={<EditProfilePage />} errorElement={<PageErrorBoundary />} />
-          <Route path="/me/new" element={<CreateListingPage />} errorElement={<PageErrorBoundary />} />
         </Routes>
       </AuthProvider>
     </ErrorBoundary>

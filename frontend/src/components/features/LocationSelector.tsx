@@ -11,11 +11,12 @@ interface Location {
 
 interface LocationSelectorProps {
   onLocationChange: (location: Location | null, radius: number) => void
+  hideRadius?: boolean
 }
 
 const DEFAULT_RADIUS = 20
 
-const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange }) => {
+const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, hideRadius = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [location, setLocation] = useState<Location | null>(null)
   const [radius, setRadius] = useState(DEFAULT_RADIUS)
@@ -51,9 +52,9 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange })
     if (location.city) {
       locationText = location.city
     } else {
-      locationText = 'Current Location'
+      locationText = 'Select Location'
     }
-    return `${locationText} • ${radius}`
+    return locationText
   }
 
   return (
@@ -75,7 +76,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange })
           onClick={() => setIsModalOpen(true)}
           aria-label="Set search location"
         >
-          {getLocationText()} mile radius
+          {getLocationText()}{!hideRadius && ` • ${radius} mile radius`}
         </button>
       </div>
 
@@ -85,6 +86,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange })
         currentLocation={location}
         radius={radius}
         onLocationChange={handleLocationChange}
+        hideRadius={hideRadius}
       />
     </>
   )

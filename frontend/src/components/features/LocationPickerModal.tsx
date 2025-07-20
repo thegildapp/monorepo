@@ -46,6 +46,7 @@ interface LocationPickerModalProps {
   currentLocation: Location | null
   radius: number
   onLocationChange: (location: Location, radius: number) => void
+  hideRadius?: boolean
 }
 
 interface SearchResult {
@@ -85,7 +86,8 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onClose,
   currentLocation,
   radius,
-  onLocationChange
+  onLocationChange,
+  hideRadius = false
 }) => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(currentLocation)
   const [selectedRadius, setSelectedRadius] = useState(radius)
@@ -122,6 +124,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       setSearchHistory(JSON.parse(saved))
     }
   }, [])
+
 
   useEffect(() => {
     if (selectedLocation && !isGeocoding) {
@@ -179,18 +182,56 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   }
 
   const searchLocations = async (query: string) => {
-    if (!query.trim()) {
+    if (!query.trim() || query.trim().length < 2) {
       setSearchResults([])
       return
     }
 
     setIsSearching(true)
     try {
+      // Search specifically for cities in the US
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=8&countrycodes=us&featuretype=city,state,county`
+        `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodeURIComponent(query)}&` +
+        `format=json&` +
+        `limit=10&` +
+        `countrycodes=us&` +
+        `featuretype=city&` +
+        `addressdetails=1&` +
+        `extratags=1`
       )
       const results = await response.json()
-      setSearchResults(results)
+      
+      // Filter and rank results
+      const filteredResults = results
+        .filter((result: any) => {
+          // Only include results that are cities, towns, or villages
+          const type = result.type
+          const placeClass = result.class
+          return (
+            (placeClass === 'place' && ['city', 'town', 'village', 'hamlet'].includes(type)) ||
+            (placeClass === 'boundary' && type === 'administrative' && result.place_rank >= 13 && result.place_rank <= 16)
+          )
+        })
+        .sort((a: any, b: any) => {
+          // Prioritize by importance score (population-based)
+          const importanceA = parseFloat(a.importance) || 0
+          const importanceB = parseFloat(b.importance) || 0
+          
+          // Prioritize cities over towns/villages
+          const typeOrder: Record<string, number> = { city: 4, town: 3, village: 2, hamlet: 1 }
+          const typeScoreA = typeOrder[a.type] || 0
+          const typeScoreB = typeOrder[b.type] || 0
+          
+          // Combined score: importance + type bonus
+          const scoreA = importanceA + (typeScoreA * 0.1)
+          const scoreB = importanceB + (typeScoreB * 0.1)
+          
+          return scoreB - scoreA
+        })
+        .slice(0, 6) // Limit to top 6 results
+      
+      setSearchResults(filteredResults)
       setShowSearchResults(true)
     } catch (error) {
       console.error('Search error:', error)
@@ -311,7 +352,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               position={selectedLocation ? L.latLng(selectedLocation.lat, selectedLocation.lng) : null}
               onLocationChange={(lat, lng) => reverseGeocode(lat, lng)}
             />
-            {selectedLocation && (
+            {selectedLocation && !hideRadius && (
               <Circle
                 center={[selectedLocation.lat, selectedLocation.lng]}
                 radius={selectedRadius * 1609.34} // Convert miles to meters
@@ -390,20 +431,31 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                   <div className="search-loading">Searching...</div>
                 )}
                 
-                {searchText && !isSearching && searchResults.map((result, index) => (
-                  <button
-                    key={index}
-                    className="search-result-item"
-                    onClick={() => selectSearchResult(result)}
-                  >
-                    <div className="search-result-text">
-                      <div className="search-result-name">{result.display_name.split(',')[0]}</div>
-                      <div className="search-result-address">
-                        {result.display_name.split(',').slice(1).join(',')}
+                {searchText && !isSearching && searchResults.map((result, index) => {
+                  // Format the display to show city, state prominently
+                  const parts = result.display_name.split(',').map(p => p.trim())
+                  const cityName = parts[0]
+                  const stateName = result.address?.state || parts.find(p => p.length === 2) || ''
+                  
+                  // Create a cleaner subtitle
+                  let subtitle = stateName
+                  if (result.address?.county && !cityName.includes(result.address.county)) {
+                    subtitle = `${result.address.county}${stateName ? ', ' + stateName : ''}`
+                  }
+                  
+                  return (
+                    <button
+                      key={index}
+                      className="search-result-item"
+                      onClick={() => selectSearchResult(result)}
+                    >
+                      <div className="search-result-text">
+                        <div className="search-result-name">{cityName}</div>
+                        <div className="search-result-address">{subtitle}</div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -436,34 +488,33 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             )}
             
             <div className="location-picker-controls">
-              <div className="radius-control">
-                <span className="radius-label">{selectedRadius} mile{selectedRadius !== 1 ? 's' : ''}</span>
-                <input
-                  type="range"
-                  min="1"
-                  max="50"
-                  value={selectedRadius}
-                  onChange={(e) => {
-                    const newRadius = parseInt(e.target.value)
-                    setSelectedRadius(newRadius)
-                    
-                    // Adjust map zoom to show full radius
-                    if (mapRef.current && selectedLocation) {
-                      const newZoom = getZoomForRadius(newRadius)
-                      mapRef.current.setZoom(newZoom)
-                    }
-                  }}
-                  className="radius-slider"
-                />
-              </div>
+              {!hideRadius && (
+                <div className="radius-control">
+                  <span className="radius-label">{selectedRadius} mile{selectedRadius !== 1 ? 's' : ''}</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={selectedRadius}
+                    onChange={(e) => {
+                      const newRadius = parseInt(e.target.value)
+                      setSelectedRadius(newRadius)
+                      
+                      // Adjust map zoom to show full radius
+                      if (mapRef.current && selectedLocation) {
+                        const newZoom = getZoomForRadius(newRadius)
+                        mapRef.current.setZoom(newZoom)
+                      }
+                    }}
+                    className="radius-slider"
+                  />
+                </div>
+              )}
               <button
-                className="done-btn"
+                className={`done-btn ${hideRadius ? 'done-btn-full' : ''}`}
                 onClick={handleDone}
                 disabled={!selectedLocation}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
                 Done
               </button>
             </div>

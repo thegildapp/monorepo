@@ -1,0 +1,152 @@
+/* Modal container */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Background overlay */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal content container */
+.content {
+  position: relative;
+  background: var(--color-background);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Size variants */
+.small {
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;
+}
+
+.medium {
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+}
+
+.large {
+  width: 90%;
+  max-width: 800px;
+  height: 85vh;
+  max-height: 700px;
+}
+
+.fullscreen {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+}
+
+/* Modal header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Tinos', serif;
+  font-size: 20px;
+  font-weight: normal;
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: var(--color-gray-50);
+  color: var(--color-text-primary);
+}
+
+.closeButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Modal body */
+.body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .large {
+    height: 80vh;
+    max-height: 600px;
+  }
+  
+  .header {
+    padding: 12px 16px;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal {
+    align-items: stretch;
+  }
+  
+  /* All modals take full screen on mobile */
+  .content {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+  }
+  
+  .small,
+  .medium,
+  .large {
+    width: 100%;
+    height: 100%;
+  }
+}

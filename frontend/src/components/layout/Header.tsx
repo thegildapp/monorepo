@@ -9,9 +9,10 @@ interface HeaderProps {
   onBackClick?: () => void;
   showSearch?: boolean;
   extraContent?: React.ReactNode;
+  onListClick?: () => void;
 }
 
-export default function Header({ logoText, categoryName, onBackClick, showSearch = true, extraContent }: HeaderProps) {
+export default function Header({ logoText, categoryName, onBackClick, showSearch = true, extraContent, onListClick }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -86,7 +87,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
           {user && isOnProfilePage && (
             <>
               <button 
-                onClick={() => navigate('/me/new')} 
+                onClick={onListClick || (() => navigate('/me/new'))} 
                 className={styles.listButton}
                 title="Create new listing"
               >

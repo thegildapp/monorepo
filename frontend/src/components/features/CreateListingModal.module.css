@@ -1,0 +1,49 @@
+.createListingModal {
+  /* Custom styles specific to create listing modal */
+}
+
+.errorBanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.errorBanner span {
+  color: var(--color-error);
+  font-size: 14px;
+}
+
+.errorBanner button {
+  background: none;
+  border: none;
+  color: var(--color-error);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submittingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}

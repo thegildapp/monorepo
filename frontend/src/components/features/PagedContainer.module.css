@@ -1,0 +1,138 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-background);
+  overflow: hidden;
+}
+
+.header {
+  position: relative;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: var(--color-gray-50);
+  color: var(--color-text-primary);
+}
+
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-gray-100);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 var(--space-4);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-text-primary);
+  transition: width 0.3s ease;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.backButton {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.backButton:hover:not(:disabled) {
+  background: var(--color-gray-50);
+  border-color: var(--color-text-secondary);
+}
+
+.backButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nextButton {
+  padding: 8px 20px;
+  background: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  font-weight: normal;
+  transition: all 0.2s ease;
+}
+
+.nextButton:hover:not(.disabled) {
+  background: #222;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.nextButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: var(--space-4);
+  }
+  
+  .header {
+    padding: 16px;
+  }
+  
+  .closeButton {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+  }
+  
+  .progressBar {
+    flex: 1;
+    margin: 0 50px; /* Space for close button */
+  }
+}

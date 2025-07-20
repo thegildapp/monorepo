@@ -1,10 +1,12 @@
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLazyLoadQuery, graphql } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
 import ListingCard from '../features/ListingCard';
+import LoadingGrid from '../features/LoadingGrid';
+import CreateListingModal from '../features/CreateListingModal';
 import { useAuth } from '../../contexts/AuthContext';
 import type { ProfilePageMyListingsQuery } from '../../__generated__/ProfilePageMyListingsQuery.graphql';
 import styles from './ProfilePage.module.css';
@@ -13,13 +15,12 @@ const MyListingsQuery = graphql`
   query ProfilePageMyListingsQuery {
     myListings {
       id
-      status
       ...ListingCard_listing
     }
   }
 `;
 
-function ProfilePageContent() {
+function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const data = useLazyLoadQuery<ProfilePageMyListingsQuery>(
@@ -33,30 +34,17 @@ function ProfilePageContent() {
 
   return (
     <>
-      <h1 className={styles.pageTitle}>My Listings</h1>
       {myListings.length > 0 ? (
         <div className={styles.listingsGrid}>
           {myListings.map((listing) => (
-            <div key={listing.id} className={styles.listingWrapper}>
-              <ListingCard listing={listing} />
-              {listing.status === 'PENDING' && (
-                <div className={styles.statusBadge}>
-                  Under Review
-                </div>
-              )}
-              {listing.status === 'REJECTED' && (
-                <div className={styles.statusBadge + ' ' + styles.rejected}>
-                  Rejected
-                </div>
-              )}
-            </div>
+            <ListingCard key={listing.id} listing={listing} />
           ))}
         </div>
       ) : (
         <div className={styles.emptyState}>
           <p className={styles.emptyMessage}>You haven't created any listings yet</p>
           <button
-            onClick={() => navigate('/me/new')}
+            onClick={onCreateClick}
             className={styles.createButton}
           >
             Create Your First Listing
@@ -70,6 +58,7 @@ function ProfilePageContent() {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -82,18 +71,37 @@ export default function ProfilePage() {
     return null;
   }
 
+  const handleCreateClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    // Modal will close itself and ProfilePageContent will refetch due to relay updater
+  };
+
   return (
     <Layout>
-      <Header logoText="Gild" showSearch={false} />
+      <Header logoText="Gild" showSearch={false} onListClick={handleCreateClick} />
       <Main>
         <div className={styles.container}>
           <div className={styles.profileContent}>
-            <Suspense fallback={<div className={styles.loading}>Loading listings...</div>}>
-              <ProfilePageContent />
+            <h1 className={styles.pageTitle}>My Listings</h1>
+            <Suspense fallback={<LoadingGrid />}>
+              <ProfilePageContent onCreateClick={handleCreateClick} />
             </Suspense>
           </div>
         </div>
       </Main>
+      
+      <CreateListingModal
+        isOpen={isCreateModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleCreateSuccess}
+      />
     </Layout>
   );
 }
