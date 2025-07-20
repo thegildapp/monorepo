@@ -40,6 +40,8 @@
   position: absolute;
   top: 0;
   left: 0;
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
 }
 
 .listingImage {
@@ -97,7 +99,7 @@
 }
 
 .listingContent {
-  padding: 16px 0;
+  padding: 12px 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -114,7 +116,7 @@
   }
   
   .listingContent {
-    padding: 16px 0;
+    padding: 12px 0;
   }
 }
 
@@ -123,19 +125,19 @@
   font-size: 18px;
   font-weight: normal;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #000;
-  padding-bottom: 2px;
+  padding-bottom: 1px;
 }
 
 .listingPrice {
   font-family: 'Tinos', serif;
   font-size: 20px;
   font-weight: normal;
-  margin: 8px 0;
+  margin: 4px 0;
   color: #000;
 }
 
@@ -197,8 +199,12 @@
   transition: opacity 0.2s ease;
 }
 
-.desktopNavButton:hover {
+.desktopNavButton:hover:not(.disabled) {
   opacity: 1;
+}
+
+.desktopNavButton.disabled {
+  opacity: 0 !important;
 }
 
 .desktopNavButton.prev {

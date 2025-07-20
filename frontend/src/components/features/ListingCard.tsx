@@ -87,9 +87,17 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
     const currentTouch = e.targetTouches[0].clientX
     setTouchEnd(currentTouch)
     
-    // Calculate the drag distance and update translateX
+    // Calculate the drag distance
     const diff = currentTouch - touchStart
-    setTranslateX(diff)
+    
+    // Add resistance at boundaries
+    const resistance = 0.3
+    if ((currentImageIndex === 0 && diff > 0) || 
+        (currentImageIndex === images.length - 1 && diff < 0)) {
+      setTranslateX(diff * resistance)
+    } else {
+      setTranslateX(diff)
+    }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -133,26 +141,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (currentImageIndex === 0) {
-      // Jump without transition
-      setIsTransitioning(false)
-      setCurrentImageIndex(images.length - 1)
-      // Re-enable transition after a brief delay
-      setTimeout(() => setIsTransitioning(true), 50)
-    } else {
+    if (currentImageIndex > 0) {
       setCurrentImageIndex(currentImageIndex - 1)
     }
   }
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (currentImageIndex === images.length - 1) {
-      // Jump without transition
-      setIsTransitioning(false)
-      setCurrentImageIndex(0)
-      // Re-enable transition after a brief delay
-      setTimeout(() => setIsTransitioning(true), 50)
-    } else {
+    if (currentImageIndex < images.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1)
     }
   }
@@ -205,16 +201,18 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
                 {isHovered && (
                   <>
                     <button 
-                      className={`${styles.desktopNavButton} ${styles.prev}`}
+                      className={`${styles.desktopNavButton} ${styles.prev} ${currentImageIndex === 0 ? styles.disabled : ''}`}
                       onClick={handlePrevImage}
+                      disabled={currentImageIndex === 0}
                     >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                     <button 
-                      className={`${styles.desktopNavButton} ${styles.next}`}
+                      className={`${styles.desktopNavButton} ${styles.next} ${currentImageIndex === images.length - 1 ? styles.disabled : ''}`}
                       onClick={handleNextImage}
+                      disabled={currentImageIndex === images.length - 1}
                     >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

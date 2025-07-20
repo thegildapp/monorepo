@@ -52,12 +52,15 @@
   justify-content: center;
   background: transparent;
   overflow: hidden;
+  touch-action: pan-y pinch-zoom;
 }
 
 .carouselTrack {
   display: flex;
   height: 100%;
   width: 100%;
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mainImage {
@@ -510,6 +513,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .fullscreenTrack {
@@ -518,12 +525,25 @@
   height: 100%;
 }
 
-.fullscreenImage {
+.fullscreenImageWrapper {
   min-width: 100%;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+.fullscreenImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 
