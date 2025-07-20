@@ -1,0 +1,64 @@
+.imageWrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-gray-100);
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-gray-100);
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.loading {
+  opacity: 0;
+}
+
+.loaded {
+  opacity: 1;
+}
+
+.imagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-400);
+  font-size: 14px;
+  width: 100%;
+  height: 100%;
+}
+
+.imagePlaceholder svg {
+  color: var(--color-gray-400);
+}
