@@ -1,5 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { compressImage } from '../../utils/imageCompression';
+import { uploadImageToSpaces } from '../../utils/uploadToSpaces';
+import { useRelayEnvironment } from 'react-relay';
 import styles from './ListingPhotosField.module.css';
 
 interface Photo {
@@ -8,6 +10,9 @@ interface Photo {
   preview: string;
   uploading: boolean;
   uploaded: boolean;
+  uploadProgress?: number;
+  url?: string;
+  key?: string;
 }
 
 interface ListingPhotosFieldProps {
@@ -25,42 +30,180 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const lastMoveTime = useRef<number>(0);
+  const environment = useRelayEnvironment();
+  const uploadQueue = useRef<Map<string, boolean>>(new Map());
+  const activeUploads = useRef<number>(0);
+  const MAX_CONCURRENT_UPLOADS = 3;
+  const currentPhotosRef = useRef<Photo[]>([]);
+  
+  // Keep ref in sync with photos prop
+  useEffect(() => {
+    currentPhotosRef.current = photos;
+  }, [photos]);
+
+  const uploadImage = useCallback(async (photo: Photo) => {
+    if (uploadQueue.current.has(photo.id)) return; // Already uploading
+    
+    // Check if photo still exists before starting upload
+    if (!currentPhotosRef.current.some(p => p.id === photo.id)) {
+      return;
+    }
+    
+    // Wait if we're at max concurrent uploads
+    while (activeUploads.current >= MAX_CONCURRENT_UPLOADS) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Check again after waiting
+    if (!currentPhotosRef.current.some(p => p.id === photo.id)) {
+      return;
+    }
+    
+    uploadQueue.current.set(photo.id, true);
+    activeUploads.current++;
+
+    try {
+      const result = await uploadImageToSpaces(
+        photo.file,
+        environment,
+        (progress) => {
+          // Update specific photo's progress
+          onPhotosChange(prevPhotos => 
+            prevPhotos.map(p => 
+              p.id === photo.id 
+                ? { ...p, uploadProgress: progress.percentage }
+                : p
+            )
+          );
+        }
+      );
+
+      if (result.success && result.url) {
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === photo.id 
+              ? { 
+                  ...p, 
+                  uploading: false, 
+                  uploaded: true, 
+                  url: result.url,
+                  key: result.key,
+                  uploadProgress: 100
+                }
+              : p
+          )
+        );
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      // Mark as failed but keep the preview
+      onPhotosChange(prevPhotos => 
+        prevPhotos.map(p => 
+          p.id === photo.id 
+            ? { ...p, uploading: false, uploaded: false, uploadProgress: 0 }
+            : p
+        )
+      );
+    } finally {
+      uploadQueue.current.delete(photo.id);
+      activeUploads.current--;
+    }
+  }, [onPhotosChange, environment]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // Reset file input immediately to allow re-selecting same files
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
     const remainingSlots = 6 - photos.length;
     const filesToAdd = files.slice(0, remainingSlots);
 
-    // Add placeholder photos immediately with uploading state
-    const placeholderPhotos: Photo[] = filesToAdd.map(file => ({
-      id: `${Date.now()}-${Math.random()}`,
-      file,
-      preview: '',
-      uploading: true, // Show shimmer
-      uploaded: false
-    }));
-    
-    onPhotosChange([...photos, ...placeholderPhotos]);
-    
-    // Compress images and update them
-    const compressedPhotos: Photo[] = [];
-    
-    for (let i = 0; i < filesToAdd.length; i++) {
-      const compressedFile = await compressImage(filesToAdd[i]);
-      const preview = URL.createObjectURL(compressedFile);
-      compressedPhotos.push({
-        ...placeholderPhotos[i],
-        file: compressedFile,
-        preview,
-        uploading: false
-      });
+    // Create photos with instant previews
+    const newPhotos: Photo[] = filesToAdd.map((file, i) => {
+      const id = `${Date.now()}-${Math.random()}-${i}`;
+      const preview = URL.createObjectURL(file);
       
-      // Update photos one by one as they complete
-      onPhotosChange([...photos, ...compressedPhotos, ...placeholderPhotos.slice(i + 1)]);
-    }
+      return {
+        id,
+        file,
+        preview,
+        uploading: true,
+        uploaded: false,
+        uploadProgress: 0
+      };
+    });
+    
+    // Update UI immediately with all photos
+    const updatedPhotos = [...photos, ...newPhotos];
+    onPhotosChange(updatedPhotos);
+    
+    // Process all photos in parallel (compress and upload)
+    const processPromises = newPhotos.map(async (photo, index) => {
+      try {
+        // Compress the image
+        const compressedFile = await compressImage(photo.file);
+        
+        // Check if photo was removed during compression
+        const stillExists = currentPhotosRef.current.some(p => p.id === photo.id);
+        if (!stillExists) {
+          URL.revokeObjectURL(photo.preview);
+          return;
+        }
+        
+        const compressedPreview = URL.createObjectURL(compressedFile);
+        
+        // Update with compressed version
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === photo.id 
+              ? { ...p, file: compressedFile, preview: compressedPreview }
+              : p
+          )
+        );
+        
+        // Clean up original preview
+        URL.revokeObjectURL(photo.preview);
+        
+        // Start upload immediately after compression
+        const updatedPhoto = { ...photo, file: compressedFile, preview: compressedPreview };
+        await uploadImage(updatedPhoto);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === photo.id 
+              ? { ...p, uploading: false, uploaded: false }
+              : p
+          )
+        );
+      }
+    });
+    
+    // Don't await - let them run in parallel
+    Promise.all(processPromises).catch(err => {
+      console.error('Error processing images:', err);
+    });
   };
 
   const handleRemovePhoto = (index: number) => {
+    const photoToRemove = photos[index];
+    
+    // Cancel upload if it's in progress
+    if (photoToRemove && uploadQueue.current.has(photoToRemove.id)) {
+      uploadQueue.current.delete(photoToRemove.id);
+    }
+    
+    // Clean up preview URL
+    if (photoToRemove && photoToRemove.preview) {
+      URL.revokeObjectURL(photoToRemove.preview);
+    }
+    
     const newPhotos = photos.filter((_, i) => i !== index);
     onPhotosChange(newPhotos);
   };
@@ -158,33 +301,71 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     const remainingSlots = 6 - photos.length;
     const filesToAdd = files.slice(0, remainingSlots);
 
-    // Add placeholder photos immediately with uploading state
-    const placeholderPhotos: Photo[] = filesToAdd.map(file => ({
-      id: `${Date.now()}-${Math.random()}`,
-      file,
-      preview: '',
-      uploading: true, // Show shimmer
-      uploaded: false
-    }));
-    
-    onPhotosChange([...photos, ...placeholderPhotos]);
-    
-    // Compress images and update them
-    const compressedPhotos: Photo[] = [];
-    
-    for (let i = 0; i < filesToAdd.length; i++) {
-      const compressedFile = await compressImage(filesToAdd[i]);
-      const preview = URL.createObjectURL(compressedFile);
-      compressedPhotos.push({
-        ...placeholderPhotos[i],
-        file: compressedFile,
-        preview,
-        uploading: false
-      });
+    // Create photos with instant previews
+    const newPhotos: Photo[] = filesToAdd.map((file, i) => {
+      const id = `${Date.now()}-${Math.random()}-${i}`;
+      const preview = URL.createObjectURL(file);
       
-      // Update photos one by one as they complete
-      onPhotosChange([...photos, ...compressedPhotos, ...placeholderPhotos.slice(i + 1)]);
-    }
+      return {
+        id,
+        file,
+        preview,
+        uploading: true,
+        uploaded: false,
+        uploadProgress: 0
+      };
+    });
+    
+    // Update UI immediately with all photos
+    const updatedPhotos = [...photos, ...newPhotos];
+    onPhotosChange(updatedPhotos);
+    
+    // Process all photos in parallel (compress and upload)
+    const processPromises = newPhotos.map(async (photo, index) => {
+      try {
+        // Compress the image
+        const compressedFile = await compressImage(photo.file);
+        
+        // Check if photo was removed during compression
+        const stillExists = currentPhotosRef.current.some(p => p.id === photo.id);
+        if (!stillExists) {
+          URL.revokeObjectURL(photo.preview);
+          return;
+        }
+        
+        const compressedPreview = URL.createObjectURL(compressedFile);
+        
+        // Update with compressed version
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === photo.id 
+              ? { ...p, file: compressedFile, preview: compressedPreview }
+              : p
+          )
+        );
+        
+        // Clean up original preview
+        URL.revokeObjectURL(photo.preview);
+        
+        // Start upload immediately after compression
+        const updatedPhoto = { ...photo, file: compressedFile, preview: compressedPreview };
+        await uploadImage(updatedPhoto);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === photo.id 
+              ? { ...p, uploading: false, uploaded: false }
+              : p
+          )
+        );
+      }
+    });
+    
+    // Don't await - let them run in parallel
+    Promise.all(processPromises).catch(err => {
+      console.error('Error processing images:', err);
+    });
   };
 
   const handleDropZoneDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -199,10 +380,17 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     setIsDraggingOver(false);
   };
 
+  const allPhotosUploaded = photos.length > 0 && photos.every(p => p.uploaded);
+  const uploadingCount = photos.filter(p => p.uploading).length;
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Add photos</h2>
-      <p className={styles.subtitle}>Add at least 3 photos (up to 6)</p>
+      <p className={styles.subtitle}>
+        Add at least 3 photos (up to 6)
+        {uploadingCount > 0 && ` • Uploading ${uploadingCount} photo${uploadingCount > 1 ? 's' : ''}...`}
+        {allPhotosUploaded && ' • All photos uploaded ✓'}
+      </p>
       
       <div 
         ref={gridRef}
@@ -229,7 +417,11 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                 onTouchEnd={handleTouchEnd}
                 style={{ touchAction: 'none' }}
               >
-                {photo.preview && <img src={photo.preview} alt={`Photo ${index + 1}`} />}
+                {photo.preview ? (
+                  <img src={photo.preview} alt={`Photo ${index + 1}`} />
+                ) : (
+                  <div className={styles.photoPlaceholder} />
+                )}
                 {!photo.uploading && (
                   <button
                     className={styles.removePhoto}
@@ -241,11 +433,21 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                     </svg>
                   </button>
                 )}
-                {index === 0 && !photo.uploading && (
-                  <div className={styles.thumbnailBadge}>Thumbnail</div>
-                )}
                 {photo.uploading && (
-                  <div className={styles.photoShimmer}></div>
+                  <>
+                    <div className={styles.photoShimmer}></div>
+                    {photo.uploadProgress !== undefined && photo.uploadProgress > 0 && (
+                      <div className={styles.uploadProgress}>
+                        <div 
+                          className={styles.uploadProgressBar}
+                          style={{ width: `${photo.uploadProgress}%` }}
+                        />
+                        <span className={styles.uploadProgressText}>
+                          {Math.round(photo.uploadProgress)}%
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             );

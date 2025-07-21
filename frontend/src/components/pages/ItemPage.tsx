@@ -493,6 +493,11 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 export default function ItemPage() {
   const { itemId } = useParams<{ itemId: string }>();
   
+  // Reset scroll position on mount and when itemId changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [itemId]);
+  
   if (!itemId) {
     return <NotFound />;
   }

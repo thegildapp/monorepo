@@ -19,6 +19,9 @@ interface Photo {
   preview: string;
   uploading: boolean;
   uploaded: boolean;
+  uploadProgress?: number;
+  url?: string;
+  key?: string;
 }
 
 interface CreateListingModalProps {
@@ -67,30 +70,46 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     setError(null);
 
     try {
-      // Upload photos and get URLs
+      // Get URLs from already uploaded photos or upload remaining ones
       const imageUrls: string[] = [];
+      const photosToUpload: { photo: any; index: number }[] = [];
       
-      // Upload all photos in parallel
-      const filesToUpload = photos.map(p => p.file);
-      const uploadResults = await uploadImagesInParallel(
-        filesToUpload,
-        environment,
-        (index, progress) => {
-          // Update upload progress for UI feedback if needed
-          console.log(`Photo ${index + 1}: ${progress.percentage}%`);
-        }
-      );
-      
-      // Extract successful URLs
-      uploadResults.forEach((result, index) => {
-        if (result.success && result.url) {
-          imageUrls.push(result.url);
+      // Check which photos are already uploaded
+      photos.forEach((photo, index) => {
+        if (photo.uploaded && photo.url) {
+          imageUrls[index] = photo.url;
         } else {
-          console.error(`Failed to upload photo ${index + 1}:`, result.error);
+          photosToUpload.push({ photo, index });
         }
       });
-
-      if (imageUrls.length === 0) {
+      
+      // Upload any remaining photos that aren't uploaded yet
+      if (photosToUpload.length > 0) {
+        const filesToUpload = photosToUpload.map(p => p.photo.file);
+        const uploadResults = await uploadImagesInParallel(
+          filesToUpload,
+          environment,
+          (uploadIndex, progress) => {
+            const photoIndex = photosToUpload[uploadIndex].index;
+            console.log(`Photo ${photoIndex + 1}: ${progress.percentage}%`);
+          }
+        );
+        
+        // Extract successful URLs and place them in correct positions
+        uploadResults.forEach((result, uploadIndex) => {
+          const photoIndex = photosToUpload[uploadIndex].index;
+          if (result.success && result.url) {
+            imageUrls[photoIndex] = result.url;
+          } else {
+            console.error(`Failed to upload photo ${photoIndex + 1}:`, result.error);
+          }
+        });
+      }
+      
+      // Filter out any undefined URLs (failed uploads)
+      const validImageUrls = imageUrls.filter(url => url !== undefined);
+      
+      if (validImageUrls.length === 0) {
         throw new Error('Failed to upload any photos');
       }
 
@@ -101,7 +120,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             title: title.trim(),
             description: description.trim(),
             price: Math.round(parseFloat(price) * 100) / 100, // Round to 2 decimal places
-            images: imageUrls,
+            images: validImageUrls,
             city: location?.city || '',
             state: location?.state || '',
             latitude: location?.lat || 0,
@@ -148,6 +167,13 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   };
 
   const handleClose = () => {
+    // Clean up photo URLs
+    photos.forEach(photo => {
+      if (photo.preview) {
+        URL.revokeObjectURL(photo.preview);
+      }
+    });
+    
     // Reset all state
     setCurrentPage(0);
     setPhotos([]);

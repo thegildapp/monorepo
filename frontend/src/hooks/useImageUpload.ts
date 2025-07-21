@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRelayEnvironment } from 'react-relay';
 import { optimizeImage, validateImageFile } from '../utils/imageOptimization';
-import { uploadImageToSpaces, uploadImagesInParallel, UploadProgress } from '../utils/uploadToSpaces';
+import { uploadImageToSpaces, uploadImagesInParallel, type UploadProgress } from '../utils/uploadToSpaces';
 
 export interface ImageUploadState {
   uploading: boolean;
