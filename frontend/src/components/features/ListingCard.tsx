@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFragment, graphql } from 'react-relay'
 import type { ListingCard_listing$key } from '../../__generated__/ListingCard_listing.graphql'
@@ -32,7 +32,47 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(true)
   
+  // New state for improved gesture handling
+  const [touchStartY, setTouchStartY] = useState(0)
+  const [touchStartTime, setTouchStartTime] = useState(0)
+  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(null)
+  const [velocity, setVelocity] = useState(0)
+  
+  // Refs for performance optimization
+  const rafId = useRef<number | null>(null)
+  const lastTouchX = useRef(0)
+  
   const images = listing.images?.length > 0 ? listing.images : []
+  
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current)
+      }
+    }
+  }, [])
+  
+  // Add non-passive touch event listeners
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    const element = imageContainerRef.current
+    if (!element) return
+    
+    const handleTouchMoveNonPassive = (e: TouchEvent) => {
+      if (isHorizontalSwipe === true) {
+        e.preventDefault()
+      }
+    }
+    
+    // Add non-passive listener
+    element.addEventListener('touchmove', handleTouchMoveNonPassive, { passive: false })
+    
+    return () => {
+      element.removeEventListener('touchmove', handleTouchMoveNonPassive)
+    }
+  }, [isHorizontalSwipe])
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -77,56 +117,114 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (images.length <= 1) return
-    setTouchStart(e.targetTouches[0].clientX)
+    
+    const touch = e.targetTouches[0]
+    setTouchStart(touch.clientX)
+    setTouchStartY(touch.clientY)
+    setTouchStartTime(Date.now())
     setIsDragging(true)
+    setIsHorizontalSwipe(null) // Reset swipe direction
+    setVelocity(0)
+    setIsTransitioning(false) // Disable transitions during drag
   }
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging || images.length <= 1) return
     
-    const currentTouch = e.targetTouches[0].clientX
-    setTouchEnd(currentTouch)
+    const touch = e.targetTouches[0]
+    const currentX = touch.clientX
+    const currentY = touch.clientY
     
-    // Calculate the drag distance
-    const diff = currentTouch - touchStart
+    // Store current touch position
+    lastTouchX.current = currentX
     
-    // Add resistance at boundaries
-    const resistance = 0.3
-    if ((currentImageIndex === 0 && diff > 0) || 
-        (currentImageIndex === images.length - 1 && diff < 0)) {
-      setTranslateX(diff * resistance)
-    } else {
-      setTranslateX(diff)
+    // Determine swipe direction if not yet determined
+    if (isHorizontalSwipe === null) {
+      const deltaX = Math.abs(currentX - touchStart)
+      const deltaY = Math.abs(currentY - touchStartY)
+      
+      // Only determine direction after minimum movement (5px)
+      if (deltaX > 5 || deltaY > 5) {
+        // Use angle to determine intent (< 30 degrees from horizontal = horizontal swipe)
+        const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
+        setIsHorizontalSwipe(angle < 30)
+      }
     }
-  }
+    
+    // Only handle horizontal movement if horizontal swipe detected
+    if (isHorizontalSwipe === true) {
+      // Cancel any pending RAF
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current)
+      }
+      
+      // Use RAF for smooth updates
+      rafId.current = requestAnimationFrame(() => {
+        setTouchEnd(currentX)
+        
+        // Calculate velocity
+        const timeDiff = Date.now() - touchStartTime
+        const distance = currentX - touchStart
+        if (timeDiff > 0) {
+          setVelocity(distance / timeDiff)
+        }
+        
+        // Calculate the drag distance with resistance at boundaries
+        const diff = currentX - touchStart
+        const resistance = 0.3
+        
+        if ((currentImageIndex === 0 && diff > 0) || 
+            (currentImageIndex === images.length - 1 && diff < 0)) {
+          setTranslateX(diff * resistance)
+        } else {
+          setTranslateX(diff)
+        }
+      })
+    }
+  }, [isDragging, images.length, isHorizontalSwipe, touchStart, touchStartY, touchStartTime, currentImageIndex])
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     setIsDragging(false)
+    setIsTransitioning(true) // Re-enable transitions
     
-    if (!touchStart || !touchEnd || images.length <= 1) {
+    if (!touchStart || images.length <= 1 || isHorizontalSwipe === false) {
       setTranslateX(0)
+      setIsHorizontalSwipe(null)
       return
     }
     
-    const distance = touchStart - touchEnd
-    const threshold = 50 // minimum distance for a swipe
-    
-    if (Math.abs(distance) > threshold) {
-      if (distance > 0) {
-        // Swiped left - next image
-        setCurrentImageIndex((prev) => Math.min(prev + 1, images.length - 1))
-      } else {
-        // Swiped right - previous image
-        setCurrentImageIndex((prev) => Math.max(prev - 1, 0))
-      }
+    // For horizontal swipes
+    if (isHorizontalSwipe === true) {
       e.stopPropagation()
-      e.preventDefault()
+      
+      const distance = touchStart - touchEnd
+      const absDistance = Math.abs(distance)
+      const absVelocity = Math.abs(velocity)
+      
+      // Velocity threshold for quick flicks (0.5 px/ms)
+      const velocityThreshold = 0.5
+      // Distance threshold for slower swipes (30% of container width)
+      const distanceThreshold = window.innerWidth * 0.3
+      
+      // Change image if velocity is high OR distance is significant
+      if (absVelocity > velocityThreshold || absDistance > distanceThreshold) {
+        if (distance > 0 && currentImageIndex < images.length - 1) {
+          // Swiped left - next image
+          setCurrentImageIndex((prev) => prev + 1)
+        } else if (distance < 0 && currentImageIndex > 0) {
+          // Swiped right - previous image
+          setCurrentImageIndex((prev) => prev - 1)
+        }
+      }
     }
     
-    // Reset transform and touch values
+    // Reset all values
     setTranslateX(0)
     setTouchStart(0)
     setTouchEnd(0)
+    setTouchStartY(0)
+    setIsHorizontalSwipe(null)
+    setVelocity(0)
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -156,7 +254,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   return (
     <div className={styles.listingCard}>
       <div 
-        className={styles.listingImageContainer}
+        ref={imageContainerRef}
+        className={`${styles.listingImageContainer} ${isHorizontalSwipe === true ? styles.horizontalSwiping : ''}`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -169,8 +268,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
             <div 
               className={styles.carouselTrack}
               style={{
-                transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
-                transition: isDragging ? 'none' : (isTransitioning ? 'transform 0.3s ease-out' : 'none')
+                transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px)) ${isDragging && isHorizontalSwipe ? 'scale(0.95)' : 'scale(1)'}`,
+                transition: isDragging ? 'transform 0.1s ease-out' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
               }}
             >
               {images.map((image: string, index: number) => (

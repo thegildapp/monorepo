@@ -53,14 +53,22 @@
   background: transparent;
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mainImageContainer.horizontalSwiping {
+  touch-action: none;
 }
 
 .carouselTrack {
   display: flex;
   height: 100%;
   width: 100%;
-  will-change: transform;
-  -webkit-overflow-scrolling: touch;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .mainImage {
