@@ -9,6 +9,8 @@ import SearchPage from './components/pages/SearchPage';
 import SignInPage from './components/pages/SignInPage';
 import ProfilePage from './components/pages/ProfilePage';
 import EditProfilePage from './components/pages/EditProfilePage';
+import ListingManagementPage from './components/pages/ListingManagementPage';
+import EditListingPage from './components/pages/EditListingPage';
 import ScrollToTop from './components/utils/ScrollToTop';
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
             <Route path="/" element={<HomePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/search" element={<SearchPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/listing/:itemId" element={<ItemPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/listing/:itemId/manage" element={<ListingManagementPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/listing/:itemId/edit" element={<EditListingPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/signin" element={<SignInPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me" element={<ProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me/profile" element={<EditProfilePage />} errorElement={<PageErrorBoundary />} />

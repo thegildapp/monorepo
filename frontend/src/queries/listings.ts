@@ -68,6 +68,23 @@ export const CreateListingMutation = graphql`
   }
 `;
 
+export const UpdateListingMutation = graphql`
+  mutation listingsUpdateListingMutation($id: ID!, $input: UpdateListingInput!) {
+    updateListing(id: $id, input: $input) {
+      id
+      title
+      description
+      price
+      images
+      city
+      state
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const GenerateUploadUrlMutation = graphql`
   mutation listingsGenerateUploadUrlMutation($filename: String!, $contentType: String!) {
     generateUploadUrl(filename: $filename, contentType: $contentType) {

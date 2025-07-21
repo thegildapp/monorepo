@@ -268,10 +268,10 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
       const absDistance = Math.abs(distance);
       const absVelocity = Math.abs(velocity);
       
-      // Velocity threshold for quick flicks (0.5 px/ms)
-      const velocityThreshold = 0.5;
-      // Distance threshold for slower swipes (30% of container width)
-      const distanceThreshold = window.innerWidth * 0.3;
+      // Velocity threshold for quick flicks (0.3 px/ms - more sensitive)
+      const velocityThreshold = 0.3;
+      // Distance threshold for slower swipes (20% of container width - more sensitive)
+      const distanceThreshold = carouselRef.current ? carouselRef.current.offsetWidth * 0.2 : window.innerWidth * 0.2;
       
       // Change image if velocity is high OR distance is significant
       if (absVelocity > velocityThreshold || absDistance > distanceThreshold) {
@@ -319,8 +319,8 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           <div 
             className={styles.carouselTrack}
             style={isMobile ? {
-              transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px)) ${isDragging && isHorizontalSwipe ? 'scale(0.95)' : 'scale(1)'}`,
-              transition: isDragging ? 'transform 0.1s ease-out' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
+              transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
+              transition: isDragging ? 'none' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
             } : {}}
           >
             {images.length > 0 ? (

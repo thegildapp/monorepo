@@ -1,0 +1,63 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  font-family: 'Tinos', serif;
+}
+
+.priceInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pricePrefix {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-family: 'Tinos', serif;
+  pointer-events: none;
+}
+
+.priceInput {
+  width: 100%;
+  padding: var(--space-4);
+  padding-left: calc(var(--space-4) + 16px);
+  font-size: 18px;
+  font-family: 'Tinos', serif;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s;
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: var(--color-text-primary);
+}
+
+.priceInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.priceInput:disabled {
+  background: var(--color-background-secondary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .priceInput,
+  .pricePrefix {
+    font-size: 16px;
+  }
+}

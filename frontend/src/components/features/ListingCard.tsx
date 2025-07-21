@@ -85,15 +85,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
 
   const timeAgo = (dateString: string) => {
     try {
-      let date: Date;
-      
-      // Check if it's a timestamp string
-      if (/^\d+$/.test(dateString)) {
-        date = new Date(parseInt(dateString));
-      } else {
-        date = new Date(dateString);
-      }
-      
+      // The backend returns ISO date strings
+      const date = new Date(dateString);
       const now = new Date()
       
       // Check if date is valid
@@ -101,7 +94,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
         return 'Recently listed'
       }
       
-      const days = Math.floor((now.getTime() - date.getTime()) / 86400000)
+      // Calculate difference in calendar days, not 24-hour periods
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfListingDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      
+      const days = Math.floor((startOfToday.getTime() - startOfListingDay.getTime()) / 86400000)
       
       if (days < 0) return 'Recently listed'
       if (days === 0) return 'Listed today'
@@ -201,10 +198,10 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
       const absDistance = Math.abs(distance)
       const absVelocity = Math.abs(velocity)
       
-      // Velocity threshold for quick flicks (0.5 px/ms)
-      const velocityThreshold = 0.5
-      // Distance threshold for slower swipes (30% of container width)
-      const distanceThreshold = window.innerWidth * 0.3
+      // Velocity threshold for quick flicks (0.3 px/ms - more sensitive)
+      const velocityThreshold = 0.3
+      // Distance threshold for slower swipes (20% of container width - more sensitive)
+      const distanceThreshold = imageContainerRef.current ? imageContainerRef.current.offsetWidth * 0.2 : window.innerWidth * 0.2
       
       // Change image if velocity is high OR distance is significant
       if (absVelocity > velocityThreshold || absDistance > distanceThreshold) {
@@ -268,8 +265,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
             <div 
               className={styles.carouselTrack}
               style={{
-                transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px)) ${isDragging && isHorizontalSwipe ? 'scale(0.95)' : 'scale(1)'}`,
-                transition: isDragging ? 'transform 0.1s ease-out' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
+                transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
+                transition: isDragging ? 'none' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
               }}
             >
               {images.map((image: string, index: number) => (

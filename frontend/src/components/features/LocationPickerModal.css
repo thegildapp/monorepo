@@ -260,7 +260,7 @@
 /* Current location button */
 .current-location-btn {
   position: absolute;
-  bottom: 140px;
+  bottom: 80px;
   right: 16px;
   width: 44px;
   height: 44px;
@@ -307,13 +307,26 @@
   z-index: 500;
 }
 
+.selected-location-info-with-done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8f9fa;
+}
+
 .selected-location-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+}
+
+.no-location-message {
+  padding: 16px;
+  text-align: center;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  color: #666;
 }
 
 .location-pin-icon {
@@ -383,15 +396,12 @@
   border: none;
 }
 
-.done-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
+.done-btn-inline {
+  padding: 8px 16px;
   background: #000;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: 'Tinos', serif;
   font-size: 16px;
   font-weight: normal;
@@ -400,25 +410,16 @@
   white-space: nowrap;
 }
 
-.done-btn:hover:not(:disabled) {
+.done-btn-inline:hover {
   background: #222;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.done-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.done-btn svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.5;
-}
-
-.done-btn-full {
-  flex: 1;
+.radius-control-standalone {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .mini-spinner {

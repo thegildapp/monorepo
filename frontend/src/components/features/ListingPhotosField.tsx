@@ -16,11 +16,13 @@ interface Photo {
 }
 
 interface ListingPhotosFieldProps {
+  label?: string;
   photos: Photo[];
   onPhotosChange: (photos: Photo[]) => void;
 }
 
 const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
+  label,
   photos,
   onPhotosChange
 }) => {
@@ -385,12 +387,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Add photos</h2>
-      <p className={styles.subtitle}>
-        Add at least 3 photos (up to 6)
-        {uploadingCount > 0 && ` • Uploading ${uploadingCount} photo${uploadingCount > 1 ? 's' : ''}...`}
-        {allPhotosUploaded && ' • All photos uploaded ✓'}
-      </p>
+      {label && <label className={styles.label}>{label}</label>}
       
       <div 
         ref={gridRef}

@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingCard from '../features/ListingCard';
-import LocationSelector from '../features/LocationSelector';
+import LocationSelectorInline from '../features/LocationSelectorInline';
 import LoadingGrid from '../features/LoadingGrid';
 import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import { SearchListingsQuery } from '../../queries/listings';
@@ -125,7 +125,7 @@ export default function SearchPage() {
             </div>
           </div>
           <div className={styles.locationSelectorWrapper}>
-            <LocationSelector
+            <LocationSelectorInline
               onLocationChange={(loc, rad) => {
                 setLocation(loc);
                 setRadius(rad);

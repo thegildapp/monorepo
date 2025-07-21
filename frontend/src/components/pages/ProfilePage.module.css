@@ -116,6 +116,14 @@
   width: 100%;
 }
 
+.sellerListingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-8);
+  width: 100%;
+}
+
 
 .emptyState {
   text-align: center;
@@ -161,6 +169,10 @@
     font-size: 20px;
     margin-top: var(--space-4);
   }
+  
+  .sellerListingsContainer {
+    gap: 0;
+  }
 }
 
 @media (min-width: 768px) {
@@ -169,10 +181,20 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
+  
+  .sellerListingsContainer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
 }
 
 @media (min-width: 1024px) {
   .listingsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .sellerListingsContainer {
     grid-template-columns: repeat(3, 1fr);
   }
 }

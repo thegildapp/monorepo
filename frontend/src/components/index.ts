@@ -17,6 +17,7 @@ export { default as CategoryGrid } from './features/CategoryGrid';
 export { default as ListingGrid } from './features/ListingGrid';
 export { default as ListingCard } from './features/ListingCard';
 export { default as LocationSelector } from './features/LocationSelector';
+export { default as LocationSelectorInline } from './features/LocationSelectorInline';
 export { default as LocationPickerModal } from './features/LocationPickerModal';
 
 // Page components

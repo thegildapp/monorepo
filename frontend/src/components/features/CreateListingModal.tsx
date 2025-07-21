@@ -119,7 +119,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
           input: {
             title: title.trim(),
             description: description.trim(),
-            price: Math.round(parseFloat(price) * 100) / 100, // Round to 2 decimal places
+            price: Math.round(parseFloat(price) * 100) / 100,
             images: validImageUrls,
             city: location?.city || '',
             state: location?.state || '',

@@ -106,16 +106,20 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
   // Auto-adjust zoom based on radius
   const getZoomForRadius = (radiusMiles: number): number => {
-    // Approximate zoom levels for different radius values
-    // Adjusted to ensure full radius is visible
-    if (radiusMiles <= 1) return 13
-    if (radiusMiles <= 3) return 12
-    if (radiusMiles <= 5) return 11
-    if (radiusMiles <= 10) return 10
-    if (radiusMiles <= 20) return 9
-    if (radiusMiles <= 30) return 8
-    if (radiusMiles <= 50) return 7
-    return 7
+    if (hideRadius) {
+      // Point selection mode - more zoomed in
+      return 15
+    } else {
+      // Radius selection mode - zoom out to show full radius
+      if (radiusMiles <= 1) return 13
+      if (radiusMiles <= 3) return 12
+      if (radiusMiles <= 5) return 11
+      if (radiusMiles <= 10) return 10
+      if (radiusMiles <= 20) return 9
+      if (radiusMiles <= 30) return 8
+      if (radiusMiles <= 50) return 7
+      return 7
+    }
   }
 
   useEffect(() => {
@@ -471,48 +475,49 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             )}
           </button>
 
-          {/* Bottom controls */}
+          {/* Bottom info bar */}
           <div className="location-picker-bottom">
-            {selectedLocation && (
-              <div className="selected-location-info">
-                <svg className="location-pin-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                <span className="selected-location-text">{locationName}</span>
+            {selectedLocation ? (
+              <div className="selected-location-info-with-done">
+                <div className="selected-location-info">
+                  <svg className="location-pin-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  <span className="selected-location-text">{locationName}</span>
+                </div>
+                <button
+                  className="done-btn-inline"
+                  onClick={handleDone}
+                >
+                  Done
+                </button>
               </div>
+            ) : (
+              <div className="no-location-message">Click on the map to select a location</div>
             )}
             
-            <div className="location-picker-controls">
-              {!hideRadius && (
-                <div className="radius-control">
-                  <span className="radius-label">{selectedRadius} mile{selectedRadius !== 1 ? 's' : ''}</span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={selectedRadius}
-                    onChange={(e) => {
-                      const newRadius = parseInt(e.target.value)
-                      setSelectedRadius(newRadius)
-                      
-                      // Adjust map zoom to show full radius
-                      if (mapRef.current && selectedLocation) {
-                        const newZoom = getZoomForRadius(newRadius)
-                        mapRef.current.setZoom(newZoom)
-                      }
-                    }}
-                    className="radius-slider"
-                  />
-                </div>
-              )}
-              <button
-                className={`done-btn ${hideRadius ? 'done-btn-full' : ''}`}
-                onClick={handleDone}
-                disabled={!selectedLocation}
-              >
-                Done
-              </button>
-            </div>
+            {!hideRadius && selectedLocation && (
+              <div className="radius-control-standalone">
+                <span className="radius-label">{selectedRadius} mile{selectedRadius !== 1 ? 's' : ''}</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={selectedRadius}
+                  onChange={(e) => {
+                    const newRadius = parseInt(e.target.value)
+                    setSelectedRadius(newRadius)
+                    
+                    // Adjust map zoom to show full radius
+                    if (mapRef.current && selectedLocation) {
+                      const newZoom = getZoomForRadius(newRadius)
+                      mapRef.current.setZoom(newZoom)
+                    }
+                  }}
+                  className="radius-slider"
+                />
+              </div>
+            )}
           </div>
         </div>
     </Modal>

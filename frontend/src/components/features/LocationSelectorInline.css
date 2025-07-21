@@ -1,0 +1,50 @@
+.location-selector-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.location-icon-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+.location-text-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  color: #000;
+  text-align: left;
+}
+
+.location-text-button:hover {
+  opacity: 0.7;
+}
+
+.location-selector-inline .location-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #000;
+}
+
+@media (max-width: 640px) {
+  .location-text-button {
+    font-size: 14px;
+  }
+
+  .location-selector-inline .location-icon {
+    width: 12px;
+    height: 12px;
+  }
+}

@@ -5,7 +5,7 @@ import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import ListingGrid from '../features/ListingGrid';
 import LoadingGrid from '../features/LoadingGrid';
-import LocationSelector from '../features/LocationSelector';
+import LocationSelectorInline from '../features/LocationSelectorInline';
 import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import { GetListingsQuery } from '../../queries/listings';
 import type { listingsQuery } from '../../__generated__/listingsQuery.graphql';
@@ -45,7 +45,7 @@ export default function HomePage() {
         logoText="Gild"
         extraContent={
           <div className={styles.headerLocationSelector}>
-            <LocationSelector
+            <LocationSelectorInline
               onLocationChange={(loc, rad) => {
                 setLocation(loc);
                 setRadius(rad);
@@ -56,7 +56,7 @@ export default function HomePage() {
       />
       {/* Mobile location bar */}
       <div className={`${styles.mobileLocationBar} ${!isHeaderVisible && isMobile ? styles.mobileLocationBarHidden : ''}`}>
-        <LocationSelector
+        <LocationSelectorInline
           onLocationChange={(loc, rad) => {
             setLocation(loc);
             setRadius(rad);

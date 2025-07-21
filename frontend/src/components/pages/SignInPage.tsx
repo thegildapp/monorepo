@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
@@ -12,6 +12,7 @@ import styles from './SignInPage.module.css';
 
 export default function SignInPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -23,12 +24,15 @@ export default function SignInPage() {
   const [commitLogin, isLoginInFlight] = useMutation<authLoginMutation>(LoginMutation);
   const [commitRegister, isRegisterInFlight] = useMutation<authRegisterMutation>(RegisterMutation);
 
+  // Get the intended destination from location state
+  const from = (location.state as any)?.from || '/me';
+  
   // Redirect if already signed in
   useEffect(() => {
     if (user) {
-      navigate('/me');
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +51,7 @@ export default function SignInPage() {
         onCompleted: (response) => {
           if (response.register) {
             login(response.register.token, response.register.user);
-            navigate('/me');
+            navigate(from, { replace: true });
           }
         },
         onError: (error) => {
@@ -65,7 +69,7 @@ export default function SignInPage() {
         onCompleted: (response) => {
           if (response.login) {
             login(response.login.token, response.login.user);
-            navigate('/me');
+            navigate(from, { replace: true });
           }
         },
         onError: (error) => {

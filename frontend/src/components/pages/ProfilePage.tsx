@@ -5,7 +5,8 @@ import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
 import ListingCard from '../features/ListingCard';
-import LoadingGrid from '../features/LoadingGrid';
+import SellerListingCard from '../features/SellerListingCard';
+import SellerLoadingGrid from '../features/SellerLoadingGrid';
 import CreateListingModal from '../features/CreateListingModal';
 import { useAuth } from '../../contexts/AuthContext';
 import type { ProfilePageMyListingsQuery } from '../../__generated__/ProfilePageMyListingsQuery.graphql';
@@ -16,6 +17,7 @@ const MyListingsQuery = graphql`
     myListings {
       id
       ...ListingCard_listing
+      ...SellerListingCard_listing
     }
   }
 `;
@@ -35,9 +37,9 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
   return (
     <>
       {myListings.length > 0 ? (
-        <div className={styles.listingsGrid}>
+        <div className={styles.sellerListingsContainer}>
           {myListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <SellerListingCard key={listing.id} listing={listing} />
           ))}
         </div>
       ) : (
@@ -90,7 +92,7 @@ export default function ProfilePage() {
         <div className={styles.container}>
           <div className={styles.profileContent}>
             <h1 className={styles.pageTitle}>My Listings</h1>
-            <Suspense fallback={<LoadingGrid />}>
+            <Suspense fallback={<SellerLoadingGrid />}>
               <ProfilePageContent onCreateClick={handleCreateClick} />
             </Suspense>
           </div>
