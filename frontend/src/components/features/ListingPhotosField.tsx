@@ -22,12 +22,14 @@ interface ListingPhotosFieldProps {
   label?: string;
   photos: Photo[];
   onPhotosChange: (photos: Photo[]) => void;
+  showTitle?: boolean;
 }
 
 const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   label,
   photos,
-  onPhotosChange
+  onPhotosChange,
+  showTitle = false
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -393,7 +395,13 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
   return (
     <div className={styles.container}>
-      {label && <label className={styles.label}>{label}</label>}
+      {showTitle && (
+        <>
+          <h2 className={styles.title}>Add photos</h2>
+          <p className={styles.subtitle}>Upload up to 6 photos of your item</p>
+        </>
+      )}
+      {label && !showTitle && <label className={styles.label}>{label}</label>}
       
       <div 
         ref={gridRef}

@@ -204,6 +204,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const pages = [
     <ListingPhotosField 
       key="photos"
+      showTitle={true}
       photos={photos}
       onPhotosChange={setPhotos}
     />,
