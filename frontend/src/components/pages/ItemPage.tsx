@@ -21,19 +21,31 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   const images = listing.images?.length > 0 ? listing.images : [];
   const hasImages = images.length > 0;
   
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Helper functions to get appropriate image variants
+  const getFullImageUrl = (index: number) => {
+    if (listing.imageVariants && listing.imageVariants[index]) {
+      return listing.imageVariants[index].full;
+    }
+    return images[index];
+  };
+  
+  const getThumbnailUrl = (index: number) => {
+    if (listing.imageVariants && listing.imageVariants[index]) {
+      return listing.imageVariants[index].thumbnail;
+    }
+    return images[index];
+  };
+  
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isScrolling = useRef(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [desktopImageIndex, setDesktopImageIndex] = useState(0);
   
-  
-  // Fullscreen scroll ref
   const fullscreenScrollRef = useRef<HTMLDivElement>(null);
-  const isFullscreenScrolling = useRef(false);
+  const [fullscreenScrollPosition, setFullscreenScrollPosition] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
-  // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -44,83 +56,75 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Handle scroll snapping for mobile carousel
+  const getCurrentIndex = (isFullscreen = false) => {
+    const scrollPos = isFullscreen ? fullscreenScrollPosition : scrollPosition;
+    const scrollContainer = isFullscreen ? fullscreenScrollRef.current : scrollContainerRef.current;
+    
+    if (!scrollContainer || images.length === 0) return 0;
+    
+    const itemWidth = scrollContainer.offsetWidth;
+    if (itemWidth === 0) return 0;
+    
+    return Math.min(
+      Math.round(scrollPos / itemWidth),
+      images.length - 1
+    );
+  };
+  
+  const mobileImageIndex = getCurrentIndex(false);
+  const fullscreenImageIndex = getCurrentIndex(true);
+  
+  const currentImageIndex = isMobile ? mobileImageIndex : desktopImageIndex;
+  
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer || !isMobile) return;
 
     const handleScroll = () => {
-      if (!isScrolling.current) return;
-      
-      const scrollLeft = scrollContainer.scrollLeft;
-      const itemWidth = scrollContainer.offsetWidth;
-      const newIndex = Math.round(scrollLeft / itemWidth);
-      
-      if (newIndex !== currentImageIndex) {
-        setCurrentImageIndex(newIndex);
-      }
-    };
-
-    const handleScrollEnd = () => {
-      isScrolling.current = false;
+      setScrollPosition(scrollContainer.scrollLeft);
     };
 
     scrollContainer.addEventListener('scroll', handleScroll);
-    scrollContainer.addEventListener('scrollend', handleScrollEnd);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [isMobile]);
+  
+  const scrollToIndex = (index: number, isFullscreen = false) => {
+    if (!isMobile && !isFullscreen) {
+      setDesktopImageIndex(index);
+    } else {
+      const scrollContainer = isFullscreen ? fullscreenScrollRef.current : scrollContainerRef.current;
+      if (!scrollContainer) return;
+      
+      const itemWidth = scrollContainer.offsetWidth;
+      scrollContainer.scrollTo({
+        left: index * itemWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
 
-    return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
-      scrollContainer.removeEventListener('scrollend', handleScrollEnd);
-    };
-  }, [currentImageIndex, isMobile]);
-
-  // Sync scroll position with current index on mobile
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer || !isMobile || isScrolling.current) return;
-
-    const itemWidth = scrollContainer.offsetWidth;
-    scrollContainer.scrollTo({
-      left: currentImageIndex * itemWidth,
-      behavior: 'smooth'
-    });
-  }, [currentImageIndex, isMobile]);
-
-  // Handle fullscreen scroll sync
   useEffect(() => {
     const scrollContainer = fullscreenScrollRef.current;
     if (!scrollContainer || !showFullscreen) return;
 
     const handleScroll = () => {
-      if (!isFullscreenScrolling.current || isZoomed) return;
-      
-      const scrollLeft = scrollContainer.scrollLeft;
-      const itemWidth = scrollContainer.offsetWidth;
-      const newIndex = Math.round(scrollLeft / itemWidth);
-      
-      if (newIndex !== currentImageIndex) {
-        setCurrentImageIndex(newIndex);
+      if (!isZoomed) {
+        setFullscreenScrollPosition(scrollContainer.scrollLeft);
       }
     };
 
-    const handleScrollEnd = () => {
-      isFullscreenScrolling.current = false;
-    };
-
-    // Detect zoom changes
     const detectZoom = () => {
       const zoomLevel = window.visualViewport?.scale || 1;
       const wasZoomed = isZoomed;
-      const nowZoomed = zoomLevel > 1.01; // Small threshold to account for rounding
+      const nowZoomed = zoomLevel > 1.01;
       
       if (wasZoomed !== nowZoomed) {
         setIsZoomed(nowZoomed);
         
-        // If zooming out, ensure we're properly aligned
         if (!nowZoomed && scrollContainer) {
           const itemWidth = scrollContainer.offsetWidth;
           scrollContainer.scrollTo({
-            left: currentImageIndex * itemWidth,
+            left: fullscreenImageIndex * itemWidth,
             behavior: 'smooth'
           });
         }
@@ -128,15 +132,12 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     };
 
     scrollContainer.addEventListener('scroll', handleScroll);
-    scrollContainer.addEventListener('scrollend', handleScrollEnd);
     
-    // Listen for zoom changes
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', detectZoom);
       window.visualViewport.addEventListener('scroll', detectZoom);
     }
 
-    // Set initial scroll position
     const itemWidth = scrollContainer.offsetWidth;
     scrollContainer.scrollTo({
       left: currentImageIndex * itemWidth,
@@ -145,15 +146,13 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll);
-      scrollContainer.removeEventListener('scrollend', handleScrollEnd);
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', detectZoom);
         window.visualViewport.removeEventListener('scroll', detectZoom);
       }
     };
-  }, [currentImageIndex, showFullscreen, isZoomed]);
+  }, [showFullscreen, isZoomed, currentImageIndex, fullscreenImageIndex]);
 
-  // Prevent body scrolling on desktop
   useEffect(() => {
     if (!isMobile) {
       document.body.style.overflow = 'hidden';
@@ -166,23 +165,24 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     }
   }, [isMobile]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!listing || !listing.images || listing.images.length <= 1 || isMobile) return;
       
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setCurrentImageIndex(currentImageIndex === 0 ? listing.images.length - 1 : currentImageIndex - 1);
+        const prevIndex = desktopImageIndex === 0 ? listing.images.length - 1 : desktopImageIndex - 1;
+        setDesktopImageIndex(prevIndex);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setCurrentImageIndex(currentImageIndex === listing.images.length - 1 ? 0 : currentImageIndex + 1);
+        const nextIndex = desktopImageIndex === listing.images.length - 1 ? 0 : desktopImageIndex + 1;
+        setDesktopImageIndex(nextIndex);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [listing, isMobile, currentImageIndex]);
+  }, [listing, isMobile, desktopImageIndex]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -201,9 +201,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     }
   };
 
-  const handleScrollStart = () => {
-    isScrolling.current = true;
-  };
 
 
   const location = listing.city && listing.state ? `${listing.city}, ${listing.state}` : 'Location not available';
@@ -217,14 +214,13 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           <div 
             ref={scrollContainerRef}
             className={styles.carouselScrollContainer}
-            onTouchStart={handleScrollStart}
             onClick={handleImageClick}
           >
             {images.length > 0 ? (
-              images.map((image, index) => (
+              images.map((_, index) => (
                 <div key={index} className={styles.carouselSlide}>
                   <ImageWithFallback
-                    src={image} 
+                    src={getFullImageUrl(index)} 
                     alt={`${listing.title} - Image ${index + 1}`}
                     className={styles.mainImage}
                     fallbackWidth="100%"
@@ -244,12 +240,11 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
             )}
           </div>
         ) : (
-          // Desktop: Single image display
           <div className={styles.mainImageContainer}>
             {images.length > 0 ? (
               <ImageWithFallback
                 key={currentImageIndex}
-                src={images[currentImageIndex]} 
+                src={getFullImageUrl(currentImageIndex)} 
                 alt={`${listing.title} - Image ${currentImageIndex + 1}`}
                 className={styles.mainImage}
                 fallbackWidth="600px"
@@ -271,14 +266,14 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
         {/* Thumbnails - desktop only */}
         {!isMobile && hasImages && images.length > 1 && (
           <div className={styles.thumbnailContainer}>
-            {images.map((image, index) => (
+            {images.map((_, index) => (
               <div
                 key={index}
                 className={`${styles.thumbnail} ${index === currentImageIndex ? styles.active : ''}`}
-                onClick={() => setCurrentImageIndex(index)}
+                onClick={() => scrollToIndex(index)}
               >
                 <ThumbnailImage
-                  src={image} 
+                  src={getThumbnailUrl(index)} 
                   alt={`${listing.title} thumbnail ${index + 1}`}
                   className={styles.thumbnailImage}
                 />
@@ -294,7 +289,7 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
               <div
                 key={index}
                 className={`${styles.indicator} ${index === currentImageIndex ? styles.active : ''}`}
-                onClick={() => setCurrentImageIndex(index)}
+                onClick={() => scrollToIndex(index)}
               />
             ))}
           </div>
@@ -342,7 +337,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
       </div>
 
-      {/* Fullscreen Image Viewer */}
       {showFullscreen && (
         <div className={styles.fullscreenOverlay} onClick={() => setShowFullscreen(false)}>
           <button className={styles.fullscreenClose} onClick={() => setShowFullscreen(false)}>
@@ -354,19 +348,14 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
             <div 
               ref={fullscreenScrollRef}
               className={`${styles.fullscreenScrollContainer} ${isZoomed ? styles.fullscreenScrollContainerZoomed : ''}`}
-              onTouchStart={() => {
-                if (!isZoomed) {
-                  isFullscreenScrolling.current = true;
-                }
-              }}
             >
-              {images.map((image, index) => (
+              {images.map((_, index) => (
                 <div
                   key={index}
                   className={styles.fullscreenSlide}
                 >
                   <ImageWithFallback
-                    src={image} 
+                    src={getFullImageUrl(index)} 
                     alt={`${listing.title} - Image ${index + 1}`}
                     className={styles.fullscreenImage}
                   />
@@ -383,7 +372,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 export default function ItemPage() {
   const { itemId } = useParams<{ itemId: string }>();
   
-  // Reset scroll position on mount and when itemId changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [itemId]);

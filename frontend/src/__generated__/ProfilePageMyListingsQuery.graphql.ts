@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<593a74fcb2437f779fc5fe4b70c5fe1e>>
+ * @generated SignedSource<<61333ab7a90a6ff1068ce25f0fd327ab>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -10,13 +10,11 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
-export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 export type ProfilePageMyListingsQuery$variables = Record<PropertyKey, never>;
 export type ProfilePageMyListingsQuery$data = {
   readonly myListings: ReadonlyArray<{
     readonly id: string;
-    readonly status: ListingStatus;
-    readonly " $fragmentSpreads": FragmentRefs<"ListingCard_listing">;
+    readonly " $fragmentSpreads": FragmentRefs<"ListingCard_listing" | "SellerListingCard_listing">;
   }>;
 };
 export type ProfilePageMyListingsQuery = {
@@ -30,13 +28,6 @@ var v0 = {
   "args": null,
   "kind": "ScalarField",
   "name": "id",
-  "storageKey": null
-},
-v1 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "status",
   "storageKey": null
 };
 return {
@@ -55,11 +46,15 @@ return {
         "plural": true,
         "selections": [
           (v0/*: any*/),
-          (v1/*: any*/),
           {
             "args": null,
             "kind": "FragmentSpread",
             "name": "ListingCard_listing"
+          },
+          {
+            "args": null,
+            "kind": "FragmentSpread",
+            "name": "SellerListingCard_listing"
           }
         ],
         "storageKey": null
@@ -83,7 +78,6 @@ return {
         "plural": true,
         "selections": [
           (v0/*: any*/),
-          (v1/*: any*/),
           {
             "alias": null,
             "args": null,
@@ -108,6 +102,38 @@ return {
           {
             "alias": null,
             "args": null,
+            "concreteType": "ImageVariants",
+            "kind": "LinkedField",
+            "name": "imageVariants",
+            "plural": true,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "thumbnail",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "card",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "full",
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
             "kind": "ScalarField",
             "name": "city",
             "storageKey": null
@@ -125,6 +151,13 @@ return {
             "kind": "ScalarField",
             "name": "createdAt",
             "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "status",
+            "storageKey": null
           }
         ],
         "storageKey": null
@@ -132,16 +165,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "c70337d0145f4611862695208b86041b",
+    "cacheID": "3f079e1b8c20db9b1a04a3557f4f30bb",
     "id": null,
     "metadata": {},
     "name": "ProfilePageMyListingsQuery",
     "operationKind": "query",
-    "text": "query ProfilePageMyListingsQuery {\n  myListings {\n    id\n    status\n    ...ListingCard_listing\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
+    "text": "query ProfilePageMyListingsQuery {\n  myListings {\n    id\n    ...ListingCard_listing\n    ...SellerListingCard_listing\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  createdAt\n}\n\nfragment SellerListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  createdAt\n  status\n}\n"
   }
 };
 })();
 
-(node as any).hash = "600aef6ad9febe23715ab869ce319cdb";
+(node as any).hash = "d7b3e81bf84c08b44e13fe176057360b";
 
 export default node;

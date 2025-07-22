@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<444190c837b0bc3809d078b117867de5>>
+ * @generated SignedSource<<883ef88fcdbc80c151963e18104f442c>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,11 +9,11 @@
 // @ts-nocheck
 
 import { ReaderFragment } from 'relay-runtime';
+export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
-export type listingsListingDetail_listing$data = {
+export type SellerListingCard_listing$data = {
   readonly city: string | null | undefined;
   readonly createdAt: string;
-  readonly description: string;
   readonly id: string;
   readonly imageVariants: ReadonlyArray<{
     readonly card: string;
@@ -22,50 +22,34 @@ export type listingsListingDetail_listing$data = {
   }> | null | undefined;
   readonly images: ReadonlyArray<string>;
   readonly price: number;
-  readonly seller: {
-    readonly avatarUrl: string | null | undefined;
-    readonly email: string;
-    readonly id: string;
-    readonly name: string;
-    readonly phone: string | null | undefined;
-  };
   readonly state: string | null | undefined;
+  readonly status: ListingStatus;
   readonly title: string;
-  readonly updatedAt: string;
-  readonly " $fragmentType": "listingsListingDetail_listing";
+  readonly " $fragmentType": "SellerListingCard_listing";
 };
-export type listingsListingDetail_listing$key = {
-  readonly " $data"?: listingsListingDetail_listing$data;
-  readonly " $fragmentSpreads": FragmentRefs<"listingsListingDetail_listing">;
+export type SellerListingCard_listing$key = {
+  readonly " $data"?: SellerListingCard_listing$data;
+  readonly " $fragmentSpreads": FragmentRefs<"SellerListingCard_listing">;
 };
 
-const node: ReaderFragment = (function(){
-var v0 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "id",
-  "storageKey": null
-};
-return {
+const node: ReaderFragment = {
   "argumentDefinitions": [],
   "kind": "Fragment",
   "metadata": null,
-  "name": "listingsListingDetail_listing",
+  "name": "SellerListingCard_listing",
   "selections": [
-    (v0/*: any*/),
     {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "title",
+      "name": "id",
       "storageKey": null
     },
     {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "description",
+      "name": "title",
       "storageKey": null
     },
     {
@@ -131,46 +115,6 @@ return {
     {
       "alias": null,
       "args": null,
-      "concreteType": "User",
-      "kind": "LinkedField",
-      "name": "seller",
-      "plural": false,
-      "selections": [
-        (v0/*: any*/),
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "name",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "email",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "phone",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "avatarUrl",
-          "storageKey": null
-        }
-      ],
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
       "kind": "ScalarField",
       "name": "createdAt",
       "storageKey": null
@@ -179,15 +123,14 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "updatedAt",
+      "name": "status",
       "storageKey": null
     }
   ],
   "type": "Listing",
   "abstractKey": null
 };
-})();
 
-(node as any).hash = "8565dbace5189eb2a7440ebff944ddd8";
+(node as any).hash = "2c19de83cac7f5bd62f108e07939dd79";
 
 export default node;

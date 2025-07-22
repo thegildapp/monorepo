@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<405853ea58ccd6c61405f16275f6b3b6>>
+ * @generated SignedSource<<9cc70477cb8cb9063e3ed2dc7bf7ce66>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -116,6 +116,38 @@ return {
           {
             "alias": null,
             "args": null,
+            "concreteType": "ImageVariants",
+            "kind": "LinkedField",
+            "name": "imageVariants",
+            "plural": true,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "thumbnail",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "card",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "full",
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
             "kind": "ScalarField",
             "name": "city",
             "storageKey": null
@@ -194,12 +226,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "56553ecfcbe15e59c249226a1720089a",
+    "cacheID": "a58e6be13a96fca7ac87fcd031dc74d7",
     "id": null,
     "metadata": {},
     "name": "listingsGetListingQuery",
     "operationKind": "query",
-    "text": "query listingsGetListingQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingCard_listing\n    ...listingsListingDetail_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n\nfragment listingsListingDetail_listing on Listing {\n  id\n  title\n  description\n  price\n  images\n  city\n  state\n  seller {\n    id\n    name\n    email\n    phone\n    avatarUrl\n  }\n  createdAt\n  updatedAt\n}\n"
+    "text": "query listingsGetListingQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingCard_listing\n    ...listingsListingDetail_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  createdAt\n}\n\nfragment listingsListingDetail_listing on Listing {\n  id\n  title\n  description\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  seller {\n    id\n    name\n    email\n    phone\n    avatarUrl\n  }\n  createdAt\n  updatedAt\n}\n"
   }
 };
 })();

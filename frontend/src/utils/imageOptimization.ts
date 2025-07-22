@@ -13,11 +13,23 @@ const IMAGE_SIZES: ImageSize[] = [
   { width: 1920, suffix: 'xl', quality: 0.75 },
 ];
 
+export interface ImageVariant {
+  file: File;
+  width: number;
+  height: number;
+  size: number;
+}
+
 export interface OptimizedImage {
   original: File;
   compressed: File;
   thumbnail?: File;
   sizes?: Map<string, File>;
+  variants: {
+    thumbnail: ImageVariant;  // 200x200 for thumbnails
+    card: ImageVariant;       // 640px wide for listing cards
+    full: ImageVariant;       // 1920px wide for detail view
+  };
   metadata: {
     width: number;
     height: number;
@@ -31,36 +43,50 @@ export async function optimizeImage(file: File): Promise<OptimizedImage> {
   // Get original dimensions
   const dimensions = await getImageDimensions(file);
   
-  // Main compression with WebP format
-  const mainOptions = {
-    maxSizeMB: 2,
-    maxWidthOrHeight: 2048,
-    useWebWorker: true,
-    initialQuality: 0.85,
-    fileType: 'image/webp' as const,
-    alwaysKeepResolution: false,
-  };
-
-  // Compress main image
-  let compressed = await imageCompression(file, mainOptions);
-  
-  // If still too large, compress more aggressively
-  if (compressed.size > 2 * 1024 * 1024) {
-    compressed = await imageCompression(file, {
-      ...mainOptions,
-      initialQuality: 0.7,
-      maxSizeMB: 1.5,
-    });
-  }
-
-  // Create thumbnail (always small)
-  const thumbnail = await imageCompression(file, {
-    maxSizeMB: 0.1,
+  // Create thumbnail variant (200x200 max, square crop for consistency)
+  const thumbnailFile = await imageCompression(file, {
+    maxSizeMB: 0.05, // 50KB max for thumbnails
     maxWidthOrHeight: 200,
     useWebWorker: true,
     initialQuality: 0.8,
     fileType: 'image/webp' as const,
   });
+  const thumbnailDims = await getImageDimensions(thumbnailFile);
+  
+  // Create card variant (640px wide for listing cards)
+  const cardFile = await imageCompression(file, {
+    maxSizeMB: 0.3, // 300KB max for cards
+    maxWidthOrHeight: 640,
+    useWebWorker: true,
+    initialQuality: 0.85,
+    fileType: 'image/webp' as const,
+  });
+  const cardDims = await getImageDimensions(cardFile);
+  
+  // Create full variant (1920px wide for detail view)
+  let fullFile = await imageCompression(file, {
+    maxSizeMB: 1.5, // 1.5MB max for full images
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+    initialQuality: 0.85,
+    fileType: 'image/webp' as const,
+    alwaysKeepResolution: false,
+  });
+  
+  // If still too large, compress more aggressively
+  if (fullFile.size > 1.5 * 1024 * 1024) {
+    fullFile = await imageCompression(file, {
+      maxSizeMB: 1.5,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      initialQuality: 0.7,
+      fileType: 'image/webp' as const,
+    });
+  }
+  const fullDims = await getImageDimensions(fullFile);
+
+  // Keep the old compressed for backward compatibility
+  const compressed = fullFile;
 
   // Generate multiple sizes for responsive images (optional, for future use)
   const sizes = new Map<string, File>();
@@ -86,8 +112,28 @@ export async function optimizeImage(file: File): Promise<OptimizedImage> {
   return {
     original: file,
     compressed,
-    thumbnail,
+    thumbnail: thumbnailFile,
     sizes,
+    variants: {
+      thumbnail: {
+        file: thumbnailFile,
+        width: thumbnailDims.width,
+        height: thumbnailDims.height,
+        size: thumbnailFile.size,
+      },
+      card: {
+        file: cardFile,
+        width: cardDims.width,
+        height: cardDims.height,
+        size: cardFile.size,
+      },
+      full: {
+        file: fullFile,
+        width: fullDims.width,
+        height: fullDims.height,
+        size: fullFile.size,
+      },
+    },
     metadata: {
       width: dimensions.width,
       height: dimensions.height,

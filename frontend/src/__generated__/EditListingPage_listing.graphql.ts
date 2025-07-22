@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<44cc03eeade7f024b69b05c8291a068d>>
+ * @generated SignedSource<<56d4fa975a97128923ea4dbd565ea85a>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,32 +9,30 @@
 // @ts-nocheck
 
 import { ReaderFragment } from 'relay-runtime';
+export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
-export type ListingCard_listing$data = {
+export type EditListingPage_listing$data = {
   readonly city: string | null | undefined;
   readonly createdAt: string;
+  readonly description: string;
   readonly id: string;
-  readonly imageVariants: ReadonlyArray<{
-    readonly card: string;
-    readonly full: string;
-    readonly thumbnail: string;
-  }> | null | undefined;
   readonly images: ReadonlyArray<string>;
   readonly price: number;
   readonly state: string | null | undefined;
+  readonly status: ListingStatus;
   readonly title: string;
-  readonly " $fragmentType": "ListingCard_listing";
+  readonly " $fragmentType": "EditListingPage_listing";
 };
-export type ListingCard_listing$key = {
-  readonly " $data"?: ListingCard_listing$data;
-  readonly " $fragmentSpreads": FragmentRefs<"ListingCard_listing">;
+export type EditListingPage_listing$key = {
+  readonly " $data"?: EditListingPage_listing$data;
+  readonly " $fragmentSpreads": FragmentRefs<"EditListingPage_listing">;
 };
 
 const node: ReaderFragment = {
   "argumentDefinitions": [],
   "kind": "Fragment",
   "metadata": null,
-  "name": "ListingCard_listing",
+  "name": "EditListingPage_listing",
   "selections": [
     {
       "alias": null,
@@ -54,6 +52,13 @@ const node: ReaderFragment = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "description",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "price",
       "storageKey": null
     },
@@ -62,38 +67,6 @@ const node: ReaderFragment = {
       "args": null,
       "kind": "ScalarField",
       "name": "images",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "concreteType": "ImageVariants",
-      "kind": "LinkedField",
-      "name": "imageVariants",
-      "plural": true,
-      "selections": [
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "thumbnail",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "card",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "full",
-          "storageKey": null
-        }
-      ],
       "storageKey": null
     },
     {
@@ -116,12 +89,19 @@ const node: ReaderFragment = {
       "kind": "ScalarField",
       "name": "createdAt",
       "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "status",
+      "storageKey": null
     }
   ],
   "type": "Listing",
   "abstractKey": null
 };
 
-(node as any).hash = "6fa93b527d7e72c586c67dd8be9a2baa";
+(node as any).hash = "a4662fff01862b75424e99ce75a312c0";
 
 export default node;

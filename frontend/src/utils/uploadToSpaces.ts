@@ -15,6 +15,23 @@ export interface UploadResult {
   error?: string;
 }
 
+export interface ImageVariantUrls {
+  thumbnail: string;
+  card: string;
+  full: string;
+}
+
+export interface UploadVariantsResult {
+  success: boolean;
+  urls?: ImageVariantUrls;
+  keys?: {
+    thumbnail: string;
+    card: string;
+    full: string;
+  };
+  error?: string;
+}
+
 export async function uploadImageToSpaces(
   file: File,
   environment: any,
@@ -164,4 +181,69 @@ export async function uploadImagesInParallel(
   await Promise.all(executing.keys());
 
   return results;
+}
+
+export async function uploadImageVariantsToSpaces(
+  variants: {
+    thumbnail: File;
+    card: File;
+    full: File;
+  },
+  environment: any,
+  onProgress?: (variant: string, progress: UploadProgress) => void
+): Promise<UploadVariantsResult> {
+  try {
+    const uploadPromises = Object.entries(variants).map(async ([variant, file]) => {
+      const result = await uploadImageToSpaces(
+        file,
+        environment,
+        onProgress ? (progress) => onProgress(variant, progress) : undefined
+      );
+      return { variant, result };
+    });
+
+    const results = await Promise.all(uploadPromises);
+    
+    // Check if all uploads succeeded
+    const allSucceeded = results.every(r => r.result.success);
+    
+    if (!allSucceeded) {
+      const failedVariant = results.find(r => !r.result.success);
+      return {
+        success: false,
+        error: `Failed to upload ${failedVariant?.variant} variant: ${failedVariant?.result.error}`
+      };
+    }
+
+    // Construct the result with all URLs and keys
+    const urls: ImageVariantUrls = {
+      thumbnail: '',
+      card: '',
+      full: ''
+    };
+    const keys: { thumbnail: string; card: string; full: string } = {
+      thumbnail: '',
+      card: '',
+      full: ''
+    };
+
+    results.forEach(({ variant, result }) => {
+      if (result.url && result.key) {
+        urls[variant as keyof ImageVariantUrls] = result.url;
+        keys[variant as keyof typeof keys] = result.key;
+      }
+    });
+
+    return {
+      success: true,
+      urls,
+      keys
+    };
+  } catch (error) {
+    console.error('Error uploading image variants:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to upload image variants'
+    };
+  }
 }

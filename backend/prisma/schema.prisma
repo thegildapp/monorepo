@@ -33,6 +33,7 @@ model Listing {
   description    String
   price          Int
   images         String[]
+  imageVariants  Json[]        @default([])
   city           String?
   state          String?
   latitude       Float?

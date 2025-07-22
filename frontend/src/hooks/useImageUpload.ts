@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRelayEnvironment } from 'react-relay';
 import { optimizeImage, validateImageFile } from '../utils/imageOptimization';
-import { uploadImageToSpaces, uploadImagesInParallel, type UploadProgress } from '../utils/uploadToSpaces';
+import { uploadImageToSpaces, uploadImagesInParallel, uploadImageVariantsToSpaces, type UploadProgress, type ImageVariantUrls } from '../utils/uploadToSpaces';
 
 export interface ImageUploadState {
   uploading: boolean;
@@ -16,6 +16,7 @@ export interface UploadedImage {
   width: number;
   height: number;
   size: number;
+  variants?: ImageVariantUrls;
 }
 
 export interface UseImageUploadOptions {
@@ -50,26 +51,32 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
       // Optimize image
       const optimized = await optimizeImage(file);
       
-      // Upload compressed version
-      const result = await uploadImageToSpaces(
-        optimized.compressed,
+      // Upload all variants
+      const variantsResult = await uploadImageVariantsToSpaces(
+        {
+          thumbnail: optimized.variants.thumbnail.file,
+          card: optimized.variants.card.file,
+          full: optimized.variants.full.file,
+        },
         environment,
-        (progress) => {
+        (variant, progress) => {
+          // Average progress across all variants
           setState(prev => ({ ...prev, progress: progress.percentage }));
           options.onProgress?.(progress.percentage);
         }
       );
 
-      if (!result.success) {
-        throw new Error(result.error || 'Upload failed');
+      if (!variantsResult.success) {
+        throw new Error(variantsResult.error || 'Upload failed');
       }
 
       const uploadedImage: UploadedImage = {
-        url: result.url!,
-        key: result.key!,
+        url: variantsResult.urls!.full, // Use full size as default URL for backward compatibility
+        key: variantsResult.keys!.full,
         width: optimized.metadata.width,
         height: optimized.metadata.height,
         size: optimized.metadata.compressedSize,
+        variants: variantsResult.urls,
       };
 
       setState(prev => ({
@@ -113,34 +120,41 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
         files.map(file => optimizeImage(file))
       );
 
-      // Upload in parallel with progress tracking
-      const uploadProgresses = new Map<number, number>();
-      const results = await uploadImagesInParallel(
-        optimizedImages.map(opt => opt.compressed),
-        environment,
-        (index, progress) => {
-          uploadProgresses.set(index, progress.percentage);
-          const totalProgress = Array.from(uploadProgresses.values()).reduce((a, b) => a + b, 0) / files.length;
-          setState(prev => ({ ...prev, progress: Math.round(totalProgress) }));
-          options.onProgress?.(Math.round(totalProgress));
-        },
-        3 // Max 3 concurrent uploads
-      );
-
-      // Process results
+      // Upload variants for each image
       const uploadedImages: UploadedImage[] = [];
-      results.forEach((result, index) => {
-        if (result.success && result.url && result.key) {
-          const optimized = optimizedImages[index];
+      const uploadProgresses = new Map<number, number>();
+      
+      for (let i = 0; i < optimizedImages.length; i++) {
+        const optimized = optimizedImages[i];
+        
+        // Upload all variants for this image
+        const variantsResult = await uploadImageVariantsToSpaces(
+          {
+            thumbnail: optimized.variants.thumbnail.file,
+            card: optimized.variants.card.file,
+            full: optimized.variants.full.file,
+          },
+          environment,
+          (variant, progress) => {
+            // Track progress per image
+            uploadProgresses.set(i, progress.percentage);
+            const totalProgress = Array.from(uploadProgresses.values()).reduce((a, b) => a + b, 0) / files.length;
+            setState(prev => ({ ...prev, progress: Math.round(totalProgress) }));
+            options.onProgress?.(Math.round(totalProgress));
+          }
+        );
+        
+        if (variantsResult.success && variantsResult.urls && variantsResult.keys) {
           uploadedImages.push({
-            url: result.url,
-            key: result.key,
+            url: variantsResult.urls.full, // Use full size as default URL
+            key: variantsResult.keys.full,
             width: optimized.metadata.width,
             height: optimized.metadata.height,
             size: optimized.metadata.compressedSize,
+            variants: variantsResult.urls,
           });
         }
-      });
+      }
 
       setState(prev => ({
         ...prev,

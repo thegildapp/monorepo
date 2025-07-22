@@ -11,6 +11,11 @@ const ListingCardFragment = graphql`
     title
     price
     images
+    imageVariants {
+      thumbnail
+      card
+      full
+    }
     city
     state
     createdAt
@@ -24,54 +29,56 @@ interface ListingCardProps {
 const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const listing = useFragment(ListingCardFragment, listingRef);
   const navigate = useNavigate()
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const isScrolling = useRef(false)
+  const [scrollPosition, setScrollPosition] = useState(0)
+  
+  const getImageUrl = (index: number) => {
+    if (listing.imageVariants && listing.imageVariants[index]) {
+      return listing.imageVariants[index].card;
+    }
+    return listing.images[index];
+  };
   
   const images = listing.images?.length > 0 ? listing.images : []
   
-  // Handle scroll snapping
+  const getCurrentIndex = () => {
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer || images.length === 0) return 0
+    
+    const itemWidth = scrollContainer.offsetWidth
+    if (itemWidth === 0) return 0
+    
+    return Math.min(
+      Math.round(scrollPosition / itemWidth),
+      images.length - 1
+    )
+  }
+  
+  const currentImageIndex = getCurrentIndex()
+  
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current
     if (!scrollContainer) return
 
     const handleScroll = () => {
-      if (!isScrolling.current) return
-      
-      const scrollLeft = scrollContainer.scrollLeft
-      const itemWidth = scrollContainer.offsetWidth
-      const newIndex = Math.round(scrollLeft / itemWidth)
-      
-      if (newIndex !== currentImageIndex) {
-        setCurrentImageIndex(newIndex)
-      }
-    }
-
-    const handleScrollEnd = () => {
-      isScrolling.current = false
+      setScrollPosition(scrollContainer.scrollLeft)
     }
 
     scrollContainer.addEventListener('scroll', handleScroll)
-    scrollContainer.addEventListener('scrollend', handleScrollEnd)
-
-    return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll)
-      scrollContainer.removeEventListener('scrollend', handleScrollEnd)
-    }
-  }, [currentImageIndex])
-
-  // Sync scroll position with current index
-  useEffect(() => {
+    return () => scrollContainer.removeEventListener('scroll', handleScroll)
+  }, [])
+  
+  const scrollToIndex = (index: number) => {
     const scrollContainer = scrollContainerRef.current
-    if (!scrollContainer || isScrolling.current) return
-
+    if (!scrollContainer) return
+    
     const itemWidth = scrollContainer.offsetWidth
     scrollContainer.scrollTo({
-      left: currentImageIndex * itemWidth,
+      left: index * itemWidth,
       behavior: 'smooth'
     })
-  }, [currentImageIndex])
+  }
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -84,16 +91,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
 
   const timeAgo = (dateString: string) => {
     try {
-      // The backend returns ISO date strings
       const date = new Date(dateString);
       const now = new Date()
       
-      // Check if date is valid
       if (isNaN(date.getTime())) {
         return 'Recently listed'
       }
       
-      // Calculate difference in calendar days, not 24-hour periods
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const startOfListingDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
@@ -111,12 +115,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
     }
   }
 
-  const handleScrollStart = () => {
-    isScrolling.current = true
-  }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent navigation if clicking on pagination buttons
     if (e.target instanceof HTMLElement && e.target.closest('.desktopNavButton')) {
       return
     }
@@ -126,14 +126,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1)
+      scrollToIndex(currentImageIndex - 1)
     }
   }
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (currentImageIndex < images.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1)
+      scrollToIndex(currentImageIndex + 1)
     }
   }
 
@@ -150,13 +150,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
             <div 
               ref={scrollContainerRef}
               className={styles.carouselScrollContainer}
-              onTouchStart={handleScrollStart}
-              onMouseDown={handleScrollStart}
             >
-              {images.map((image: string, index: number) => (
+              {images.map((_: string, index: number) => (
                 <div key={index} className={styles.carouselSlide}>
                   <ImageWithFallback
-                    src={image} 
+                    src={getImageUrl(index)} 
                     alt={`${listing.title} - Image ${index + 1}`}
                     className={styles.listingImage}
                   />
@@ -172,13 +170,12 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
                       className={`${styles.carouselDot} ${index === currentImageIndex ? styles.active : ''}`}
                       onClick={(e) => {
                         e.stopPropagation()
-                        setCurrentImageIndex(index)
+                        scrollToIndex(index)
                       }}
                     />
                   ))}
                 </div>
                 
-                {/* Desktop navigation buttons */}
                 {isHovered && (
                   <>
                     <button 

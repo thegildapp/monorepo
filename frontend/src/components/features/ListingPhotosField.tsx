@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { compressImage } from '../../utils/imageCompression';
 import { uploadImageToSpaces } from '../../utils/uploadToSpaces';
 import { useRelayEnvironment } from 'react-relay';
+import { useImageUpload } from '../../hooks/useImageUpload';
+import type { ImageVariantUrls } from '../../utils/uploadToSpaces';
 import styles from './ListingPhotosField.module.css';
 
 interface Photo {
@@ -13,6 +15,7 @@ interface Photo {
   uploadProgress?: number;
   url?: string;
   key?: string;
+  variants?: ImageVariantUrls;
 }
 
 interface ListingPhotosFieldProps {
@@ -43,6 +46,12 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     currentPhotosRef.current = photos;
   }, [photos]);
 
+  const { uploadSingle } = useImageUpload({
+    onProgress: (progress) => {
+      // This will be called for overall progress
+    }
+  });
+
   const uploadImage = useCallback(async (photo: Photo) => {
     if (uploadQueue.current.has(photo.id)) return; // Already uploading
     
@@ -65,22 +74,18 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     activeUploads.current++;
 
     try {
-      const result = await uploadImageToSpaces(
-        photo.file,
-        environment,
-        (progress) => {
-          // Update specific photo's progress
-          onPhotosChange(prevPhotos => 
-            prevPhotos.map(p => 
-              p.id === photo.id 
-                ? { ...p, uploadProgress: progress.percentage }
-                : p
-            )
-          );
-        }
+      // Update progress during upload
+      onPhotosChange(prevPhotos => 
+        prevPhotos.map(p => 
+          p.id === photo.id 
+            ? { ...p, uploading: true, uploadProgress: 0 }
+            : p
+        )
       );
 
-      if (result.success && result.url) {
+      const result = await uploadSingle(photo.file);
+
+      if (result) {
         onPhotosChange(prevPhotos => 
           prevPhotos.map(p => 
             p.id === photo.id 
@@ -90,13 +95,14 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                   uploaded: true, 
                   url: result.url,
                   key: result.key,
+                  variants: result.variants,
                   uploadProgress: 100
                 }
               : p
           )
         );
       } else {
-        throw new Error(result.error || 'Upload failed');
+        throw new Error('Upload failed');
       }
     } catch (error) {
       console.error('Upload failed:', error);
@@ -112,7 +118,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       uploadQueue.current.delete(photo.id);
       activeUploads.current--;
     }
-  }, [onPhotosChange, environment]);
+  }, [onPhotosChange, uploadSingle]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);

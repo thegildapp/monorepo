@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFragment, graphql } from 'react-relay'
 import type { SellerListingCard_listing$key } from '../../__generated__/SellerListingCard_listing.graphql'
@@ -11,6 +10,11 @@ const SellerListingCardFragment = graphql`
     title
     price
     images
+    imageVariants {
+      thumbnail
+      card
+      full
+    }
     city
     state
     createdAt
@@ -25,7 +29,6 @@ interface SellerListingCardProps {
 const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingRef }) => {
   const listing = useFragment(SellerListingCardFragment, listingRef);
   const navigate = useNavigate();
-  const [imageError, setImageError] = useState(false);
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -63,15 +66,22 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
 
   const daysActive = getDaysActive(listing.createdAt);
 
+  // Use thumbnail variant if available, otherwise fall back to regular images
+  const getThumbnailUrl = () => {
+    if (listing.imageVariants && listing.imageVariants[0]?.thumbnail) {
+      return listing.imageVariants[0].thumbnail;
+    }
+    return listing.images?.[0];
+  };
+
   return (
     <div className={styles.sellerCard} onClick={handleCardClick}>
       <div className={styles.imageSection}>
-        {listing.images && listing.images.length > 0 && !imageError ? (
+        {listing.images && listing.images.length > 0 ? (
           <ImageWithFallback
-            src={listing.images[0]}
+            src={getThumbnailUrl()}
             alt={listing.title}
             className={styles.thumbnail}
-            onError={() => setImageError(true)}
           />
         ) : (
           <div className={styles.imagePlaceholder}>

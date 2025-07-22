@@ -22,6 +22,11 @@ interface Photo {
   uploadProgress?: number;
   url?: string;
   key?: string;
+  variants?: {
+    thumbnail: string;
+    card: string;
+    full: string;
+  };
 }
 
 interface CreateListingModalProps {
@@ -113,6 +118,15 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
         throw new Error('Failed to upload any photos');
       }
 
+      // Collect image variants from uploaded photos
+      const imageVariants = photos
+        .filter(photo => photo.variants)
+        .map(photo => ({
+          thumbnail: photo.variants!.thumbnail,
+          card: photo.variants!.card,
+          full: photo.variants!.full,
+        }));
+
       // Create the listing
       commitCreateListing({
         variables: {
@@ -121,6 +135,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             description: description.trim(),
             price: Math.round(parseFloat(price) * 100) / 100,
             images: validImageUrls,
+            imageVariants: imageVariants.length > 0 ? imageVariants : undefined,
             city: location?.city || '',
             state: location?.state || '',
             latitude: location?.lat || 0,

@@ -32,6 +32,11 @@ export const ListingDetailFragment = graphql`
     description
     price
     images
+    imageVariants {
+      thumbnail
+      card
+      full
+    }
     city
     state
     seller {
@@ -54,6 +59,11 @@ export const CreateListingMutation = graphql`
       description
       price
       images
+      imageVariants {
+        thumbnail
+        card
+        full
+      }
       city
       state
       status
@@ -76,6 +86,11 @@ export const UpdateListingMutation = graphql`
       description
       price
       images
+      imageVariants {
+        thumbnail
+        card
+        full
+      }
       city
       state
       status
