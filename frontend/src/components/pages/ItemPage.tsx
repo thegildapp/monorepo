@@ -112,17 +112,10 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
     scrollContainer.addEventListener('scroll', handleScroll);
 
-    // Set initial scroll position to match current image
-    const itemWidth = scrollContainer.offsetWidth;
-    scrollContainer.scrollTo({
-      left: currentImageIndex * itemWidth,
-      behavior: 'auto'
-    });
-
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll);
     };
-  }, [showFullscreen, currentImageIndex]);
+  }, [showFullscreen]);
 
   useEffect(() => {
     if (!isMobile) {
