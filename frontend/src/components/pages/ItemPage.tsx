@@ -44,7 +44,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   
   const fullscreenScrollRef = useRef<HTMLDivElement>(null);
   const [fullscreenScrollPosition, setFullscreenScrollPosition] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -108,36 +107,12 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     if (!scrollContainer || !showFullscreen) return;
 
     const handleScroll = () => {
-      if (!isZoomed) {
-        setFullscreenScrollPosition(scrollContainer.scrollLeft);
-      }
-    };
-
-    const detectZoom = () => {
-      const zoomLevel = window.visualViewport?.scale || 1;
-      const wasZoomed = isZoomed;
-      const nowZoomed = zoomLevel > 1.01;
-      
-      if (wasZoomed !== nowZoomed) {
-        setIsZoomed(nowZoomed);
-        
-        if (!nowZoomed && scrollContainer) {
-          const itemWidth = scrollContainer.offsetWidth;
-          scrollContainer.scrollTo({
-            left: fullscreenImageIndex * itemWidth,
-            behavior: 'smooth'
-          });
-        }
-      }
+      setFullscreenScrollPosition(scrollContainer.scrollLeft);
     };
 
     scrollContainer.addEventListener('scroll', handleScroll);
-    
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', detectZoom);
-      window.visualViewport.addEventListener('scroll', detectZoom);
-    }
 
+    // Set initial scroll position to match current image
     const itemWidth = scrollContainer.offsetWidth;
     scrollContainer.scrollTo({
       left: currentImageIndex * itemWidth,
@@ -146,12 +121,8 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', detectZoom);
-        window.visualViewport.removeEventListener('scroll', detectZoom);
-      }
     };
-  }, [showFullscreen, isZoomed, currentImageIndex, fullscreenImageIndex]);
+  }, [showFullscreen, currentImageIndex]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -347,7 +318,7 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           <div className={styles.fullscreenContent} onClick={(e) => e.stopPropagation()}>
             <div 
               ref={fullscreenScrollRef}
-              className={`${styles.fullscreenScrollContainer} ${isZoomed ? styles.fullscreenScrollContainerZoomed : ''}`}
+              className={styles.fullscreenScrollContainer}
             >
               {images.map((_, index) => (
                 <div
@@ -362,6 +333,26 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
                 </div>
               ))}
             </div>
+            {images.length > 1 && (
+              <div className={styles.fullscreenIndicators}>
+                {images.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`${styles.fullscreenIndicator} ${index === fullscreenImageIndex ? styles.active : ''}`}
+                    onClick={() => {
+                      const scrollContainer = fullscreenScrollRef.current;
+                      if (scrollContainer) {
+                        const itemWidth = scrollContainer.offsetWidth;
+                        scrollContainer.scrollTo({
+                          left: index * itemWidth,
+                          behavior: 'smooth'
+                        });
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
