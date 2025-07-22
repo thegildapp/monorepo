@@ -1,6 +1,6 @@
 .location-selector-inline {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   width: 100%;
 }
@@ -36,6 +36,8 @@
   height: 14px;
   flex-shrink: 0;
   color: #000;
+  position: relative;
+  top: 2px;
 }
 
 @media (max-width: 640px) {

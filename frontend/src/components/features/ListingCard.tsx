@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFragment, graphql } from 'react-relay'
 import type { ListingCard_listing$key } from '../../__generated__/ListingCard_listing.graphql'
@@ -25,54 +25,53 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const listing = useFragment(ListingCardFragment, listingRef);
   const navigate = useNavigate()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [touchStart, setTouchStart] = useState(0)
-  const [touchEnd, setTouchEnd] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [translateX, setTranslateX] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(true)
-  
-  // New state for improved gesture handling
-  const [touchStartY, setTouchStartY] = useState(0)
-  const [touchStartTime, setTouchStartTime] = useState(0)
-  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(null)
-  const [velocity, setVelocity] = useState(0)
-  
-  // Refs for performance optimization
-  const rafId = useRef<number | null>(null)
-  const lastTouchX = useRef(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const isScrolling = useRef(false)
   
   const images = listing.images?.length > 0 ? listing.images : []
   
-  // Cleanup RAF on unmount
+  // Handle scroll snapping
   useEffect(() => {
-    return () => {
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current)
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer) return
+
+    const handleScroll = () => {
+      if (!isScrolling.current) return
+      
+      const scrollLeft = scrollContainer.scrollLeft
+      const itemWidth = scrollContainer.offsetWidth
+      const newIndex = Math.round(scrollLeft / itemWidth)
+      
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex)
       }
     }
-  }, [])
-  
-  // Add non-passive touch event listeners
-  const imageContainerRef = useRef<HTMLDivElement>(null)
-  
-  useEffect(() => {
-    const element = imageContainerRef.current
-    if (!element) return
-    
-    const handleTouchMoveNonPassive = (e: TouchEvent) => {
-      if (isHorizontalSwipe === true) {
-        e.preventDefault()
-      }
+
+    const handleScrollEnd = () => {
+      isScrolling.current = false
     }
-    
-    // Add non-passive listener
-    element.addEventListener('touchmove', handleTouchMoveNonPassive, { passive: false })
-    
+
+    scrollContainer.addEventListener('scroll', handleScroll)
+    scrollContainer.addEventListener('scrollend', handleScrollEnd)
+
     return () => {
-      element.removeEventListener('touchmove', handleTouchMoveNonPassive)
+      scrollContainer.removeEventListener('scroll', handleScroll)
+      scrollContainer.removeEventListener('scrollend', handleScrollEnd)
     }
-  }, [isHorizontalSwipe])
+  }, [currentImageIndex])
+
+  // Sync scroll position with current index
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer || isScrolling.current) return
+
+    const itemWidth = scrollContainer.offsetWidth
+    scrollContainer.scrollTo({
+      left: currentImageIndex * itemWidth,
+      behavior: 'smooth'
+    })
+  }, [currentImageIndex])
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -112,124 +111,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
     }
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (images.length <= 1) return
-    
-    const touch = e.targetTouches[0]
-    setTouchStart(touch.clientX)
-    setTouchStartY(touch.clientY)
-    setTouchStartTime(Date.now())
-    setIsDragging(true)
-    setIsHorizontalSwipe(null) // Reset swipe direction
-    setVelocity(0)
-    setIsTransitioning(false) // Disable transitions during drag
-  }
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || images.length <= 1) return
-    
-    const touch = e.targetTouches[0]
-    const currentX = touch.clientX
-    const currentY = touch.clientY
-    
-    // Store current touch position
-    lastTouchX.current = currentX
-    
-    // Determine swipe direction if not yet determined
-    if (isHorizontalSwipe === null) {
-      const deltaX = Math.abs(currentX - touchStart)
-      const deltaY = Math.abs(currentY - touchStartY)
-      
-      // Only determine direction after minimum movement (5px)
-      if (deltaX > 5 || deltaY > 5) {
-        // Use angle to determine intent (< 30 degrees from horizontal = horizontal swipe)
-        const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
-        setIsHorizontalSwipe(angle < 30)
-      }
-    }
-    
-    // Only handle horizontal movement if horizontal swipe detected
-    if (isHorizontalSwipe === true) {
-      // Cancel any pending RAF
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current)
-      }
-      
-      // Use RAF for smooth updates
-      rafId.current = requestAnimationFrame(() => {
-        setTouchEnd(currentX)
-        
-        // Calculate velocity
-        const timeDiff = Date.now() - touchStartTime
-        const distance = currentX - touchStart
-        if (timeDiff > 0) {
-          setVelocity(distance / timeDiff)
-        }
-        
-        // Calculate the drag distance with resistance at boundaries
-        const diff = currentX - touchStart
-        const resistance = 0.3
-        
-        if ((currentImageIndex === 0 && diff > 0) || 
-            (currentImageIndex === images.length - 1 && diff < 0)) {
-          setTranslateX(diff * resistance)
-        } else {
-          setTranslateX(diff)
-        }
-      })
-    }
-  }, [isDragging, images.length, isHorizontalSwipe, touchStart, touchStartY, touchStartTime, currentImageIndex])
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    setIsDragging(false)
-    setIsTransitioning(true) // Re-enable transitions
-    
-    if (!touchStart || images.length <= 1 || isHorizontalSwipe === false) {
-      setTranslateX(0)
-      setIsHorizontalSwipe(null)
-      return
-    }
-    
-    // For horizontal swipes
-    if (isHorizontalSwipe === true) {
-      e.stopPropagation()
-      
-      const distance = touchStart - touchEnd
-      const absDistance = Math.abs(distance)
-      const absVelocity = Math.abs(velocity)
-      
-      // Velocity threshold for quick flicks (0.3 px/ms - more sensitive)
-      const velocityThreshold = 0.3
-      // Distance threshold for slower swipes (20% of container width - more sensitive)
-      const distanceThreshold = imageContainerRef.current ? imageContainerRef.current.offsetWidth * 0.2 : window.innerWidth * 0.2
-      
-      // Change image if velocity is high OR distance is significant
-      if (absVelocity > velocityThreshold || absDistance > distanceThreshold) {
-        if (distance > 0 && currentImageIndex < images.length - 1) {
-          // Swiped left - next image
-          setCurrentImageIndex((prev) => prev + 1)
-        } else if (distance < 0 && currentImageIndex > 0) {
-          // Swiped right - previous image
-          setCurrentImageIndex((prev) => prev - 1)
-        }
-      }
-    }
-    
-    // Reset all values
-    setTranslateX(0)
-    setTouchStart(0)
-    setTouchEnd(0)
-    setTouchStartY(0)
-    setIsHorizontalSwipe(null)
-    setVelocity(0)
+  const handleScrollStart = () => {
+    isScrolling.current = true
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent navigation if clicking on the image during swipe or on pagination buttons
-    if (e.target instanceof HTMLElement && e.target.closest('.listingImageContainer')) {
-      if (isDragging || Math.abs(translateX) >= 5 || e.target.closest('.desktopNavButton')) {
-        return
-      }
+    // Prevent navigation if clicking on pagination buttons
+    if (e.target instanceof HTMLElement && e.target.closest('.desktopNavButton')) {
+      return
     }
     navigate(`/listing/${listing.id}`)
   }
@@ -251,11 +140,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   return (
     <div className={styles.listingCard}>
       <div 
-        ref={imageContainerRef}
-        className={`${styles.listingImageContainer} ${isHorizontalSwipe === true ? styles.horizontalSwiping : ''}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={styles.listingImageContainer}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleCardClick}
@@ -263,19 +148,19 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
         {images[0] ? (
           <>
             <div 
-              className={styles.carouselTrack}
-              style={{
-                transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
-                transition: isDragging ? 'none' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
-              }}
+              ref={scrollContainerRef}
+              className={styles.carouselScrollContainer}
+              onTouchStart={handleScrollStart}
+              onMouseDown={handleScrollStart}
             >
               {images.map((image: string, index: number) => (
-                <ImageWithFallback
-                  key={index}
-                  src={image} 
-                  alt={`${listing.title} - Image ${index + 1}`}
-                  className={styles.listingImage}
-                />
+                <div key={index} className={styles.carouselSlide}>
+                  <ImageWithFallback
+                    src={image} 
+                    alt={`${listing.title} - Image ${index + 1}`}
+                    className={styles.listingImage}
+                  />
+                </div>
               ))}
             </div>
             {images.length > 1 && (

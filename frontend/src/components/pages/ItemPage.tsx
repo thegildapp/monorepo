@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useLazyLoadQuery, useFragment } from 'react-relay';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
@@ -22,35 +22,16 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   const hasImages = images.length > 0;
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [translateX, setTranslateX] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isScrolling = useRef(false);
   
-  // Zoom state for fullscreen
-  const [scale, setScale] = useState(1);
-  const [posX, setPosX] = useState(0);
-  const [posY, setPosY] = useState(0);
-  const [lastDistance, setLastDistance] = useState(0);
-  const [lastCenterX, setLastCenterX] = useState(0);
-  const [lastCenterY, setLastCenterY] = useState(0);
-  const [isZooming, setIsZooming] = useState(false);
-  const [isPanning, setIsPanning] = useState(false);
-  const [lastTapTime, setLastTapTime] = useState(0);
   
-  // New state for improved gesture handling
-  const [touchStartY, setTouchStartY] = useState(0);
-  const [touchStartTime, setTouchStartTime] = useState(0);
-  const [isHorizontalSwipe, setIsHorizontalSwipe] = useState<boolean | null>(null);
-  const [velocity, setVelocity] = useState(0);
-  
-  // Refs for performance optimization
-  const rafId = useRef<number | null>(null);
-  const lastTouchX = useRef(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  // Fullscreen scroll ref
+  const fullscreenScrollRef = useRef<HTMLDivElement>(null);
+  const isFullscreenScrolling = useRef(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -63,33 +44,114 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Cleanup RAF on unmount
+  // Handle scroll snapping for mobile carousel
   useEffect(() => {
-    return () => {
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || !isMobile) return;
+
+    const handleScroll = () => {
+      if (!isScrolling.current) return;
+      
+      const scrollLeft = scrollContainer.scrollLeft;
+      const itemWidth = scrollContainer.offsetWidth;
+      const newIndex = Math.round(scrollLeft / itemWidth);
+      
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex);
       }
     };
-  }, []);
-  
-  // Add non-passive touch event listeners
+
+    const handleScrollEnd = () => {
+      isScrolling.current = false;
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    scrollContainer.addEventListener('scrollend', handleScrollEnd);
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.removeEventListener('scrollend', handleScrollEnd);
+    };
+  }, [currentImageIndex, isMobile]);
+
+  // Sync scroll position with current index on mobile
   useEffect(() => {
-    const element = carouselRef.current;
-    if (!element) return;
-    
-    const handleTouchMoveNonPassive = (e: TouchEvent) => {
-      if (isHorizontalSwipe === true && scale === 1) {
-        e.preventDefault();
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || !isMobile || isScrolling.current) return;
+
+    const itemWidth = scrollContainer.offsetWidth;
+    scrollContainer.scrollTo({
+      left: currentImageIndex * itemWidth,
+      behavior: 'smooth'
+    });
+  }, [currentImageIndex, isMobile]);
+
+  // Handle fullscreen scroll sync
+  useEffect(() => {
+    const scrollContainer = fullscreenScrollRef.current;
+    if (!scrollContainer || !showFullscreen) return;
+
+    const handleScroll = () => {
+      if (!isFullscreenScrolling.current || isZoomed) return;
+      
+      const scrollLeft = scrollContainer.scrollLeft;
+      const itemWidth = scrollContainer.offsetWidth;
+      const newIndex = Math.round(scrollLeft / itemWidth);
+      
+      if (newIndex !== currentImageIndex) {
+        setCurrentImageIndex(newIndex);
       }
     };
-    
-    // Add non-passive listener
-    element.addEventListener('touchmove', handleTouchMoveNonPassive, { passive: false });
-    
-    return () => {
-      element.removeEventListener('touchmove', handleTouchMoveNonPassive);
+
+    const handleScrollEnd = () => {
+      isFullscreenScrolling.current = false;
     };
-  }, [isHorizontalSwipe, scale]);
+
+    // Detect zoom changes
+    const detectZoom = () => {
+      const zoomLevel = window.visualViewport?.scale || 1;
+      const wasZoomed = isZoomed;
+      const nowZoomed = zoomLevel > 1.01; // Small threshold to account for rounding
+      
+      if (wasZoomed !== nowZoomed) {
+        setIsZoomed(nowZoomed);
+        
+        // If zooming out, ensure we're properly aligned
+        if (!nowZoomed && scrollContainer) {
+          const itemWidth = scrollContainer.offsetWidth;
+          scrollContainer.scrollTo({
+            left: currentImageIndex * itemWidth,
+            behavior: 'smooth'
+          });
+        }
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    scrollContainer.addEventListener('scrollend', handleScrollEnd);
+    
+    // Listen for zoom changes
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', detectZoom);
+      window.visualViewport.addEventListener('scroll', detectZoom);
+    }
+
+    // Set initial scroll position
+    const itemWidth = scrollContainer.offsetWidth;
+    scrollContainer.scrollTo({
+      left: currentImageIndex * itemWidth,
+      behavior: 'auto'
+    });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.removeEventListener('scrollend', handleScrollEnd);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', detectZoom);
+        window.visualViewport.removeEventListener('scroll', detectZoom);
+      }
+    };
+  }, [currentImageIndex, showFullscreen, isZoomed]);
 
   // Prevent body scrolling on desktop
   useEffect(() => {
@@ -111,22 +173,10 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
       
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (currentImageIndex === 0) {
-          setIsTransitioning(false);
-          setCurrentImageIndex(listing.images.length - 1);
-          setTimeout(() => setIsTransitioning(true), 50);
-        } else {
-          setCurrentImageIndex(currentImageIndex - 1);
-        }
+        setCurrentImageIndex(currentImageIndex === 0 ? listing.images.length - 1 : currentImageIndex - 1);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (currentImageIndex === listing.images.length - 1) {
-          setIsTransitioning(false);
-          setCurrentImageIndex(0);
-          setTimeout(() => setIsTransitioning(true), 50);
-        } else {
-          setCurrentImageIndex(currentImageIndex + 1);
-        }
+        setCurrentImageIndex(currentImageIndex === listing.images.length - 1 ? 0 : currentImageIndex + 1);
       }
     };
 
@@ -143,164 +193,18 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     }).format(price);
   };
 
-  // Helper function to get distance between two touch points
-  const getDistance = (touches: React.TouchList) => {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-  // Helper function to get center point between two touches
-  const getCenter = (touches: React.TouchList) => {
-    return {
-      x: (touches[0].clientX + touches[1].clientX) / 2,
-      y: (touches[0].clientY + touches[1].clientY) / 2
-    };
-  };
-
-  // Constrain position within boundaries
-  const constrainPosition = (x: number, y: number, currentScale: number) => {
-    const maxX = (currentScale - 1) * window.innerWidth / 2;
-    const maxY = (currentScale - 1) * window.innerHeight / 2;
-    
-    return {
-      x: Math.max(-maxX, Math.min(maxX, x)),
-      y: Math.max(-maxY, Math.min(maxY, y))
-    };
-  };
 
   const handleImageClick = (e: React.MouseEvent) => {
-    if (isMobile && !isDragging) {
+    if (isMobile) {
       e.stopPropagation();
       setShowFullscreen(true);
-      // Reset zoom state when opening fullscreen
-      setScale(1);
-      setPosX(0);
-      setPosY(0);
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (images.length <= 1 || !isMobile) return;
-    
-    const touch = e.targetTouches[0];
-    setTouchStart(touch.clientX);
-    setTouchStartY(touch.clientY);
-    setTouchStartTime(Date.now());
-    setIsDragging(true);
-    setIsHorizontalSwipe(null); // Reset swipe direction
-    setVelocity(0);
-    setIsTransitioning(false); // Disable transitions during drag
+  const handleScrollStart = () => {
+    isScrolling.current = true;
   };
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || images.length <= 1 || !isMobile || scale > 1) return;
-    
-    const touch = e.targetTouches[0];
-    const currentX = touch.clientX;
-    const currentY = touch.clientY;
-    
-    // Store current touch position
-    lastTouchX.current = currentX;
-    
-    // Determine swipe direction if not yet determined
-    if (isHorizontalSwipe === null) {
-      const deltaX = Math.abs(currentX - touchStart);
-      const deltaY = Math.abs(currentY - touchStartY);
-      
-      // Only determine direction after minimum movement (5px)
-      if (deltaX > 5 || deltaY > 5) {
-        // Use angle to determine intent (< 30 degrees from horizontal = horizontal swipe)
-        const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
-        setIsHorizontalSwipe(angle < 30);
-      }
-    }
-    
-    // Only handle horizontal movement if horizontal swipe detected
-    if (isHorizontalSwipe === true) {
-      // Cancel any pending RAF
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
-      
-      // Use RAF for smooth updates
-      rafId.current = requestAnimationFrame(() => {
-        setTouchEnd(currentX);
-        
-        // Calculate velocity
-        const timeDiff = Date.now() - touchStartTime;
-        const distance = currentX - touchStart;
-        if (timeDiff > 0) {
-          setVelocity(distance / timeDiff);
-        }
-        
-        // Calculate the drag distance with resistance at boundaries
-        const diff = currentX - touchStart;
-        const resistance = 0.3;
-        
-        if ((currentImageIndex === 0 && diff > 0) || 
-            (currentImageIndex === images.length - 1 && diff < 0)) {
-          setTranslateX(diff * resistance);
-        } else {
-          setTranslateX(diff);
-        }
-      });
-    }
-  }, [isDragging, images.length, isMobile, scale, isHorizontalSwipe, touchStart, touchStartY, touchStartTime, currentImageIndex]);
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    
-    setIsDragging(false);
-    setIsTransitioning(true); // Re-enable transitions
-    
-    if (!touchStart || images.length <= 1 || isHorizontalSwipe === false || scale > 1) {
-      setTranslateX(0);
-      setIsHorizontalSwipe(null);
-      return;
-    }
-    
-    // For horizontal swipes
-    if (isHorizontalSwipe === true) {
-      e.stopPropagation();
-      
-      const distance = touchStart - touchEnd;
-      const absDistance = Math.abs(distance);
-      const absVelocity = Math.abs(velocity);
-      
-      // Velocity threshold for quick flicks (0.3 px/ms - more sensitive)
-      const velocityThreshold = 0.3;
-      // Distance threshold for slower swipes (20% of container width - more sensitive)
-      const distanceThreshold = carouselRef.current ? carouselRef.current.offsetWidth * 0.2 : window.innerWidth * 0.2;
-      
-      // Change image if velocity is high OR distance is significant
-      if (absVelocity > velocityThreshold || absDistance > distanceThreshold) {
-        if (distance > 0 && currentImageIndex < images.length - 1) {
-          // Swiped left - next image
-          setCurrentImageIndex((prev) => prev + 1);
-          // Reset zoom when changing images
-          setScale(1);
-          setPosX(0);
-          setPosY(0);
-        } else if (distance < 0 && currentImageIndex > 0) {
-          // Swiped right - previous image
-          setCurrentImageIndex((prev) => prev - 1);
-          // Reset zoom when changing images
-          setScale(1);
-          setPosX(0);
-          setPosY(0);
-        }
-      }
-    }
-    
-    // Reset all values
-    setTranslateX(0);
-    setTouchStart(0);
-    setTouchEnd(0);
-    setTouchStartY(0);
-    setIsHorizontalSwipe(null);
-    setVelocity(0);
-  };
 
   const location = listing.city && listing.state ? `${listing.city}, ${listing.state}` : 'Location not available';
 
@@ -308,43 +212,26 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     <div className={styles.page}>
       {/* Image Gallery */}
       <div className={styles.imageGallery}>
-        <div 
-          ref={carouselRef}
-          className={`${styles.mainImageContainer} ${isHorizontalSwipe === true ? styles.horizontalSwiping : ''}`}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={handleImageClick}
-        >
+        {isMobile ? (
+          // Mobile: Native scroll carousel
           <div 
-            className={styles.carouselTrack}
-            style={isMobile ? {
-              transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
-              transition: isDragging ? 'none' : (isTransitioning ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none')
-            } : {}}
+            ref={scrollContainerRef}
+            className={styles.carouselScrollContainer}
+            onTouchStart={handleScrollStart}
+            onClick={handleImageClick}
           >
             {images.length > 0 ? (
-              isMobile ? (
-                images.map((image, index) => (
+              images.map((image, index) => (
+                <div key={index} className={styles.carouselSlide}>
                   <ImageWithFallback
-                    key={index}
                     src={image} 
                     alt={`${listing.title} - Image ${index + 1}`}
                     className={styles.mainImage}
                     fallbackWidth="100%"
                     fallbackHeight="300px"
                   />
-                ))
-              ) : (
-                <ImageWithFallback
-                  key={currentImageIndex}
-                  src={images[currentImageIndex]} 
-                  alt={`${listing.title} - Image ${currentImageIndex + 1}`}
-                  className={styles.mainImage}
-                  fallbackWidth="600px"
-                  fallbackHeight="400px"
-                />
-              )
+                </div>
+              ))
             ) : (
               <div className={`${styles.mainImage} ${styles.imagePlaceholder}`}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -356,7 +243,30 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
               </div>
             )}
           </div>
-        </div>
+        ) : (
+          // Desktop: Single image display
+          <div className={styles.mainImageContainer}>
+            {images.length > 0 ? (
+              <ImageWithFallback
+                key={currentImageIndex}
+                src={images[currentImageIndex]} 
+                alt={`${listing.title} - Image ${currentImageIndex + 1}`}
+                className={styles.mainImage}
+                fallbackWidth="600px"
+                fallbackHeight="400px"
+              />
+            ) : (
+              <div className={`${styles.mainImage} ${styles.imagePlaceholder}`}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>No images available</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Thumbnails - desktop only */}
         {!isMobile && hasImages && images.length > 1 && (
@@ -434,9 +344,7 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
       {/* Fullscreen Image Viewer */}
       {showFullscreen && (
-        <div className={styles.fullscreenOverlay} onClick={() => {
-          if (scale === 1) setShowFullscreen(false);
-        }}>
+        <div className={styles.fullscreenOverlay} onClick={() => setShowFullscreen(false)}>
           <button className={styles.fullscreenClose} onClick={() => setShowFullscreen(false)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -444,157 +352,26 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           </button>
           <div className={styles.fullscreenContent} onClick={(e) => e.stopPropagation()}>
             <div 
-              className={styles.fullscreenCarousel}
-              onTouchStart={(e) => {
-                const touches = e.touches;
-                
-                if (touches.length === 2) {
-                  // Pinch gesture start
-                  setIsZooming(true);
-                  setLastDistance(getDistance(touches));
-                  const center = getCenter(touches);
-                  setLastCenterX(center.x);
-                  setLastCenterY(center.y);
-                } else if (touches.length === 1) {
-                  if (scale > 1) {
-                    // Pan when zoomed
-                    setIsPanning(true);
-                    setLastCenterX(touches[0].clientX - posX);
-                    setLastCenterY(touches[0].clientY - posY);
-                  } else {
-                    // Swipe between images when not zoomed
-                    setTouchStart(touches[0].clientX);
-                    setIsDragging(true);
-                  }
-                }
-              }}
-              onTouchMove={(e) => {
-                const touches = e.touches;
-                
-                if (touches.length === 2 && isZooming) {
-                  // Pinch zoom
-                  const distance = getDistance(touches);
-                  const center = getCenter(touches);
-                  
-                  let newScale = scale * (distance / lastDistance);
-                  newScale = Math.max(1, Math.min(4, newScale));
-                  
-                  // Adjust position to zoom towards pinch center
-                  const scaleChange = newScale / scale;
-                  const newPosX = posX * scaleChange + (center.x - lastCenterX) * (1 - scaleChange);
-                  const newPosY = posY * scaleChange + (center.y - lastCenterY) * (1 - scaleChange);
-                  
-                  const constrained = constrainPosition(newPosX, newPosY, newScale);
-                  
-                  setScale(newScale);
-                  setPosX(constrained.x);
-                  setPosY(constrained.y);
-                  setLastDistance(distance);
-                  setLastCenterX(center.x);
-                  setLastCenterY(center.y);
-                } else if (touches.length === 1) {
-                  if (isPanning && scale > 1) {
-                    // Pan
-                    const newPosX = touches[0].clientX - lastCenterX;
-                    const newPosY = touches[0].clientY - lastCenterY;
-                    const constrained = constrainPosition(newPosX, newPosY, scale);
-                    setPosX(constrained.x);
-                    setPosY(constrained.y);
-                  } else if (isDragging && scale === 1) {
-                    // Swipe between images
-                    const currentTouch = touches[0].clientX;
-                    setTouchEnd(currentTouch);
-                    const diff = currentTouch - touchStart;
-                    
-                    // Add resistance at boundaries
-                    const resistance = 0.3;
-                    if ((currentImageIndex === 0 && diff > 0) || 
-                        (currentImageIndex === images.length - 1 && diff < 0)) {
-                      setTranslateX(diff * resistance);
-                    } else {
-                      setTranslateX(diff);
-                    }
-                  }
-                }
-              }}
-              onTouchEnd={(e) => {
-                setIsZooming(false);
-                setIsPanning(false);
-                
-                // Double tap to zoom
-                if (e.timeStamp - lastTapTime < 300) {
-                  if (scale === 1) {
-                    setScale(2);
-                    const touch = e.changedTouches[0];
-                    const newPosX = (window.innerWidth / 2 - touch.clientX) * 1;
-                    const newPosY = (window.innerHeight / 2 - touch.clientY) * 1;
-                    const constrained = constrainPosition(newPosX, newPosY, 2);
-                    setPosX(constrained.x);
-                    setPosY(constrained.y);
-                  } else {
-                    setScale(1);
-                    setPosX(0);
-                    setPosY(0);
-                  }
-                }
-                setLastTapTime(e.timeStamp);
-                
-                if (isDragging && scale === 1) {
-                  setIsDragging(false);
-                  if (!touchStart || !touchEnd || images.length <= 1) {
-                    setTranslateX(0);
-                    return;
-                  }
-                  
-                  const distance = touchStart - touchEnd;
-                  const threshold = 50;
-                  
-                  if (Math.abs(distance) > threshold) {
-                    if (distance > 0 && currentImageIndex < images.length - 1) {
-                      setCurrentImageIndex(currentImageIndex + 1);
-                      // Reset zoom when changing images
-                      setScale(1);
-                      setPosX(0);
-                      setPosY(0);
-                    } else if (distance < 0 && currentImageIndex > 0) {
-                      setCurrentImageIndex(currentImageIndex - 1);
-                      // Reset zoom when changing images
-                      setScale(1);
-                      setPosX(0);
-                      setPosY(0);
-                    }
-                  }
-                  
-                  setTranslateX(0);
-                  setTouchStart(0);
-                  setTouchEnd(0);
+              ref={fullscreenScrollRef}
+              className={`${styles.fullscreenScrollContainer} ${isZoomed ? styles.fullscreenScrollContainerZoomed : ''}`}
+              onTouchStart={() => {
+                if (!isZoomed) {
+                  isFullscreenScrolling.current = true;
                 }
               }}
             >
-              <div 
-                className={styles.fullscreenTrack}
-                style={{
-                  transform: `translateX(calc(-${currentImageIndex * 100}% + ${translateX}px))`,
-                  transition: isDragging || isZooming || isPanning ? 'none' : 'transform 0.3s ease-out'
-                }}
-              >
-                {images.map((image, index) => (
-                  <div
-                    key={index}
-                    className={styles.fullscreenImageWrapper}
-                    style={{
-                      transform: index === currentImageIndex ? `scale(${scale}) translate(${posX / scale}px, ${posY / scale}px)` : '',
-                      transition: isZooming || isPanning ? 'none' : 'transform 0.3s ease-out'
-                    }}
-                  >
-                    <ImageWithFallback
-                      src={image} 
-                      alt={`${listing.title} - Image ${index + 1}`}
-                      className={styles.fullscreenImage}
-                    />
-                  </div>
-                ))}
-              </div>
+              {images.map((image, index) => (
+                <div
+                  key={index}
+                  className={styles.fullscreenSlide}
+                >
+                  <ImageWithFallback
+                    src={image} 
+                    alt={`${listing.title} - Image ${index + 1}`}
+                    className={styles.fullscreenImage}
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>

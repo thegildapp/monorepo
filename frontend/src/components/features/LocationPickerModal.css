@@ -260,7 +260,7 @@
 /* Current location button */
 .current-location-btn {
   position: absolute;
-  bottom: 80px;
+  bottom: 160px;
   right: 16px;
   width: 44px;
   height: 44px;
@@ -317,7 +317,7 @@
 
 .selected-location-info {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 }
 
@@ -334,6 +334,8 @@
   height: 20px;
   color: #333;
   flex-shrink: 0;
+  position: relative;
+  top: 3px;
 }
 
 .selected-location-text {
@@ -526,7 +528,7 @@
   }
 
   .current-location-btn {
-    bottom: 120px;
+    bottom: 180px;
     right: 12px;
   }
 
