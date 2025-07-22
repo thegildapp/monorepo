@@ -42,11 +42,13 @@ portForward:
     namespace: default
     port: 4000
     localPort: 4000
+    address: 0.0.0.0
   - resourceType: service
     resourceName: frontend-service
     namespace: default
     port: 5173
     localPort: 5173
+    address: 0.0.0.0
 
 # Development Profile
 profiles:

@@ -550,7 +550,7 @@ async function startServer(): Promise<void> {
   const corsOptions = {
     origin: process.env['NODE_ENV'] === 'production' 
       ? ['https://thegild.app', 'https://www.thegild.app']
-      : ['http://localhost:5173', 'http://localhost:3000'],
+      : true, // Allow all origins in development
     credentials: true,
   };
   
@@ -567,7 +567,7 @@ async function startServer(): Promise<void> {
     cors: {
       origin: process.env['NODE_ENV'] === 'production' 
         ? ['https://thegild.app', 'https://www.thegild.app']
-        : ['http://localhost:5173', 'http://localhost:3000'],
+        : '*', // Allow all origins in development
       credentials: true,
     },
     context: async (initialContext) => {
@@ -594,10 +594,11 @@ async function startServer(): Promise<void> {
   
   app.use('/graphql', yoga);
 
-  const PORT = process.env['PORT'] || 4000;
+  const PORT = Number(process.env['PORT']) || 4000;
+  const HOST = process.env['HOST'] || '0.0.0.0';
   
-  app.listen(PORT, () => {
-    console.log(`Server ready at http://localhost:${PORT}/graphql`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server ready at http://${HOST}:${PORT}/graphql`);
   });
 }
 
