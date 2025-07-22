@@ -515,43 +515,54 @@
   bottom: 0;
   background: #000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 1000;
+}
+
+.fullscreenHeader {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  min-height: 60px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
 }
 
 .fullscreenContent {
   position: relative;
   width: 100%;
-  height: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .fullscreenClose {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1001;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .fullscreenClose:hover {
-  background: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .fullscreenClose svg {
-  color: #333;
+  color: white;
+  width: 20px;
+  height: 20px;
 }
 
 .fullscreenScrollContainer {
@@ -579,6 +590,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 
@@ -592,7 +605,7 @@
 
 .fullscreenIndicators {
   position: absolute;
-  bottom: 30px;
+  bottom: max(30px, env(safe-area-inset-bottom, 30px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;

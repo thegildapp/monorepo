@@ -165,6 +165,20 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
     }
   };
 
+  // Lock body scroll when fullscreen is open
+  useEffect(() => {
+    if (showFullscreen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      };
+    }
+  }, [showFullscreen]);
+
 
 
   const location = listing.city && listing.state ? `${listing.city}, ${listing.state}` : 'Location not available';
@@ -303,11 +317,13 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
       {showFullscreen && (
         <div className={styles.fullscreenOverlay} onClick={() => setShowFullscreen(false)}>
-          <button className={styles.fullscreenClose} onClick={() => setShowFullscreen(false)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          <div className={styles.fullscreenHeader}>
+            <button className={styles.fullscreenClose} onClick={() => setShowFullscreen(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
           <div className={styles.fullscreenContent} onClick={(e) => e.stopPropagation()}>
             <div 
               ref={fullscreenScrollRef}
