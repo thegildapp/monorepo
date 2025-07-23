@@ -27,6 +27,9 @@ export async function uploadImage(
   environment: any,
   onProgress?: (progress: number) => void
 ): Promise<UploadResult> {
+  const startTime = Date.now();
+  console.log(`[Upload] Starting upload for ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+  
   // Validate file
   const validation = validateImageFile(file);
   if (!validation.isValid) {
@@ -35,8 +38,12 @@ export async function uploadImage(
 
   // Generate random filename
   const randomFilename = generateRandomFilename(file.name);
+  console.log(`[Upload] Generated filename: ${randomFilename}`);
 
   // Get pre-signed upload URL from backend
+  console.log(`[Upload] Requesting pre-signed URL...`);
+  const urlStartTime = Date.now();
+  
   const uploadUrlData = await new Promise<{ url: string; key: string }>((resolve, reject) => {
     commitMutation(environment, {
       mutation: generateUploadUrlMutation,
@@ -45,6 +52,7 @@ export async function uploadImage(
         contentType: file.type,
       },
       onCompleted: (response: any) => {
+        console.log(`[Upload] Pre-signed URL received in ${Date.now() - urlStartTime}ms`);
         if (response.generateUploadUrl) {
           resolve(response.generateUploadUrl);
         } else {
@@ -52,6 +60,7 @@ export async function uploadImage(
         }
       },
       onError: (error: Error) => {
+        console.error('[Upload] Error getting pre-signed URL:', error);
         reject(error);
       },
     });
@@ -79,6 +88,9 @@ export async function uploadImage(
         const bucket = 'gild';
         const region = 'sfo3';
         const publicUrl = `https://${bucket}.${region}.cdn.digitaloceanspaces.com/${uploadUrlData.key}`;
+        
+        const totalTime = Date.now() - startTime;
+        console.log(`[Upload] Upload completed in ${totalTime}ms, URL: ${publicUrl}`);
         
         resolve({
           url: publicUrl,

@@ -41,6 +41,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   const uploadPhoto = useCallback(async (photo: Photo) => {
+    console.log(`Starting upload for photo ${photo.id}`);
     try {
       // Update to show uploading state
       onPhotosChange((prev: Photo[]) => prev.map(p => 
@@ -105,8 +106,10 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       // Try to create preview - use FileReader for better iOS support
       let preview: string;
       try {
+        console.log(`Creating preview for ${file.name}, type: ${file.type || 'unknown'}`);
         // For iOS compatibility, use FileReader for HEIC/HEIF files
         if (file.type === 'image/heic' || file.type === 'image/heif' || !file.type) {
+          console.log('Using FileReader for HEIC/HEIF or unknown type');
           preview = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
@@ -114,8 +117,10 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
             reader.readAsDataURL(file);
           });
         } else {
+          console.log('Using createObjectURL for standard image');
           preview = URL.createObjectURL(file);
         }
+        console.log('Preview created successfully');
       } catch (error) {
         console.error('Failed to create preview:', error);
         preview = URL.createObjectURL(file); // Fallback
@@ -130,14 +135,17 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       });
     }
     
-    // Update UI with new photos
+    // Update UI with new photos immediately
     const updatedPhotos = [...photos, ...newPhotos];
     onPhotosChange(updatedPhotos);
     
-    // Start uploading each photo
-    for (const photo of newPhotos) {
-      uploadPhoto(photo);
-    }
+    // Start uploading each photo after a brief delay to ensure UI updates first
+    setTimeout(() => {
+      console.log(`Starting upload for ${newPhotos.length} photos`);
+      for (const photo of newPhotos) {
+        uploadPhoto(photo);
+      }
+    }, 100);
   }, [photos, onPhotosChange, uploadPhoto]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +175,15 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   };
 
   const handleRemovePhoto = (index: number) => {
+    console.log(`Removing photo at index ${index}`);
     const photoToRemove = photos[index];
+    
+    if (!photoToRemove) {
+      console.error(`No photo found at index ${index}`);
+      return;
+    }
+    
+    console.log('Photo to remove:', { id: photoToRemove.id, uploaded: photoToRemove.uploaded });
     
     // Clean up preview URL (only for blob URLs, not data URLs)
     if (photoToRemove?.preview && photoToRemove.preview.startsWith('blob:')) {
@@ -175,6 +191,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     }
     
     const newPhotos = photos.filter((_, i) => i !== index);
+    console.log(`Photos after removal: ${newPhotos.length} remaining`);
     onPhotosChange(newPhotos);
   };
 
@@ -245,7 +262,15 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                   <button
                     className={styles.removePhoto}
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
+                      console.log(`Remove button clicked for index ${index}`);
+                      handleRemovePhoto(index);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log(`Remove button touched for index ${index}`);
                       handleRemovePhoto(index);
                     }}
                     aria-label="Remove photo"
