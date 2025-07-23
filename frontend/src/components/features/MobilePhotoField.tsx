@@ -50,7 +50,15 @@ const MobilePhotoField: React.FC<MobilePhotoFieldProps> = ({ photos, onPhotosCha
       }
       
       const id = `${Date.now()}-${Math.random()}`;
-      const preview = URL.createObjectURL(file);
+      
+      // Create preview URL immediately
+      let preview = '';
+      try {
+        preview = URL.createObjectURL(file);
+      } catch (error) {
+        console.error('Failed to create preview URL:', error);
+        continue; // Skip this file if we can't create a preview
+      }
       
       newPhotos.push({
         id,
@@ -67,7 +75,7 @@ const MobilePhotoField: React.FC<MobilePhotoFieldProps> = ({ photos, onPhotosCha
     // Upload in background
     newPhotos.forEach(photo => {
       uploadImage(photo.file, environment).then(result => {
-        onPhotosChange(prev => prev.map(p => 
+        onPhotosChange((prev: Photo[]) => prev.map(p => 
           p.id === photo.id 
             ? { 
                 ...p, 
@@ -105,7 +113,13 @@ const MobilePhotoField: React.FC<MobilePhotoFieldProps> = ({ photos, onPhotosCha
           if (photo) {
             return (
               <div key={photo.id} className={styles.photoSlot}>
-                <img src={photo.preview} alt="" />
+                {photo.preview ? (
+                  <img src={photo.preview} alt="" />
+                ) : (
+                  <div className={styles.loadingIndicator}>
+                    <div className={styles.spinner}></div>
+                  </div>
+                )}
                 <button
                   className={styles.removeBtn}
                   onClick={() => removePhoto(index)}

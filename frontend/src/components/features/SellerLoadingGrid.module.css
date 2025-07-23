@@ -81,7 +81,7 @@
   }
 }
 
-/* Grid layout on desktop */
+/* Grid layout on desktop - match ProfilePage.module.css */
 @media (min-width: 768px) {
   .sellerListingsContainer {
     display: grid;
@@ -89,30 +89,16 @@
     gap: 0;
   }
   
+  /* Match the separator line width with SellerListingCard */
   .loadingCard::after {
-    display: none;
-  }
-  
-  .loadingCard:not(:nth-child(2n)) {
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
-  }
-  
-  .loadingCard {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    left: 24px;
+    right: 24px;
   }
 }
 
 @media (min-width: 1024px) {
   .sellerListingsContainer {
     grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .loadingCard:not(:nth-child(2n)) {
-    border-right: none;
-  }
-  
-  .loadingCard:not(:nth-child(3n)) {
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
   }
 }
 
