@@ -36,6 +36,9 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const environment = useRelayEnvironment();
+  
+  // Detect if device supports touch (mobile/tablet)
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   const uploadPhoto = useCallback(async (photo: Photo) => {
     try {
@@ -84,7 +87,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     }
   }, [environment, onPhotosChange]);
 
-  const processFiles = useCallback((files: File[]) => {
+  const processFiles = useCallback(async (files: File[]) => {
     const remainingSlots = 6 - photos.length;
     const filesToAdd = files.slice(0, remainingSlots);
 
@@ -98,7 +101,25 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       }
 
       const id = `${Date.now()}-${Math.random()}`;
-      const preview = URL.createObjectURL(file);
+      
+      // Try to create preview - use FileReader for better iOS support
+      let preview: string;
+      try {
+        // For iOS compatibility, use FileReader for HEIC/HEIF files
+        if (file.type === 'image/heic' || file.type === 'image/heif' || !file.type) {
+          preview = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        } else {
+          preview = URL.createObjectURL(file);
+        }
+      } catch (error) {
+        console.error('Failed to create preview:', error);
+        preview = URL.createObjectURL(file); // Fallback
+      }
       
       newPhotos.push({
         id,
@@ -119,7 +140,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     }
   }, [photos, onPhotosChange, uploadPhoto]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     
@@ -128,10 +149,10 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       fileInputRef.current.value = '';
     }
     
-    processFiles(files);
+    await processFiles(files);
   };
 
-  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingOver(false);
@@ -141,15 +162,15 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     );
     
     if (files.length > 0) {
-      processFiles(files);
+      await processFiles(files);
     }
   };
 
   const handleRemovePhoto = (index: number) => {
     const photoToRemove = photos[index];
     
-    // Clean up preview URL
-    if (photoToRemove?.preview) {
+    // Clean up preview URL (only for blob URLs, not data URLs)
+    if (photoToRemove?.preview && photoToRemove.preview.startsWith('blob:')) {
       URL.revokeObjectURL(photoToRemove.preview);
     }
     
@@ -214,17 +235,21 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
               <div
                 key={photo.id}
                 className={`${styles.photoItem} ${draggedIndex === index ? styles.dragging : ''}`}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
+                draggable={!isTouchDevice}
+                onDragStart={!isTouchDevice ? () => handleDragStart(index) : undefined}
+                onDragOver={!isTouchDevice ? (e) => handleDragOver(e, index) : undefined}
+                onDragEnd={!isTouchDevice ? handleDragEnd : undefined}
               >
                 <img src={photo.preview} alt={`Photo ${index + 1}`} />
                 {!photo.uploading && (
                   <button
                     className={styles.removePhoto}
-                    onClick={() => handleRemovePhoto(index)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemovePhoto(index);
+                    }}
                     aria-label="Remove photo"
+                    type="button"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
