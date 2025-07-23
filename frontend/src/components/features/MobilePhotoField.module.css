@@ -1,0 +1,69 @@
+.container {
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+.photoSlot, .addBtn {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.photoSlot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addBtn {
+  border: 2px dashed #ccc;
+  background: white;
+  font-size: 32px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure touch targets are large enough */
+.removeBtn, .addBtn {
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Disable hover on mobile */
+@media (hover: none) {
+  .removeBtn:hover, .addBtn:hover {
+    opacity: 1;
+  }
+}

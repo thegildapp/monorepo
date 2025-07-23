@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useRelayEnvironment } from 'react-relay';
 import { uploadImage, validateImageFile } from '../../utils/imageUpload';
+import MobilePhotoField from './MobilePhotoField';
 import styles from './ListingPhotosField.module.css';
 
 interface Photo {
@@ -36,9 +37,21 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const environment = useRelayEnvironment();
+  const [isMobile, setIsMobile] = useState(false);
   
   // Detect if device supports touch (mobile/tablet)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  useEffect(() => {
+    // Check if mobile based on viewport width and touch capability
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 && isTouchDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [isTouchDevice]);
 
   const uploadPhoto = useCallback(async (photo: Photo) => {
     try {
@@ -218,6 +231,22 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     e.stopPropagation();
     setIsDraggingOver(false);
   };
+
+  // Use simple mobile component on mobile devices
+  if (isMobile) {
+    return (
+      <div className={styles.container}>
+        {showTitle && (
+          <>
+            <h2 className={styles.title}>Add photos</h2>
+            <p className={styles.subtitle}>Upload up to 6 photos of your item</p>
+          </>
+        )}
+        {label && !showTitle && <label className={styles.label}>{label}</label>}
+        <MobilePhotoField photos={photos} onPhotosChange={onPhotosChange} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
