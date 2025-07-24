@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useRelayEnvironment } from 'react-relay';
+import { useMutation } from 'react-relay';
 import Modal from '../common/Modal';
 import PagedContainer from './PagedContainer';
 import ListingPhotosField from './ListingPhotosField';
@@ -7,9 +7,11 @@ import ListingTitleField from './ListingTitleField';
 import ListingDescriptionField from './ListingDescriptionField';
 import ListingPriceField from './ListingPriceField';
 import ListingLocationField from './ListingLocationField';
-import AnimatedDots from './AnimatedDots';
-import { CreateListingMutation } from '../../queries/listings';
+import ErrorBoundary from '../common/ErrorBoundary';
+import ErrorState from '../feedback/ErrorState';
+import { CreateListingMutation, GenerateUploadUrlMutation } from '../../queries/listings';
 import type { listingsCreateListingMutation } from '../../__generated__/listingsCreateListingMutation.graphql';
+import type { listingsGenerateUploadUrlMutation } from '../../__generated__/listingsGenerateUploadUrlMutation.graphql';
 import type { Photo } from '../../types/Photo';
 import styles from './CreateListingModal.module.css';
 
@@ -24,7 +26,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const environment = useRelayEnvironment();
   const [currentPage, setCurrentPage] = useState(0);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [title, setTitle] = useState('');
@@ -35,6 +36,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const [commitCreateListing] = useMutation<listingsCreateListingMutation>(CreateListingMutation);
+  const [commitGenerateUploadUrl] = useMutation<listingsGenerateUploadUrlMutation>(GenerateUploadUrlMutation);
 
   // Validation for each step
   const canProceed = () => {
@@ -59,25 +61,60 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     setError(null);
 
     try {
-      // Get URLs from already uploaded photos or upload remaining ones
-      const imageUrls: string[] = [];
+      // Upload all photos to Digital Ocean Spaces in parallel
+      const uploadPromises = photos.map(async (photo) => {
+        // Generate upload URL
+        const uploadUrlResponse = await new Promise<{ generateUploadUrl: { url: string; key: string } }>((resolve, reject) => {
+          commitGenerateUploadUrl({
+            variables: {
+              filename: photo.file.name,
+              contentType: photo.file.type,
+            },
+            onCompleted: resolve,
+            onError: reject,
+          });
+        });
 
-      // Create the listing
+        const { url: uploadUrl, key } = uploadUrlResponse.generateUploadUrl;
+
+        // Upload the file to the presigned URL with public-read ACL
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: photo.file,
+          headers: {
+            'Content-Type': photo.file.type,
+            'x-amz-acl': 'public-read',
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload image ${photo.file.name}`);
+        }
+
+        // Construct the public URL from the key
+        // The backend returns the key in format: listings/userId/timestamp-filename
+        // We need to construct the full Digital Ocean Spaces URL
+        const publicUrl = `https://sfo3.digitaloceanspaces.com/gild/${key}`;
+        return publicUrl;
+      });
+
+      const imageUrls = await Promise.all(uploadPromises);
+
+      // Create the listing with uploaded image URLs
       commitCreateListing({
         variables: {
           input: {
             title: title.trim(),
             description: description.trim(),
             price: Math.round(parseFloat(price) * 100) / 100,
-            images: [],
-            imageVariants: null,
+            images: imageUrls,
             city: location?.city || '',
             state: location?.state || '',
             latitude: location?.lat || 0,
             longitude: location?.lng || 0,
           },
         },
-        updater: (store, data) => {
+        updater: (store) => {
           // Get the new listing from the payload
           const newListing = store.getRootField('createListing');
           if (!newListing) return;
@@ -167,18 +204,39 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       showHeader={false}
       className={styles.createListingModal}
     >
-      {error && (
-        <div className={styles.errorBanner}>
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-
-      {isSubmitting ? (
-        <div className={styles.submittingOverlay}>
-          <AnimatedDots text="Creating your listing" />
-        </div>
-      ) : (
+      <ErrorBoundary
+        fallback={
+          <ErrorState
+            title="Something went wrong"
+            message=""
+          />
+        }
+      >
+        {error ? (
+          <div className={styles.errorStateWrapper}>
+            <ErrorState
+              title="Unable to create listing"
+              message={error}
+            />
+            <div className={styles.errorActions}>
+              <button
+                className={styles.retryButton}
+                onClick={() => {
+                  setError(null);
+                  setIsSubmitting(false);
+                }}
+              >
+                Try Again
+              </button>
+              <button
+                className={styles.cancelButton}
+                onClick={handleClose}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
         <PagedContainer
           pages={pages}
           currentPage={currentPage}
@@ -187,8 +245,10 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
           onCancel={handleClose}
           onFinish={handleFinish}
           isLastPage={currentPage === pages.length - 1}
+          isSubmitting={isSubmitting}
         />
       )}
+      </ErrorBoundary>
     </Modal>
   );
 };

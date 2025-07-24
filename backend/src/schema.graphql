@@ -115,7 +115,6 @@ input CreateListingInput {
   description: String!
   price: Int!
   images: [String!]!
-  imageVariants: [ImageVariantsInput!]
   city: String!
   state: String!
   latitude: Float

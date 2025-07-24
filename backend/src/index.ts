@@ -247,7 +247,10 @@ const resolvers = {
       const listing = await prisma.listing.create({
         data: {
           ...input,
-          sellerId: context.userId,
+          imageVariants: [],
+          seller: {
+            connect: { id: context.userId }
+          },
           status: 'PENDING',
         },
         include: { seller: true },
@@ -311,7 +314,10 @@ const resolvers = {
       });
       
       try {
-        const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 }); // 15 minutes
+        const signedUrl = await getSignedUrl(s3Client, command, { 
+          expiresIn: 900, // 15 minutes
+          signableHeaders: new Set(['x-amz-acl'])
+        });
         
         return {
           url: signedUrl,

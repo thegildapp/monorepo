@@ -9,6 +9,7 @@ interface PagedContainerProps {
   onCancel: () => void;
   onFinish: () => void;
   isLastPage: boolean;
+  isSubmitting?: boolean;
 }
 
 const PagedContainer: React.FC<PagedContainerProps> = ({
@@ -18,7 +19,8 @@ const PagedContainer: React.FC<PagedContainerProps> = ({
   canProceed,
   onCancel,
   onFinish,
-  isLastPage
+  isLastPage,
+  isSubmitting = false
 }) => {
   const handleNext = () => {
     if (isLastPage) {
@@ -69,11 +71,18 @@ const PagedContainer: React.FC<PagedContainerProps> = ({
         </button>
         
         <button
-          className={`${styles.nextButton} ${canProceed ? '' : styles.disabled}`}
+          className={`${styles.nextButton} ${canProceed ? '' : styles.disabled} ${isSubmitting ? styles.loading : ''}`}
           onClick={handleNext}
-          disabled={!canProceed}
+          disabled={!canProceed || isSubmitting}
         >
-          {isLastPage ? 'Create Listing' : 'Next'}
+          {isSubmitting && isLastPage ? (
+            <>
+              <div className={styles.spinner} />
+              <span>Creating...</span>
+            </>
+          ) : (
+            isLastPage ? 'Create Listing' : 'Next'
+          )}
         </button>
       </div>
     </div>
