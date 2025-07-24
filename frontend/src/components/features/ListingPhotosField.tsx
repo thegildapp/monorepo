@@ -17,27 +17,32 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
 
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    let processedCount = 0;
     const newPhotos: Photo[] = [];
-    
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const photo: Photo = {
-          id: `${Date.now()}-${Math.random()}`,
-          file,
-          url: URL.createObjectURL(file)
-        };
-        newPhotos.push(photo);
-      }
-    });
 
-    onPhotosChange([...photos, ...newPhotos]);
+    validFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        newPhotos.push({
+          id: `${Date.now()}-${index}-${Math.random()}`,
+          file,
+          dataUrl
+        });
+        
+        processedCount++;
+        if (processedCount === validFiles.length) {
+          onPhotosChange([...photos, ...newPhotos]);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleRemovePhoto = (photoId: string) => {
-    const photoToRemove = photos.find(p => p.id === photoId);
-    if (photoToRemove) {
-      URL.revokeObjectURL(photoToRemove.url);
-    }
     onPhotosChange(photos.filter(p => p.id !== photoId));
   };
 
@@ -97,7 +102,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
             {photos.map(photo => (
               <div key={photo.id} className={styles.photoItem}>
                 <img 
-                  src={photo.url} 
+                  src={photo.dataUrl} 
                   alt={photo.file.name}
                   className={styles.photoImage}
                 />

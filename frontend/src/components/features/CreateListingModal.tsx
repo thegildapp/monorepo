@@ -117,13 +117,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   };
 
   const handleClose = () => {
-    // Clean up photo URLs
-    photos.forEach(photo => {
-      if (photo.url) {
-        URL.revokeObjectURL(photo.url);
-      }
-    });
-
     // Reset all state
     setCurrentPage(0);
     setPhotos([]);
