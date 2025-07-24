@@ -115,23 +115,24 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
       const id = `${Date.now()}-${Math.random()}`;
       
-      // Try to create preview - use FileReader for better iOS support
+      // Try to create preview - use FileReader for all images
       let preview: string;
       try {
-        // For iOS compatibility, use FileReader for HEIC/HEIF files
-        if (file.type === 'image/heic' || file.type === 'image/heif' || !file.type) {
-          preview = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        } else {
-          preview = URL.createObjectURL(file);
-        }
+        preview = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
       } catch (error) {
         console.error('Failed to create preview:', error);
-        preview = URL.createObjectURL(file); // Fallback
+        // Fallback to createObjectURL if FileReader fails
+        try {
+          preview = URL.createObjectURL(file);
+        } catch (fallbackError) {
+          console.error('Fallback preview creation failed:', fallbackError);
+          preview = ''; // Or a placeholder image URL
+        }
       }
       
       newPhotos.push({
