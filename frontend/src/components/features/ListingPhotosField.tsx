@@ -14,32 +14,68 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return;
-
-    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-    let processedCount = 0;
-    const newPhotos: Photo[] = [];
-
-    validFiles.forEach((file, index) => {
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<string> => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       
       reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        newPhotos.push({
-          id: `${Date.now()}-${index}-${Math.random()}`,
-          file,
-          dataUrl
-        });
-        
-        processedCount++;
-        if (processedCount === validFiles.length) {
-          onPhotosChange([...photos, ...newPhotos]);
-        }
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target?.result as string;
       };
       
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files) return;
+
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    
+    // Add loading placeholders immediately
+    const tempPhotos: Photo[] = validFiles.map((file, index) => ({
+      id: `${Date.now()}-${index}-${Math.random()}`,
+      file,
+      dataUrl: '',
+      loading: true
+    }));
+    
+    onPhotosChange([...photos, ...tempPhotos]);
+    
+    // Process images asynchronously
+    const processedPhotos = await Promise.all(
+      tempPhotos.map(async (photo) => {
+        const dataUrl = await resizeImage(photo.file, 300, 300);
+        return { ...photo, dataUrl, loading: false };
+      })
+    );
+    
+    onPhotosChange([...photos, ...processedPhotos]);
   };
 
   const handleRemovePhoto = (photoId: string) => {
@@ -101,11 +137,17 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
           <div className={styles.photoGrid}>
             {photos.map(photo => (
               <div key={photo.id} className={styles.photoItem}>
-                <img 
-                  src={photo.dataUrl} 
-                  alt={photo.file.name}
-                  className={styles.photoImage}
-                />
+                {photo.loading ? (
+                  <div className={styles.loadingPlaceholder}>
+                    <div className={styles.spinner} />
+                  </div>
+                ) : (
+                  <img 
+                    src={photo.dataUrl} 
+                    alt={photo.file.name}
+                    className={styles.photoImage}
+                  />
+                )}
                 <button
                   type="button"
                   className={styles.removeButton}
