@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './ListingPhotosField.module.css';
 import type { Photo } from '../../types/Photo';
 
@@ -13,47 +13,23 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
 
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d')!;
-          
-          let width = img.width;
-          let height = img.height;
-          
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
-        };
-        img.src = e.target?.result as string;
-      };
-      
-      reader.readAsDataURL(file);
-    });
-  };
+  useEffect(() => {
+    // Create worker
+    workerRef.current = new Worker(
+      new URL('../../workers/imageProcessor.worker.ts', import.meta.url),
+      { type: 'module' }
+    );
+
+    // Cleanup worker on unmount
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
 
   const handleFileSelect = async (files: FileList | null) => {
-    if (!files) return;
+    if (!files || !workerRef.current) return;
 
     const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
     
@@ -67,15 +43,32 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     
     onPhotosChange([...photos, ...tempPhotos]);
     
-    // Process images asynchronously
-    const processedPhotos = await Promise.all(
-      tempPhotos.map(async (photo) => {
-        const dataUrl = await resizeImage(photo.file, 300, 300);
-        return { ...photo, dataUrl, loading: false };
-      })
-    );
-    
-    onPhotosChange([...photos, ...processedPhotos]);
+    // Process each image in the worker
+    tempPhotos.forEach((photo) => {
+      workerRef.current!.postMessage({
+        file: photo.file,
+        maxWidth: 300,
+        maxHeight: 300,
+        id: photo.id
+      });
+    });
+
+    // Handle worker responses
+    const handleWorkerMessage = (e: MessageEvent) => {
+      const { id, dataUrl, success } = e.data;
+      
+      if (success) {
+        onPhotosChange(prevPhotos => 
+          prevPhotos.map(p => 
+            p.id === id 
+              ? { ...p, dataUrl, loading: false }
+              : p
+          )
+        );
+      }
+    };
+
+    workerRef.current.addEventListener('message', handleWorkerMessage);
   };
 
   const handleRemovePhoto = (photoId: string) => {
