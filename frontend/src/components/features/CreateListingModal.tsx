@@ -9,25 +9,9 @@ import ListingPriceField from './ListingPriceField';
 import ListingLocationField from './ListingLocationField';
 import AnimatedDots from './AnimatedDots';
 import { CreateListingMutation } from '../../queries/listings';
-import { uploadImagesInParallel } from '../../utils/uploadToSpaces';
 import type { listingsCreateListingMutation } from '../../__generated__/listingsCreateListingMutation.graphql';
+import type { Photo } from '../../types/Photo';
 import styles from './CreateListingModal.module.css';
-
-interface Photo {
-  id: string;
-  file: File;
-  preview: string;
-  uploading: boolean;
-  uploaded: boolean;
-  uploadProgress?: number;
-  url?: string;
-  key?: string;
-  variants?: {
-    thumbnail: string;
-    card: string;
-    full: string;
-  };
-}
 
 interface CreateListingModalProps {
   isOpen: boolean;
@@ -49,7 +33,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [location, setLocation] = useState<{ lat: number; lng: number; city?: string; state?: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [commitCreateListing] = useMutation<listingsCreateListingMutation>(CreateListingMutation);
 
   // Validation for each step
@@ -77,55 +61,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     try {
       // Get URLs from already uploaded photos or upload remaining ones
       const imageUrls: string[] = [];
-      const photosToUpload: { photo: any; index: number }[] = [];
-      
-      // Check which photos are already uploaded
-      photos.forEach((photo, index) => {
-        if (photo.uploaded && photo.url) {
-          imageUrls[index] = photo.url;
-        } else {
-          photosToUpload.push({ photo, index });
-        }
-      });
-      
-      // Upload any remaining photos that aren't uploaded yet
-      if (photosToUpload.length > 0) {
-        const filesToUpload = photosToUpload.map(p => p.photo.file);
-        const uploadResults = await uploadImagesInParallel(
-          filesToUpload,
-          environment,
-          (uploadIndex, progress) => {
-            const photoIndex = photosToUpload[uploadIndex].index;
-            console.log(`Photo ${photoIndex + 1}: ${progress.percentage}%`);
-          }
-        );
-        
-        // Extract successful URLs and place them in correct positions
-        uploadResults.forEach((result, uploadIndex) => {
-          const photoIndex = photosToUpload[uploadIndex].index;
-          if (result.success && result.url) {
-            imageUrls[photoIndex] = result.url;
-          } else {
-            console.error(`Failed to upload photo ${photoIndex + 1}:`, result.error);
-          }
-        });
-      }
-      
-      // Filter out any undefined URLs (failed uploads)
-      const validImageUrls = imageUrls.filter(url => url !== undefined);
-      
-      if (validImageUrls.length === 0) {
-        throw new Error('Failed to upload any photos');
-      }
-
-      // Collect image variants from uploaded photos
-      const imageVariants = photos
-        .filter(photo => photo.variants)
-        .map(photo => ({
-          thumbnail: photo.variants!.thumbnail,
-          card: photo.variants!.card,
-          full: photo.variants!.full,
-        }));
 
       // Create the listing
       commitCreateListing({
@@ -134,8 +69,8 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             title: title.trim(),
             description: description.trim(),
             price: Math.round(parseFloat(price) * 100) / 100,
-            images: validImageUrls,
-            imageVariants: imageVariants.length > 0 ? imageVariants : undefined,
+            images: [],
+            imageVariants: null,
             city: location?.city || '',
             state: location?.state || '',
             latitude: location?.lat || 0,
@@ -146,17 +81,17 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
           // Get the new listing from the payload
           const newListing = store.getRootField('createListing');
           if (!newListing) return;
-          
+
           // Get the root query
           const root = store.getRoot();
-          
+
           // Get existing myListings
           const myListings = root.getLinkedRecords('myListings');
           if (myListings) {
             // Add the new listing to the beginning of the list
             root.setLinkedRecords([newListing, ...myListings], 'myListings');
           }
-          
+
           // Also add to regular listings if it exists
           const listings = root.getLinkedRecords('listings');
           if (listings) {
@@ -184,11 +119,11 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const handleClose = () => {
     // Clean up photo URLs
     photos.forEach(photo => {
-      if (photo.preview) {
-        URL.revokeObjectURL(photo.preview);
+      if (photo.url) {
+        URL.revokeObjectURL(photo.url);
       }
     });
-    
+
     // Reset all state
     setCurrentPage(0);
     setPhotos([]);
@@ -202,9 +137,8 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   };
 
   const pages = [
-    <ListingPhotosField 
+    <ListingPhotosField
       key="photos"
-      showTitle={true}
       photos={photos}
       onPhotosChange={setPhotos}
     />,
@@ -246,7 +180,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}
-      
+
       {isSubmitting ? (
         <div className={styles.submittingOverlay}>
           <AnimatedDots text="Creating your listing" />

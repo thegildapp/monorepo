@@ -4,13 +4,6 @@
   gap: var(--space-4);
 }
 
-.label {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  font-family: 'Tinos', serif;
-}
-
 .title {
   font-size: 24px;
   font-weight: 400;
@@ -24,180 +17,132 @@
   margin: 0;
 }
 
-.photosGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-radius: 8px;
-  border: 2px dashed transparent;
-  transition: all 0.2s;
-}
-
-.photosGrid.draggingOver {
-  border-color: var(--color-text-primary);
-  background: var(--color-gray-100);
-}
-
-.photoItem, .addPhotoButton {
-  aspect-ratio: 1;
+.uploadArea {
   position: relative;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  background: var(--color-background);
+  transition: all 0.2s;
+  min-height: 200px;
+}
+
+.uploadArea.dragging {
+  border-color: var(--color-text-primary);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+  min-height: 200px;
+}
+
+.uploadIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.uploadText {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.browseButton {
+  padding: var(--space-3) var(--space-6);
+  font-size: 16px;
+  font-family: inherit;
+  background: var(--color-text-primary);
+  color: var(--color-background);
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.browseButton:hover {
+  opacity: 0.9;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.photoItem {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--color-background);
   border: 1px solid var(--color-border);
 }
 
-.photoItem {
-  cursor: move;
-  transition: transform 0.2s, opacity 0.2s;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
-.photoItem.dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
-}
-
-/* Disable drag cursor on touch devices */
-@media (hover: none) and (pointer: coarse) {
-  .photoItem {
-    cursor: default;
-  }
-}
-
-.photoItem img {
+.photoImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-.removePhoto {
+.removeButton {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 32px;
+  height: 32px;
   background: rgba(0, 0, 0, 0.7);
+  color: white;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: white;
-  transition: opacity 0.2s;
-  z-index: 2;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-/* Smaller on desktop where hover is available */
-@media (hover: hover) and (pointer: fine) {
-  .removePhoto {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-.removePhoto:hover {
-  opacity: 0.8;
-}
-
-.removePhoto:active {
-  transform: scale(0.95);
-}
-
-.thumbnailBadge {
-  position: absolute;
-  bottom: var(--space-2);
-  left: var(--space-2);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.photoShimmer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: shimmer 1.5s infinite;
-  z-index: 1;
-  pointer-events: none;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.uploadProgress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  z-index: 2;
-}
-
-.uploadProgressBar {
-  height: 100%;
-  background: var(--color-primary);
-  transition: width 0.3s ease;
-}
-
-.uploadProgressText {
-  position: absolute;
-  bottom: 12px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  z-index: 2;
-}
-
-.photoPlaceholder {
-  width: 100%;
-  height: 100%;
-  background: var(--color-gray-100);
-}
-
-.addPhotoButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.removeButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.addMoreButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  aspect-ratio: 1;
+  background: var(--color-background);
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
   color: var(--color-text-secondary);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
   transition: all 0.2s;
 }
 
-.addPhotoButton:hover {
-  background: var(--color-gray-50);
+.addMoreButton:hover {
+  border-color: var(--color-text-primary);
   color: var(--color-text-primary);
+}
+
+.helpText {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -209,9 +154,33 @@
     font-size: 14px;
   }
   
-  .photosGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2);
+  .uploadText {
+    font-size: 14px;
+  }
+  
+  .browseButton {
+    font-size: 14px;
+    padding: var(--space-2) var(--space-4);
+  }
+  
+  .photoGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-3);
     padding: var(--space-3);
+  }
+  
+  .uploadIcon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .removeButton {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .removeButton svg {
+    width: 16px;
+    height: 16px;
   }
 }
