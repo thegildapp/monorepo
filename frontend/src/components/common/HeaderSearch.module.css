@@ -1,109 +1,18 @@
-.searchForm {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.searchContainer {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid transparent;
-  padding: 0;
-  width: 32px;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  justify-content: flex-end;
-  height: 30px;
-}
-
-.searchContainer.expanded {
-  width: 240px;
-  border-bottom-color: rgba(0, 0, 0, 0.2);
-}
-
-.searchContainer:focus-within {
-  border-bottom-color: rgba(0, 0, 0, 0.4);
-}
-
-.searchIcon {
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  order: 0;
-}
-
-.searchIcon:hover {
-  opacity: 0.7;
-}
-
-.searchInput {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.9);
-  background: transparent;
-  font-family: 'Tinos', serif;
-  font-weight: 400;
-  margin-left: 8px;
-  width: 0;
-  opacity: 0;
-  transition: all 0.3s ease;
-  order: 1;
-  text-align: left;
-  padding: 0;
-}
-
-.searchContainer.expanded .searchInput {
-  width: 100%;
-  opacity: 1;
-}
-
-.searchInput::placeholder {
-  color: rgba(0, 0, 0, 0.4);
-  font-weight: 400;
-}
-
-.clearButton {
+.searchButton {
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px;
-  margin-right: 8px;
-  color: rgba(0, 0, 0, 0.4);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  order: 2;
+  transition: opacity 0.2s ease;
 }
 
-.clearButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.7);
+.searchButton:hover {
+  opacity: 0.7;
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .searchContainer.expanded {
-    width: 200px;
-  }
-  
-  .searchInput {
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-}
-
-@media (max-width: 480px) {
-  .searchContainer.expanded {
-    width: 160px;
-  }
+.searchIcon {
+  color: var(--color-text-secondary);
 }

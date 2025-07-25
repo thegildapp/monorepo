@@ -129,10 +129,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
           )}
           
           {showSearch && (
-            <HeaderSearch 
-              placeholder="Search..." 
-              className={styles.headerSearch}
-            />
+            <HeaderSearch className={styles.headerSearch} />
           )}
         </div>
       </div>
