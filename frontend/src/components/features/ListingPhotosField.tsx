@@ -13,7 +13,10 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  const dragCounter = useRef(0);
 
   useEffect(() => {
     // Create worker
@@ -77,17 +80,137 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    dragCounter.current = 0;
     setIsDragging(false);
     handleFileSelect(e.dataTransfer.files);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
+    dragCounter.current++;
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  // Photo reordering handlers
+  const handlePhotoDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.effectAllowed = 'move';
+    // Create an invisible drag image
+    const dragImage = new Image();
+    dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setDraggedIndex(index);
+  };
+
+  const handlePhotoDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handlePhotoDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      return;
+    }
+
+    const draggedPhoto = photos[draggedIndex];
+    const newPhotos = [...photos];
+    
+    // Remove the dragged photo
+    newPhotos.splice(draggedIndex, 1);
+    
+    // Insert at new position - if dragging from left to right, place after the target
+    const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex : dropIndex;
+    newPhotos.splice(adjustedDropIndex, 0, draggedPhoto);
+    
+    onPhotosChange(newPhotos);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handlePhotoDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Touch handlers for mobile
+  const [touchItem, setTouchItem] = useState<{ index: number; photo: Photo } | null>(null);
+  const [touchOffset, setTouchOffset] = useState({ x: 0, y: 0 });
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    const touch = e.touches[0];
+    const element = e.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    
+    longPressTimer.current = setTimeout(() => {
+      setTouchItem({ index, photo: photos[index] });
+      setTouchOffset({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      });
+      element.style.opacity = '0.5';
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchItem) {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+      return;
+    }
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+    const photoElement = elements.find(el => 
+      el.classList.contains(styles.photoItem) && 
+      el !== e.currentTarget
+    );
+    
+    if (photoElement) {
+      const index = Array.from(photoElement.parentElement!.children).indexOf(photoElement);
+      if (index !== -1) {
+        setDragOverIndex(index);
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    
+    const element = e.currentTarget as HTMLElement;
+    element.style.opacity = '1';
+    
+    if (touchItem && dragOverIndex !== null && touchItem.index !== dragOverIndex) {
+      const newPhotos = [...photos];
+      newPhotos.splice(touchItem.index, 1);
+      
+      const adjustedDropIndex = touchItem.index < dragOverIndex ? dragOverIndex : dragOverIndex;
+      newPhotos.splice(adjustedDropIndex, 0, touchItem.photo);
+      
+      onPhotosChange(newPhotos);
+    }
+    
+    setTouchItem(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -98,6 +221,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       <div 
         className={`${styles.uploadArea} ${isDragging ? styles.dragging : ''}`}
         onDrop={handleDrop}
+        onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
@@ -128,8 +252,18 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
           </div>
         ) : (
           <div className={styles.photoGrid}>
-            {photos.map(photo => (
-              <div key={photo.id} className={styles.photoItem}>
+            {photos.map((photo, index) => (
+              <div 
+                key={photo.id} 
+                className={`${styles.photoItem} ${draggedIndex === index ? styles.dragging : ''} ${dragOverIndex === index ? styles.dragOver : ''}`}
+                draggable={!photo.loading}
+                onDragStart={(e) => handlePhotoDragStart(e, index)}
+                onDragOver={(e) => handlePhotoDragOver(e, index)}
+                onDrop={(e) => handlePhotoDrop(e, index)}
+                onDragEnd={handlePhotoDragEnd}
+                onTouchStart={(e) => handleTouchStart(e, index)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}>
                 {photo.loading ? (
                   <div className={styles.loadingPlaceholder}>
                     <div className={styles.spinner} />
@@ -137,7 +271,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                 ) : (
                   <img 
                     src={photo.dataUrl} 
-                    alt={photo.file.name}
+                    alt={photo.file?.name || 'Photo'}
                     className={styles.photoImage}
                   />
                 )}

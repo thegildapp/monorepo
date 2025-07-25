@@ -1,6 +1,6 @@
 export interface Photo {
   id: string;
-  file: File;
+  file: File | null;
   dataUrl: string;
   loading?: boolean;
 }

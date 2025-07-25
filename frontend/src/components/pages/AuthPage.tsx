@@ -333,7 +333,8 @@ export default function AuthPage() {
                   </button>
                 )}
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => setShowPassword(true)}
                   className={passkeySupported ? styles.secondaryButton : styles.primaryButton}
                 >
                   Continue with password

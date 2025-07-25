@@ -213,6 +213,7 @@
   font-family: 'Tinos', serif;
   transition: background 0.2s ease;
   border-bottom: 1px solid #f0f0f0;
+  position: relative;
 }
 
 .search-result-item:last-child {
@@ -221,6 +222,36 @@
 
 .search-result-item:hover {
   background: #f8f8f8;
+}
+
+/* Delete button for recent locations */
+.delete-recent-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  border-radius: 4px;
+}
+
+.search-result-item:hover .delete-recent-btn {
+  opacity: 0.6;
+}
+
+.delete-recent-btn:hover {
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.delete-recent-btn svg {
+  width: 16px;
+  height: 16px;
+  color: #666;
 }
 
 .history-icon {

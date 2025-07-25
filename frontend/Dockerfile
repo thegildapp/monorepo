@@ -4,6 +4,7 @@ FROM node:20-alpine AS build
 # Accept build arguments
 ARG VITE_GRAPHQL_URL
 ARG VITE_SPACES_ENDPOINT
+ARG VITE_GOOGLE_PLACES_API_KEY
 
 WORKDIR /app
 
@@ -28,6 +29,7 @@ RUN npm run relay
 # Set environment variables for build
 ENV VITE_GRAPHQL_URL=$VITE_GRAPHQL_URL
 ENV VITE_SPACES_ENDPOINT=$VITE_SPACES_ENDPOINT
+ENV VITE_GOOGLE_PLACES_API_KEY=$VITE_GOOGLE_PLACES_API_KEY
 
 # Build the app
 RUN npm run build

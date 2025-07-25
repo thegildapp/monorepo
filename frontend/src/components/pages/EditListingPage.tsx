@@ -87,11 +87,8 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
     const existingPhotos: Photo[] = listing.images.map((url, index) => ({
       id: `existing-${index}`,
       file: null,
-      preview: url,
-      uploading: false,
-      uploaded: true,
-      url: url,
-      key: url.split('/').pop() || ''
+      dataUrl: url,
+      loading: false
     }));
     setPhotos(existingPhotos);
   }, [listing.images]);
@@ -109,8 +106,8 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
       
       // Get all image URLs (both existing and newly uploaded)
       const imageUrls = photos
-        .filter(photo => photo.url)
-        .map(photo => photo.url!);
+        .filter(photo => photo.dataUrl)
+        .map(photo => photo.dataUrl);
       
       if (imageUrls.length < 3) {
         throw new Error('Please add at least 3 photos');

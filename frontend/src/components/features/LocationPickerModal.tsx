@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-lea
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Modal from '../common/Modal'
+import { useGooglePlacesAutocomplete } from '../../hooks/useGooglePlacesAutocomplete'
 import './LocationPickerModal.css'
 
 // Custom marker icon
@@ -50,20 +51,6 @@ interface LocationPickerModalProps {
   hideRadius?: boolean
 }
 
-interface SearchResult {
-  display_name: string
-  lat: string
-  lon: string
-  city?: string
-  state?: string
-  address?: {
-    city?: string
-    town?: string
-    village?: string
-    state?: string
-    country?: string
-  }
-}
 
 // Component to handle map clicks
 function LocationMarker({ position, onLocationChange }: { 
@@ -93,16 +80,31 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(currentLocation)
   const [selectedRadius, setSelectedRadius] = useState(radius)
   const [searchText, setSearchText] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
   const [showSearchResults, setShowSearchResults] = useState(false)
-  const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [recentLocations, setRecentLocations] = useState<Array<{
+    id: string;
+    lat: number;
+    lng: number;
+    city?: string;
+    state?: string;
+    displayName: string;
+  }>>([])
   const [locationName, setLocationName] = useState('Select location')
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
   const [isGeocoding, setIsGeocoding] = useState(false)
   const mapRef = useRef<L.Map | null>(null)
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const lastGeocodedRef = useRef<{lat: number, lng: number} | null>(null)
+  
+  // Google Places Autocomplete
+  const { 
+    isLoaded: isGoogleLoaded, 
+    predictions, 
+    isSearching, 
+    searchPlaces, 
+    getPlaceDetails,
+    clearPredictions 
+  } = useGooglePlacesAutocomplete()
 
   // Auto-adjust zoom based on radius
   const getZoomForRadius = (radiusMiles: number): number => {
@@ -123,10 +125,15 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   }
 
   useEffect(() => {
-    // Load search history
-    const saved = localStorage.getItem('gild_location_search_history')
+    // Load recent locations
+    const saved = localStorage.getItem('gild_recent_locations')
     if (saved) {
-      setSearchHistory(JSON.parse(saved))
+      try {
+        const locations = JSON.parse(saved)
+        setRecentLocations(locations.slice(0, 5)) // Keep only 5 most recent
+      } catch (e) {
+        console.error('Error loading recent locations:', e)
+      }
     }
   }, [])
 
@@ -152,13 +159,45 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   const reverseGeocode = async (lat: number, lng: number, updateSelectedLocation = true) => {
     setIsGeocoding(true)
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-      )
-      const data = await response.json()
+      // Check if Google Maps is loaded
+      if (!window.google || !window.google.maps) {
+        throw new Error('Google Maps not loaded')
+      }
+
+      // Use Google's Geocoder for reverse geocoding
+      const geocoder = new window.google.maps.Geocoder()
       
-      const city = data.address?.city || data.address?.town || data.address?.village || ''
-      const state = data.address?.state || ''
+      const result = await new Promise<any>((resolve, reject) => {
+        geocoder.geocode(
+          { location: { lat, lng } },
+          (results, status) => {
+            if (status === 'OK' && results && results[0]) {
+              resolve(results[0])
+            } else {
+              reject(new Error(`Geocoding failed: ${status}`))
+            }
+          }
+        )
+      })
+
+      // Extract city and state from address components
+      let city = ''
+      let state = ''
+      
+      if (result.address_components) {
+        for (const component of result.address_components) {
+          const types = component.types
+          if (types.includes('locality')) {
+            city = component.long_name
+          } else if (types.includes('administrative_area_level_1')) {
+            state = component.short_name
+          }
+          // Also check for neighborhood/sublocality if no city found
+          if (!city && (types.includes('neighborhood') || types.includes('sublocality'))) {
+            city = component.long_name
+          }
+        }
+      }
       
       const locationStr = city && state ? `${city}, ${state}` : (city || state || 'Selected location')
       setLocationName(locationStr)
@@ -186,64 +225,6 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     }
   }
 
-  const searchLocations = async (query: string) => {
-    if (!query.trim() || query.trim().length < 2) {
-      setSearchResults([])
-      return
-    }
-
-    setIsSearching(true)
-    try {
-      // Search specifically for cities in the US
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(query)}&` +
-        `format=json&` +
-        `limit=10&` +
-        `countrycodes=us&` +
-        `featuretype=city&` +
-        `addressdetails=1&` +
-        `extratags=1`
-      )
-      const results = await response.json()
-      
-      // Filter and rank results
-      const filteredResults = results
-        .filter((result: any) => {
-          // Only include results that are cities, towns, or villages
-          const type = result.type
-          const placeClass = result.class
-          return (
-            (placeClass === 'place' && ['city', 'town', 'village', 'hamlet'].includes(type)) ||
-            (placeClass === 'boundary' && type === 'administrative' && result.place_rank >= 13 && result.place_rank <= 16)
-          )
-        })
-        .sort((a: any, b: any) => {
-          // Prioritize by importance score (population-based)
-          const importanceA = parseFloat(a.importance) || 0
-          const importanceB = parseFloat(b.importance) || 0
-          
-          // Prioritize cities over towns/villages
-          const typeOrder: Record<string, number> = { city: 4, town: 3, village: 2, hamlet: 1 }
-          const typeScoreA = typeOrder[a.type] || 0
-          const typeScoreB = typeOrder[b.type] || 0
-          
-          // Combined score: importance + type bonus
-          const scoreA = importanceA + (typeScoreA * 0.1)
-          const scoreB = importanceB + (typeScoreB * 0.1)
-          
-          return scoreB - scoreA
-        })
-        .slice(0, 6) // Limit to top 6 results
-      
-      setSearchResults(filteredResults)
-      setShowSearchResults(true)
-    } catch (error) {
-      console.error('Search error:', error)
-    } finally {
-      setIsSearching(false)
-    }
-  }
 
   const handleSearchInput = (value: string) => {
     setSearchText(value)
@@ -253,37 +234,88 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       clearTimeout(searchTimeoutRef.current)
     }
     
+    if (!value.trim()) {
+      clearPredictions()
+      return
+    }
+    
     searchTimeoutRef.current = setTimeout(() => {
-      searchLocations(value)
+      searchPlaces(value)
     }, 300)
   }
 
-  const selectSearchResult = (result: SearchResult) => {
-    const lat = parseFloat(result.lat)
-    const lng = parseFloat(result.lon)
+  const selectSearchResult = async (placeId: string, description: string) => {
+    // Get detailed place information
+    const placeDetails = await getPlaceDetails(placeId)
+    
+    if (!placeDetails) {
+      console.error('Failed to get place details')
+      return
+    }
     
     setSelectedLocation({
-      lat,
-      lng,
-      city: result.address?.city || result.address?.town || result.address?.village,
-      state: result.address?.state
+      lat: placeDetails.lat,
+      lng: placeDetails.lng,
+      city: placeDetails.city,
+      state: placeDetails.state
     })
+    
+    // Update location name
+    const displayName = placeDetails.city && placeDetails.state 
+      ? `${placeDetails.city}, ${placeDetails.state}`
+      : description
+    setLocationName(displayName)
     
     // Center map on selected location with appropriate zoom
     if (mapRef.current) {
-      mapRef.current.setView([lat, lng], getZoomForRadius(selectedRadius))
+      mapRef.current.setView([placeDetails.lat, placeDetails.lng], getZoomForRadius(selectedRadius))
     }
     
-    // Add to search history
-    const query = searchText.trim()
-    if (query && !searchHistory.includes(query)) {
-      const newHistory = [query, ...searchHistory.slice(0, 4)]
-      setSearchHistory(newHistory)
-      localStorage.setItem('gild_location_search_history', JSON.stringify(newHistory))
+    // Add to recent locations
+    const newLocation = {
+      id: placeId,
+      lat: placeDetails.lat,
+      lng: placeDetails.lng,
+      city: placeDetails.city,
+      state: placeDetails.state,
+      displayName
+    }
+    
+    // Remove duplicate if exists and add to front
+    const filtered = recentLocations.filter(loc => loc.id !== placeId)
+    const updated = [newLocation, ...filtered].slice(0, 5)
+    setRecentLocations(updated)
+    localStorage.setItem('gild_recent_locations', JSON.stringify(updated))
+    
+    setSearchText('')
+    setShowSearchResults(false)
+    clearPredictions()
+  }
+
+  const selectRecentLocation = (location: typeof recentLocations[0]) => {
+    setSelectedLocation({
+      lat: location.lat,
+      lng: location.lng,
+      city: location.city,
+      state: location.state
+    })
+    
+    setLocationName(location.displayName)
+    
+    // Center map on selected location
+    if (mapRef.current) {
+      mapRef.current.setView([location.lat, location.lng], getZoomForRadius(selectedRadius))
     }
     
     setSearchText('')
     setShowSearchResults(false)
+  }
+  
+  const deleteRecentLocation = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering the select action
+    const filtered = recentLocations.filter(loc => loc.id !== id)
+    setRecentLocations(filtered)
+    localStorage.setItem('gild_recent_locations', JSON.stringify(filtered))
   }
 
   const handleCurrentLocation = () => {
@@ -380,7 +412,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 onFocus={() => {
                   setShowSearchResults(true)
                   if (!searchText) {
-                    setSearchResults([])
+                    clearPredictions()
                   }
                 }}
                 placeholder={locationName}
@@ -402,26 +434,36 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             </div>
 
             {/* Search results dropdown */}
-            {showSearchResults && (searchResults.length > 0 || searchHistory.length > 0) && (
+            {showSearchResults && (predictions.length > 0 || recentLocations.length > 0) && (
               <div className="location-search-results">
-                {!searchText && searchHistory.length > 0 && (
+                {!searchText && recentLocations.length > 0 && (
                   <>
-                    <div className="search-section-header">Recent searches</div>
-                    {searchHistory.map((query, index) => (
-                      <button
-                        key={index}
+                    <div className="search-section-header">Recent</div>
+                    {recentLocations.map((location) => (
+                      <div
+                        key={location.id}
                         className="search-result-item"
-                        onClick={() => {
-                          setSearchText(query)
-                          searchLocations(query)
-                        }}
+                        onClick={() => selectRecentLocation(location)}
+                        role="button"
+                        tabIndex={0}
                       >
                         <svg className="history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeWidth="2"/>
+                          <circle cx="12" cy="10" r="3" strokeWidth="2"/>
                         </svg>
-                        <span>{query}</span>
-                      </button>
+                        <span className="search-result-text">{location.displayName}</span>
+                        <div
+                          className="delete-recent-btn"
+                          onClick={(e) => deleteRecentLocation(location.id, e)}
+                          role="button"
+                          tabIndex={0}
+                          aria-label="Delete recent location"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      </div>
                     ))}
                   </>
                 )}
@@ -430,27 +472,30 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                   <div className="search-loading">Searching...</div>
                 )}
                 
-                {searchText && !isSearching && searchResults.map((result, index) => {
-                  // Format the display to show city, state prominently
-                  const parts = result.display_name.split(',').map(p => p.trim())
-                  const cityName = parts[0]
-                  const stateName = result.address?.state || parts.find(p => p.length === 2) || ''
+                {searchText && !isSearching && predictions.map((prediction) => {
+                  // Google Places provides structured formatting
+                  const placeData = prediction.placePrediction;
                   
-                  // Create a cleaner subtitle
-                  let subtitle = stateName
-                  if (result.address?.county && !cityName.includes(result.address.county)) {
-                    subtitle = `${result.address.county}${stateName ? ', ' + stateName : ''}`
-                  }
+                  // Safely access nested properties
+                  const mainText = placeData?.structuredFormat?.mainText?.text || 
+                                  placeData?.text?.text || 
+                                  'Unknown location';
+                  
+                  const secondaryText = placeData?.structuredFormat?.secondaryText?.text || '';
+                  const placeId = placeData?.placeId || '';
+                  const fullText = placeData?.text?.text || mainText;
+                  
+                  if (!placeId) return null; // Skip if no placeId
                   
                   return (
                     <button
-                      key={index}
+                      key={placeId}
                       className="search-result-item"
-                      onClick={() => selectSearchResult(result)}
+                      onClick={() => selectSearchResult(placeId, fullText)}
                     >
                       <div className="search-result-text">
-                        <div className="search-result-name">{cityName}</div>
-                        <div className="search-result-address">{subtitle}</div>
+                        <div className="search-result-name">{mainText}</div>
+                        <div className="search-result-address">{secondaryText}</div>
                       </div>
                     </button>
                   )

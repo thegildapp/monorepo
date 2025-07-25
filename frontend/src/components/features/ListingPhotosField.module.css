@@ -88,6 +88,23 @@
   overflow: hidden;
   background: var(--color-background);
   border: 1px solid var(--color-border);
+  cursor: grab;
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+  user-select: none;
+}
+
+.photoItem:active {
+  cursor: grabbing;
+}
+
+.photoItem.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.photoItem.dragOver {
+  box-shadow: 0 0 0 3px var(--color-text-primary);
+  transform: scale(1.05);
 }
 
 .photoImage {
@@ -191,6 +208,11 @@
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: var(--space-3);
     padding: var(--space-3);
+  }
+  
+  .photoItem {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
   }
   
   .uploadIcon {
