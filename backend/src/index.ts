@@ -680,7 +680,8 @@ const resolvers = {
       }
 
       // Create a temporary user ID for the registration process
-      const tempUserId = `temp_${email}_${Date.now()}`;
+      // Use a consistent ID based on email so we can retrieve the challenge later
+      const tempUserId = `temp_${email}`;
       
       // Generate registration options
       const options = await generateRegistrationOptionsForUser(tempUserId, email, name);
@@ -700,8 +701,8 @@ const resolvers = {
         throw new Error('User with this email already exists');
       }
 
-      // Create a temporary user ID for verification
-      const tempUserId = `temp_${input.email}_${Date.now()}`;
+      // Use the same temporary user ID that was used in startPasskeyRegistration
+      const tempUserId = `temp_${input.email}`;
       
       // Verify the registration
       const parsedResponse = JSON.parse(input.response);

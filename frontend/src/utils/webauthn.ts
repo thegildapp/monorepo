@@ -15,7 +15,9 @@ export { browserSupportsWebAuthn, platformAuthenticatorIsAvailable };
 
 export async function registerPasskey(options: PublicKeyCredentialCreationOptionsJSON): Promise<RegistrationResponseJSON> {
   try {
-    const response = await startRegistration(options);
+    const response = await startRegistration({
+      optionsJSON: options
+    });
     return response;
   } catch (error) {
     console.error('Passkey registration error:', error);
@@ -25,7 +27,9 @@ export async function registerPasskey(options: PublicKeyCredentialCreationOption
 
 export async function authenticateWithPasskey(options: PublicKeyCredentialRequestOptionsJSON): Promise<AuthenticationResponseJSON> {
   try {
-    const response = await startAuthentication(options);
+    const response = await startAuthentication({
+      optionsJSON: options
+    });
     return response;
   } catch (error) {
     console.error('Passkey authentication error:', error);

@@ -88,6 +88,12 @@ spec:
             secretKeyRef:
               name: openai-secret
               key: OPENAI_API_KEY
+        - name: NODE_ENV
+          value: "development"
+        - name: RP_ID
+          value: "localhost"
+        - name: FRONTEND_URL
+          value: "http://localhost:5173"
         resources:
           requests:
             memory: "512Mi"

@@ -89,6 +89,10 @@ spec:
                 secretKeyRef:
                   name: openai-secret
                   key: OPENAI_API_KEY
+            - name: RP_ID
+              value: "thegild.app"
+            - name: FRONTEND_URL
+              value: "https://thegild.app"
           resources:
             requests:
               memory: "256Mi"
