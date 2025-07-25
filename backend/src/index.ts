@@ -17,6 +17,12 @@ import {
   bufferToBase64url
 } from './utils/webauthn';
 
+// Polyfill for Web Crypto API in Node.js
+import { webcrypto } from 'crypto';
+if (!globalThis.crypto) {
+  (globalThis as any).crypto = webcrypto;
+}
+
 // Context type
 interface Context {
   userId: string | undefined;
