@@ -12,7 +12,6 @@ import styles from './ItemPage.module.css';
 
 import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
-import ThumbnailImage from '../common/ThumbnailImage';
 
 function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_listing$key }) {
   const listing = useFragment(ListingDetailFragment, listingRef);
@@ -23,10 +22,6 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   
   // Helper functions to get image URLs
   const getFullImageUrl = (index: number) => {
-    return images[index];
-  };
-  
-  const getThumbnailUrl = (index: number) => {
     return images[index];
   };
   
@@ -214,14 +209,36 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
         ) : (
           <div className={styles.mainImageContainer}>
             {images.length > 0 ? (
-              <ImageWithFallback
-                key={currentImageIndex}
-                src={getFullImageUrl(currentImageIndex)} 
-                alt={`${listing.title} - Image ${currentImageIndex + 1}`}
-                className={styles.mainImage}
-                fallbackWidth="600px"
-                fallbackHeight="400px"
-              />
+              <>
+                <ImageWithFallback
+                  key={currentImageIndex}
+                  src={getFullImageUrl(currentImageIndex)} 
+                  alt={`${listing.title} - Image ${currentImageIndex + 1}`}
+                  className={styles.mainImage}
+                  fallbackWidth="600px"
+                  fallbackHeight="400px"
+                />
+                {images.length > 1 && (
+                  <>
+                    <button 
+                      className={`${styles.desktopNavButton} ${styles.prev}`}
+                      onClick={() => scrollToIndex(currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1)}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    <button 
+                      className={`${styles.desktopNavButton} ${styles.next}`}
+                      onClick={() => scrollToIndex(currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1)}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </>
             ) : (
               <div className={`${styles.mainImage} ${styles.imagePlaceholder}`}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -235,21 +252,15 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
           </div>
         )}
 
-        {/* Thumbnails - desktop only */}
+        {/* Desktop indicators */}
         {!isMobile && hasImages && images.length > 1 && (
-          <div className={styles.thumbnailContainer}>
+          <div className={styles.desktopIndicators}>
             {images.map((_, index) => (
               <div
                 key={index}
-                className={`${styles.thumbnail} ${index === currentImageIndex ? styles.active : ''}`}
+                className={`${styles.indicator} ${index === currentImageIndex ? styles.active : ''}`}
                 onClick={() => scrollToIndex(index)}
-              >
-                <ThumbnailImage
-                  src={getThumbnailUrl(index)} 
-                  alt={`${listing.title} thumbnail ${index + 1}`}
-                  className={styles.thumbnailImage}
-                />
-              </div>
+              />
             ))}
           </div>
         )}
