@@ -1,0 +1,83 @@
+.container {
+  width: 100%;
+}
+
+.passkeyButton {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: white;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-text-primary);
+  border-radius: 2px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.passkeyButton:hover:not(:disabled) {
+  background: var(--color-text-primary);
+  color: white;
+}
+
+.passkeyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.emailInput {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-bottom-color: var(--color-text-primary);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.button {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-text-primary);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-family: inherit;
+}
+
+.button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-top: var(--space-2);
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@gild/shared-schema",
+  "version": "1.0.0",
+  "description": "Shared GraphQL schema for Gild marketplace",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "schema.graphql"
+  ],
+  "scripts": {
+    "test": "echo \"No tests\""
+  }
+}

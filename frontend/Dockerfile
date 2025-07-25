@@ -7,17 +7,20 @@ ARG VITE_SPACES_ENDPOINT
 
 WORKDIR /app
 
+# Copy shared package
+COPY packages/shared-schema /packages/shared-schema
+
 # Copy package files
 COPY frontend/package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the shared schema file for code generation
-COPY schema.graphql ./
-
 # Copy source code
 COPY frontend/ .
+
+# Copy schema from shared package
+RUN cp /packages/shared-schema/schema.graphql ./schema.graphql
 
 # Generate types from GraphQL schema
 RUN npm run relay

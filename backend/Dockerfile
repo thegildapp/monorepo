@@ -2,11 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY backend/package*.json ./
-RUN npm install --legacy-peer-deps
+# Copy shared package
+COPY packages/shared-schema /packages/shared-schema
 
-# Copy the shared schema file
-COPY schema.graphql ./
+# Now set up backend
+COPY backend/package*.json ./
+
+# Ensure the local package is linked properly
+RUN mkdir -p node_modules/@gild && \
+    ln -s /packages/shared-schema node_modules/@gild/shared-schema
+
+RUN npm install --legacy-peer-deps
 
 COPY backend/ .
 

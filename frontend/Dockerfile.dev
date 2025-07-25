@@ -2,17 +2,19 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy shared package
+COPY packages/shared-schema /app/packages/shared-schema
+
+# Now set up frontend
+WORKDIR /app
 COPY frontend/package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the shared schema file for code generation
-COPY schema.graphql ./
 
 # Copy source code
 COPY frontend/ .
+
+# Copy schema from shared package
+RUN cp /app/packages/shared-schema/schema.graphql ./schema.graphql
 
 # Expose port 5173 (Vite's default port)
 EXPOSE 5173

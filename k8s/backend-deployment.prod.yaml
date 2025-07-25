@@ -16,6 +16,18 @@ spec:
     spec:
       imagePullSecrets:
         - name: regcred
+      initContainers:
+      - name: prisma-migrate
+        image: ghcr.io/thegildapp/monorepo/backend:latest
+        imagePullPolicy: Always
+        command: ["npx", "prisma", "migrate", "deploy"]
+        workingDir: /app
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: DATABASE_URL
       containers:
         - name: backend
           image: ghcr.io/thegildapp/monorepo/backend:latest

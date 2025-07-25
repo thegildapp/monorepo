@@ -7,6 +7,14 @@ type User {
   avatarUrl: String
   createdAt: String!
   updatedAt: String!
+  passkeys: [Passkey!]!
+}
+
+type Passkey {
+  id: ID!
+  name: String
+  createdAt: String!
+  lastUsedAt: String
 }
 
 enum ListingStatus {
@@ -78,7 +86,19 @@ type Mutation {
   generateUploadUrl(filename: String!, contentType: String!): UploadUrl!
   register(input: RegisterInput!): AuthPayload!
   login(input: LoginInput!): AuthPayload!
+  refreshToken: AuthPayload!
   updateProfile(input: UpdateProfileInput!): User!
+  
+  # Passkey operations
+  createPasskeyRegistrationOptions: PasskeyRegistrationOptions!
+  verifyPasskeyRegistration(input: VerifyPasskeyRegistrationInput!): Passkey!
+  createPasskeyAuthenticationOptions(email: String!): PasskeyAuthenticationOptions!
+  verifyPasskeyAuthentication(input: VerifyPasskeyAuthenticationInput!): AuthPayload!
+  deletePasskey(id: ID!): Boolean!
+  
+  # Passkey-first auth
+  startPasskeyRegistration(email: String!, name: String!): PasskeyRegistrationOptions!
+  completePasskeyRegistration(input: CompletePasskeyRegistrationInput!): AuthPayload!
 }
 
 type AuthPayload {
@@ -104,6 +124,31 @@ input UpdateProfileInput {
   avatarUrl: String
 }
 
+type PasskeyRegistrationOptions {
+  publicKey: String!
+}
+
+type PasskeyAuthenticationOptions {
+  publicKey: String!
+}
+
+input VerifyPasskeyRegistrationInput {
+  response: String!
+  name: String
+}
+
+input VerifyPasskeyAuthenticationInput {
+  email: String!
+  response: String!
+}
+
+input CompletePasskeyRegistrationInput {
+  email: String!
+  name: String!
+  response: String!
+  passkeyName: String
+}
+
 input ImageVariantsInput {
   thumbnail: String!
   card: String!
@@ -115,7 +160,6 @@ input CreateListingInput {
   description: String!
   price: Int!
   images: [String!]!
-  imageVariants: [ImageVariantsInput!]
   city: String!
   state: String!
   latitude: Float

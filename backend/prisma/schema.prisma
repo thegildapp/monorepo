@@ -17,8 +17,29 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   listings  Listing[]
+  passkeys  Passkey[]
 
   @@map("users")
+}
+
+model Passkey {
+  id                String   @id @default(cuid())
+  userId            String
+  credentialId      String   @unique
+  credentialPublicKey Bytes
+  counter           BigInt
+  deviceType        String
+  backedUp          Boolean
+  transports        String[]
+  name              String?  // User-friendly name like "iPhone Face ID"
+  lastUsedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("passkeys")
 }
 
 enum ListingStatus {

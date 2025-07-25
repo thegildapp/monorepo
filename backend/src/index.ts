@@ -1,8 +1,7 @@
 import express from 'express';
 import { createYoga, createSchema, YogaInitialContext } from 'graphql-yoga';
 import cors from 'cors';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { typeDefs } from '@gild/shared-schema';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import prisma from './config/prisma';
@@ -10,6 +9,13 @@ import { searchListings } from './services/searchService';
 import { ensureListingsIndex, indexListing } from './config/opensearch';
 import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
 import { moderateContent, updateListingStatus } from './utils/moderation';
+import { 
+  generateRegistrationOptionsForUser, 
+  verifyRegistration,
+  generateAuthenticationOptionsForUser,
+  verifyAuthentication,
+  bufferToBase64url
+} from './utils/webauthn';
 
 // Context type
 interface Context {
@@ -27,9 +33,6 @@ const s3Client = new S3Client({
 });
 
 
-// Read the schema from the single source of truth
-const schemaPath = join(__dirname, '../schema.graphql');
-const typeDefs = readFileSync(schemaPath, 'utf8');
 
 const resolvers = {
   Query: {
@@ -453,6 +456,33 @@ const resolvers = {
       };
     },
     
+    refreshToken: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to refresh token');
+      }
+      
+      // Get the user
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+      });
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // Generate new token
+      const token = generateToken(user.id);
+      
+      return {
+        token,
+        user: {
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
+      };
+    },
+    
     updateProfile: async (_: any, { input }: { input: { name?: string; phone?: string; avatarUrl?: string } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to update your profile');
@@ -471,6 +501,248 @@ const resolvers = {
         ...user,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
+      };
+    },
+
+    // Passkey operations
+    createPasskeyRegistrationOptions: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to register a passkey');
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const options = await generateRegistrationOptionsForUser(user.id, user.email, user.name);
+      
+      return {
+        publicKey: JSON.stringify(options),
+      };
+    },
+
+    verifyPasskeyRegistration: async (_: any, { input }: { input: { response: string; name?: string } }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to register a passkey');
+      }
+
+      const parsedResponse = JSON.parse(input.response);
+      const verification = await verifyRegistration(context.userId, parsedResponse);
+
+      if (!verification.verified || !verification.registrationInfo) {
+        throw new Error('Passkey registration failed');
+      }
+
+      const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+      const { publicKey: credentialPublicKey, id: credentialID, counter } = credential;
+
+      // Save the passkey to database
+      const passkey = await prisma.passkey.create({
+        data: {
+          userId: context.userId,
+          credentialId: bufferToBase64url(Buffer.from(credentialID)),
+          credentialPublicKey: credentialPublicKey,
+          counter: BigInt(counter),
+          deviceType: credentialDeviceType,
+          backedUp: credentialBackedUp,
+          transports: parsedResponse.response.transports || [],
+          name: input.name || `Passkey ${new Date().toLocaleDateString()}`,
+        },
+      });
+
+      return {
+        id: passkey.id,
+        name: passkey.name,
+        createdAt: passkey.createdAt.toISOString(),
+        lastUsedAt: passkey.lastUsedAt?.toISOString() || null,
+      };
+    },
+
+    createPasskeyAuthenticationOptions: async (_: any, { email }: { email: string }) => {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: { passkeys: true },
+      });
+
+      if (!user) {
+        // Return a specific error code that the frontend can use
+        throw new Error('User not found');
+      }
+      
+      if (user.passkeys.length === 0) {
+        // Return a specific error code for existing users without passkeys
+        throw new Error('No passkeys found for this user');
+      }
+
+      const allowCredentials = user.passkeys.map(passkey => ({
+        id: passkey.credentialId,
+        transports: passkey.transports,
+      }));
+
+      const options = await generateAuthenticationOptionsForUser(user.id, allowCredentials);
+
+      return {
+        publicKey: JSON.stringify(options),
+      };
+    },
+
+    verifyPasskeyAuthentication: async (_: any, { input }: { input: { email: string; response: string } }) => {
+      const parsedResponse = JSON.parse(input.response);
+      
+      const user = await prisma.user.findUnique({
+        where: { email: input.email },
+        include: { passkeys: true },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Find the passkey used
+      const passkey = user.passkeys.find(pk => pk.credentialId === parsedResponse.id);
+      
+      if (!passkey) {
+        throw new Error('Passkey not found');
+      }
+
+      const verification = await verifyAuthentication(
+        user.id,
+        parsedResponse,
+        Buffer.from(passkey.credentialPublicKey),
+        passkey.counter
+      );
+
+      if (!verification.verified) {
+        throw new Error('Authentication failed');
+      }
+
+      // Update counter and last used
+      await prisma.passkey.update({
+        where: { id: passkey.id },
+        data: {
+          counter: BigInt(verification.authenticationInfo.newCounter),
+          lastUsedAt: new Date(),
+        },
+      });
+
+      // Generate JWT token
+      const token = generateToken(user.id);
+
+      return {
+        token,
+        user: {
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
+      };
+    },
+
+    deletePasskey: async (_: any, { id }: { id: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to delete a passkey');
+      }
+
+      const passkey = await prisma.passkey.findUnique({
+        where: { id },
+      });
+
+      if (!passkey || passkey.userId !== context.userId) {
+        throw new Error('Passkey not found');
+      }
+
+      await prisma.passkey.delete({
+        where: { id },
+      });
+
+      return true;
+    },
+
+    // Passkey-first registration
+    startPasskeyRegistration: async (_: any, { email, name }: { email: string; name: string }) => {
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Create a temporary user ID for the registration process
+      const tempUserId = `temp_${email}_${Date.now()}`;
+      
+      // Generate registration options
+      const options = await generateRegistrationOptionsForUser(tempUserId, email, name);
+      
+      return {
+        publicKey: JSON.stringify(options),
+      };
+    },
+
+    completePasskeyRegistration: async (_: any, { input }: { input: { email: string; name: string; response: string; passkeyName?: string } }) => {
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email: input.email },
+      });
+
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Create a temporary user ID for verification
+      const tempUserId = `temp_${input.email}_${Date.now()}`;
+      
+      // Verify the registration
+      const parsedResponse = JSON.parse(input.response);
+      const verification = await verifyRegistration(tempUserId, parsedResponse);
+
+      if (!verification.verified || !verification.registrationInfo) {
+        throw new Error('Passkey registration failed');
+      }
+
+      const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+      const { publicKey: credentialPublicKey, id: credentialID, counter } = credential;
+
+      // Create the user with a random password (they won't use it)
+      const randomPassword = await hashPassword(Math.random().toString(36).slice(-12));
+      
+      const user = await prisma.user.create({
+        data: {
+          email: input.email,
+          name: input.name,
+          password: randomPassword,
+          passkeys: {
+            create: {
+              credentialId: bufferToBase64url(Buffer.from(credentialID)),
+              credentialPublicKey: credentialPublicKey,
+              counter: BigInt(counter),
+              deviceType: credentialDeviceType,
+              backedUp: credentialBackedUp,
+              transports: parsedResponse.response.transports || [],
+              name: input.passkeyName || `Passkey ${new Date().toLocaleDateString()}`,
+            },
+          },
+        },
+        include: {
+          passkeys: true,
+        },
+      });
+
+      // Generate JWT token
+      const token = generateToken(user.id);
+
+      return {
+        token,
+        user: {
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
       };
     },
   },
@@ -528,6 +800,19 @@ const resolvers = {
         return new Date(parent.updatedAt).toISOString();
       }
       return parent.updatedAt;
+    },
+    passkeys: async (parent: any) => {
+      const passkeys = await prisma.passkey.findMany({
+        where: { userId: parent.id },
+        orderBy: { createdAt: 'desc' },
+      });
+      
+      return passkeys.map(passkey => ({
+        id: passkey.id,
+        name: passkey.name,
+        createdAt: passkey.createdAt.toISOString(),
+        lastUsedAt: passkey.lastUsedAt?.toISOString() || null,
+      }));
     },
   },
 };

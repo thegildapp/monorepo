@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "npm run check && vite --host 0.0.0.0 --port 5173",
     "build": "npm run check && vite build",
-    "check": "npm run copy-schema && relay-compiler && tsc --noEmit",
+    "check": "relay-compiler && tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview",
-    "relay": "npm run copy-schema && relay-compiler",
-    "copy-schema": "cp ../schema.graphql ./schema.graphql 2>/dev/null || cp schema.graphql ./schema.graphql 2>/dev/null || true"
+    "relay": "relay-compiler",
+    "copy-schema": "cp ../packages/shared-schema/schema.graphql ./schema.graphql"
   },
   "dependencies": {
+    "@gild/shared-schema": "file:../packages/shared-schema",
     "@aws-sdk/client-s3": "^3.846.0",
+    "@simplewebauthn/browser": "^13.1.2",
     "@types/leaflet": "^1.9.20",
     "browser-image-compression": "^2.0.2",
     "graphql": "^16.11.0",

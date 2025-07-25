@@ -4,6 +4,7 @@ import { useMutation } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
+import PasskeyAuth from '../features/PasskeyAuth';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginMutation, RegisterMutation } from '../../queries/auth';
 import type { authLoginMutation } from '../../__generated__/authLoginMutation.graphql';
@@ -14,6 +15,7 @@ export default function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -86,8 +88,15 @@ export default function SignInPage() {
       <Header logoText="Gild" showSearch={false} />
       <Main>
         <div className={styles.container}>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            {isSignUp && (
+          {!showPassword ? (
+            <PasskeyAuth 
+              onShowPassword={() => setShowPassword(true)}
+            />
+          ) : (
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <h1 className={styles.title}>Welcome to Gild</h1>
+              
+              {isSignUp && (
               <input
                 type="text"
                 value={name}
@@ -138,17 +147,26 @@ export default function SignInPage() {
               disabled={isLoading}
               className={styles.submitButton}
             >
-              {isLoading ? '...' : (isSignUp ? 'Create Account' : 'Sign In')}
+              {isLoading ? 'Loading...' : (isSignUp ? 'Create account' : 'Continue')}
             </button>
             
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className={styles.switchButton}
+              className={styles.linkButton}
             >
-              {isSignUp ? 'Already have an account? Sign In' : 'Create Account'}
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setShowPassword(false)}
+              className={styles.linkButton}
+            >
+              Use passkey instead
             </button>
           </form>
+          )}
         </div>
       </Main>
     </Layout>
