@@ -23,12 +23,7 @@ export async function moderateContent(title: string, description: string): Promi
       return true;
     }
     
-    // Log the moderation result for debugging
-    console.log('Content moderation result:', {
-      flagged: result.flagged,
-      categories: result.categories,
-      title: title.substring(0, 50) + '...',
-    });
+    // Moderation result received
 
     return !result.flagged;
   } catch (error) {
@@ -50,7 +45,7 @@ export async function updateListingStatus(listingId: string, isApproved: boolean
       },
     });
     
-    console.log(`Listing ${listingId} ${isApproved ? 'approved' : 'rejected'}`);
+    // Listing status updated
   } catch (error) {
     console.error('Error updating listing status:', error);
   } finally {

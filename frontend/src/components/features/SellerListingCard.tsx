@@ -10,11 +10,6 @@ const SellerListingCardFragment = graphql`
     title
     price
     images
-    imageVariants {
-      thumbnail
-      card
-      full
-    }
     city
     state
     createdAt
@@ -66,11 +61,8 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
 
   const daysActive = getDaysActive(listing.createdAt);
 
-  // Use thumbnail variant if available, otherwise fall back to regular images
+  // Get thumbnail URL
   const getThumbnailUrl = () => {
-    if (listing.imageVariants && listing.imageVariants[0]?.thumbnail) {
-      return listing.imageVariants[0].thumbnail;
-    }
     return listing.images?.[0];
   };
 

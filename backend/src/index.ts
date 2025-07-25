@@ -255,7 +255,6 @@ const resolvers = {
       const listing = await prisma.listing.create({
         data: {
           ...input,
-          imageVariants: [],
           seller: {
             connect: { id: context.userId }
           },
@@ -278,7 +277,6 @@ const resolvers = {
             });
             if (fullListing) {
               await indexListing(fullListing);
-              console.log('Listing indexed successfully:', listing.id);
             }
           } catch (error) {
             console.error('Error indexing listing:', error);

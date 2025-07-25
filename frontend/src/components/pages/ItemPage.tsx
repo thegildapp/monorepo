@@ -21,18 +21,12 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   const images = listing.images?.length > 0 ? listing.images : [];
   const hasImages = images.length > 0;
   
-  // Helper functions to get appropriate image variants
+  // Helper functions to get image URLs
   const getFullImageUrl = (index: number) => {
-    if (listing.imageVariants && listing.imageVariants[index]) {
-      return listing.imageVariants[index].full;
-    }
     return images[index];
   };
   
   const getThumbnailUrl = (index: number) => {
-    if (listing.imageVariants && listing.imageVariants[index]) {
-      return listing.imageVariants[index].thumbnail;
-    }
     return images[index];
   };
   

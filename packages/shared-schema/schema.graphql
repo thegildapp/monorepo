@@ -23,19 +23,12 @@ enum ListingStatus {
   REJECTED
 }
 
-type ImageVariants {
-  thumbnail: String!
-  card: String!
-  full: String!
-}
-
 type Listing {
   id: ID!
   title: String!
   description: String!
   price: Int!
   images: [String!]!
-  imageVariants: [ImageVariants!]
   city: String
   state: String
   latitude: Float
@@ -149,12 +142,6 @@ input CompletePasskeyRegistrationInput {
   passkeyName: String
 }
 
-input ImageVariantsInput {
-  thumbnail: String!
-  card: String!
-  full: String!
-}
-
 input CreateListingInput {
   title: String!
   description: String!
@@ -171,7 +158,6 @@ input UpdateListingInput {
   description: String
   price: Int
   images: [String!]
-  imageVariants: [ImageVariantsInput!]
   city: String
   state: String
   latitude: Float

@@ -11,11 +11,6 @@ const ListingCardFragment = graphql`
     title
     price
     images
-    imageVariants {
-      thumbnail
-      card
-      full
-    }
     city
     state
     createdAt
@@ -34,9 +29,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing: listingRef }) => {
   const [scrollPosition, setScrollPosition] = useState(0)
   
   const getImageUrl = (index: number) => {
-    if (listing.imageVariants && listing.imageVariants[index]) {
-      return listing.imageVariants[index].card;
-    }
     return listing.images[index];
   };
   
