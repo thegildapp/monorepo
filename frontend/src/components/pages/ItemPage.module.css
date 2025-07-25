@@ -38,10 +38,10 @@
 .imageGallery {
   position: relative;
   width: 100%;
-  height: 50vh;
-  min-height: 300px;
   background: transparent;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .mainImageContainer {
@@ -68,7 +68,8 @@
 
 .carouselScrollContainer {
   width: 100%;
-  height: 100%;
+  height: 50vh;
+  min-height: 300px;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -109,16 +110,11 @@
 
 /* Mobile indicators */
 .mobileIndicators {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
+  justify-content: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 6px 10px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
+  padding: 0;
+  margin-top: 8px;
 }
 
 .indicator {
@@ -289,9 +285,13 @@
   }
   
   .imageGallery {
+    width: 100%;
+    padding: 0;
+  }
+  
+  .carouselScrollContainer {
     height: 40vh;
     min-height: 250px;
-    width: 100%;
   }
   
   .content {
