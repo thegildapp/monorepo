@@ -141,11 +141,7 @@ export default function SearchPage() {
             <Suspense fallback={<LoadingGrid />}>
               <SearchResults query={urlQuery} location={location} radius={radius} />
             </Suspense>
-          ) : (
-            <div className={styles.emptyState}>
-              <p className={styles.emptyStateText}>Enter a search term to find listings</p>
-            </div>
-          )}
+          ) : null}
         </div>
       </Main>
       </div>
