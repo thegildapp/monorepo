@@ -13,8 +13,7 @@ import {
   generateRegistrationOptionsForUser, 
   verifyRegistration,
   generateAuthenticationOptionsForUser,
-  verifyAuthentication,
-  bufferToBase64url
+  verifyAuthentication
 } from './utils/webauthn';
 
 // Polyfill for Web Crypto API in Node.js
@@ -546,11 +545,14 @@ const resolvers = {
       const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
       const { publicKey: credentialPublicKey, id: credentialID, counter } = credential;
 
+      // SimpleWebAuthn v13+ returns credentialID as a base64url string
+      // We'll use it directly without any conversion
+      
       // Save the passkey to database
       const passkey = await prisma.passkey.create({
         data: {
           userId: context.userId,
-          credentialId: bufferToBase64url(Buffer.from(credentialID)),
+          credentialId: credentialID,
           credentialPublicKey: credentialPublicKey,
           counter: BigInt(counter),
           deviceType: credentialDeviceType,
@@ -725,7 +727,7 @@ const resolvers = {
           password: randomPassword,
           passkeys: {
             create: {
-              credentialId: bufferToBase64url(Buffer.from(credentialID)),
+              credentialId: credentialID,
               credentialPublicKey: credentialPublicKey,
               counter: BigInt(counter),
               deviceType: credentialDeviceType,

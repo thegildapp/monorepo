@@ -96,15 +96,8 @@ export default function AuthPage() {
     e.preventDefault();
     setError('');
 
-    // If password field isn't showing yet, just show it
-    if (!showPassword && !isNewUser) {
-      setShowPassword(true);
-      return;
-    }
-    
-    // For new users with passkey support, clicking "Use password instead" should show password field
-    if (isNewUser && passkeySupported && !showPassword) {
-      setShowPassword(true);
+    // Don't do anything if password field isn't visible yet
+    if (!showPassword) {
       return;
     }
 
@@ -288,7 +281,7 @@ export default function AuthPage() {
       <Header logoText="Gild" showSearch={false} />
       <Main>
         <div className={styles.container}>
-          <form onSubmit={handleSubmit} className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
             <h1 className={styles.title}>Welcome to Gild</h1>
             
             {isNewUser && (
