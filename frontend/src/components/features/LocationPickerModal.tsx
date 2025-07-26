@@ -139,7 +139,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
 
   useEffect(() => {
-    if (selectedLocation && !isGeocoding) {
+    if (selectedLocation && !isGeocoding && isGoogleLoaded) {
       // Only geocode if the location has changed
       if (!lastGeocodedRef.current || 
           lastGeocodedRef.current.lat !== selectedLocation.lat || 
@@ -148,7 +148,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         reverseGeocode(selectedLocation.lat, selectedLocation.lng, false)
       }
     }
-  }, [selectedLocation, isGeocoding])
+  }, [selectedLocation, isGeocoding, isGoogleLoaded])
 
   useEffect(() => {
     if (currentLocation) {
@@ -167,7 +167,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       // Use Google's Geocoder for reverse geocoding
       const geocoder = new window.google.maps.Geocoder()
       
-      const result = await new Promise<any>((resolve, reject) => {
+      const result = await new Promise((resolve, reject) => {
         geocoder.geocode(
           { location: { lat, lng } },
           (results, status) => {

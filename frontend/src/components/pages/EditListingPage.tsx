@@ -14,18 +14,8 @@ import PriceInput from '../common/PriceInput';
 import { useAuth } from '../../contexts/AuthContext';
 import type { EditListingPageQuery as QueryType } from '../../__generated__/EditListingPageQuery.graphql';
 import type { EditListingPage_listing$key } from '../../__generated__/EditListingPage_listing.graphql';
+import type { Photo } from '../../types/Photo';
 import styles from './EditListingPage.module.css';
-
-interface Photo {
-  id: string;
-  file: File | null;
-  preview: string;
-  uploading: boolean;
-  uploaded: boolean;
-  uploadProgress?: number;
-  url?: string;
-  key?: string;
-}
 
 const EditListingQuery = graphql`
   query EditListingPageQuery($id: ID!) {
@@ -80,7 +70,7 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [commitUpdate, isUpdating] = useMutation(UpdateListingMutation);
+  const [commitUpdate] = useMutation(UpdateListingMutation);
   
   // Initialize photos from existing images
   useEffect(() => {
@@ -144,7 +134,7 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
            description.trim().length > 0 &&
            price.length > 0 &&
            parseFloat(price) > 0 &&
-           photos.filter(p => p.url).length >= 3;
+           photos.filter(p => p.dataUrl).length >= 3;
   };
   
   return (

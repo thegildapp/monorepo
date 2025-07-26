@@ -3,11 +3,13 @@ import styles from './ListingPhotosField.module.css';
 import type { Photo } from '../../types/Photo';
 
 interface ListingPhotosFieldProps {
+  label?: string;
   photos: Photo[];
   onPhotosChange: (photos: Photo[]) => void;
 }
 
 const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
+  label,
   photos = [],
   onPhotosChange
 }) => {
@@ -215,8 +217,14 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Add photos</h2>
-      <p className={styles.subtitle}>Show your item from different angles</p>
+      {label ? (
+        <label className={styles.label}>{label}</label>
+      ) : (
+        <>
+          <h2 className={styles.title}>Add photos</h2>
+          <p className={styles.subtitle}>Show your item from different angles</p>
+        </>
+      )}
 
       <div 
         className={`${styles.uploadArea} ${isDragging ? styles.dragging : ''}`}
