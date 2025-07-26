@@ -36,7 +36,7 @@ self.addEventListener('message', async (e) => {
     ctx.drawImage(imageBitmap, 0, 0, width, height);
     
     // Convert to blob then to data URL
-    const resizedBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.7 });
+    const resizedBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 1.0 });
     const resizedReader = new FileReader();
     const resizedDataUrl = await new Promise<string>((resolve, reject) => {
       resizedReader.onload = (e) => resolve(e.target?.result as string);

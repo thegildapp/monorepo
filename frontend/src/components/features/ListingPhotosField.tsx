@@ -52,8 +52,8 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     tempPhotos.forEach((photo) => {
       workerRef.current!.postMessage({
         file: photo.file,
-        maxWidth: 300,
-        maxHeight: 300,
+        maxWidth: 800,
+        maxHeight: 800,
         id: photo.id
       });
     });
