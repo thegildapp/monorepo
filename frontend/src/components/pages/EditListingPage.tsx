@@ -143,13 +143,6 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
         <h1 className={styles.pageTitle}>Edit Listing</h1>
         <div className={styles.actions}>
           <button 
-            className={styles.cancelButton} 
-            onClick={() => navigate(`/listing/${listing.id}/manage`)}
-            disabled={isSaving}
-          >
-            Cancel
-          </button>
-          <button 
             className={styles.saveButton} 
             onClick={handleSave}
             disabled={!isValid() || isSaving}
