@@ -59,23 +59,16 @@ const ListingFragment = graphql`
 
 // Update mutation removed - using CreateListingModal for editing
 
-const DeleteListingMutation = graphql`
-  mutation ListingManagementPageDeleteMutation($id: ID!) {
-    deleteListing(id: $id)
-  }
-`;
 
 function ListingManagementView({ listingRef }: { listingRef: ListingManagementPage_listing$key }) {
   const listing = useFragment(ListingFragment, listingRef);
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expandedInquiry, setExpandedInquiry] = useState<string | null>(null);
   const [shareEmail, setShareEmail] = useState(true);
   const [sharePhone, setSharePhone] = useState(false);
   
-  const [commitDelete, isDeleting] = useMutation(DeleteListingMutation);
   const [commitRespond, isResponding] = useMutation<inquiriesRespondToInquiryMutation>(RespondToInquiryMutation);
   
   // Note: In a real app, we'd check ownership through the backend
@@ -103,6 +96,8 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
     return Math.max(0, days);
   };
   
+  const daysActive = getDaysActive(listing.createdAt);
+  
   const pendingInquiries = listing.inquiries?.filter(inq => inq.status === 'PENDING') || [];
   const acceptedInquiries = listing.inquiries?.filter(inq => inq.status === 'ACCEPTED') || [];
   const rejectedInquiries = listing.inquiries?.filter(inq => inq.status === 'REJECTED') || [];
@@ -116,18 +111,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
     viewsToday: 23,
     viewsThisWeek: 89,
     conversionRate: 1.3
-  };
-  
-  const handleDelete = () => {
-    commitDelete({
-      variables: { id: listing.id },
-      onCompleted: () => {
-        navigate('/me');
-      },
-      onError: (error) => {
-        alert('Failed to delete listing: ' + error.message);
-      }
-    });
   };
   
   const handleRespondToInquiry = (inquiryId: string, accept: boolean) => {
@@ -175,15 +158,47 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
   return (
     <>
       <div className={styles.dashboardContainer}>
-        <div className={styles.dashboardHeader}>
-          <h1 className={styles.listingTitle}>{listing.title}</h1>
+        <div className={styles.listingHeader}>
+          <div className={styles.listingThumbnail}>
+            {listing.images && listing.images.length > 0 ? (
+              <ImageWithFallback
+                src={listing.images[0]}
+                alt={listing.title}
+                className={styles.thumbnail}
+              />
+            ) : (
+              <div className={styles.imagePlaceholder}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+            )}
+          </div>
+          <div className={styles.listingDetails}>
+            <h1 className={styles.listingTitle}>{listing.title}</h1>
+            <div className={styles.listingMeta}>
+              <span className={styles.listingPrice}>{formatPrice(listing.price)}</span>
+              <span className={styles.separator}>•</span>
+              <span className={styles.listingLocation}>{listing.city}, {listing.state}</span>
+              <span className={styles.separator}>•</span>
+              <span className={styles.daysActive}>{daysActive} {daysActive === 1 ? 'day' : 'days'} active</span>
+            </div>
+          </div>
           <div className={styles.headerActions}>
-            <button className={styles.viewButton} onClick={() => navigate(`/listing/${listing.id}`)}>
+            <Button 
+              variant="secondary" 
+              onClick={() => navigate(`/listing/${listing.id}`)}
+            >
               View Listing
-            </button>
-            <button className={styles.editButton} onClick={() => navigate(`/listing/${listing.id}/edit`)}>
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={() => navigate(`/listing/${listing.id}/edit`)}
+            >
               Edit Details
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -224,26 +239,21 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               {/* Pending Inquiries */}
               {pendingInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>
-                  <h3 className={styles.inquiryGroupTitle}>Pending ({pendingInquiries.length})</h3>
+                  <h3 className={styles.inquiryGroupTitle}>Pending</h3>
                   <div className={styles.inquiryList}>
                     {pendingInquiries.map((inquiry) => (
-                      <div key={inquiry.id} className={styles.inquiryCard}>
-                        <div className={styles.inquiryHeader}>
+                      <div key={inquiry.id} className={`${styles.inquiryCard} ${expandedInquiry === inquiry.id ? styles.expanded : ''}`}>
+                        <div className={styles.inquiryMain} onClick={() => setExpandedInquiry(expandedInquiry === inquiry.id ? null : inquiry.id)}>
                           <div className={styles.buyerInfo}>
-                            <div className={styles.buyerAvatar}>
-                              {inquiry.buyer.name?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                            <div>
-                              <div className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</div>
-                              <div className={styles.inquiryDate}>{formatDate(inquiry.createdAt)}</div>
-                            </div>
+                            <span className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</span>
+                            <span className={styles.separator}>•</span>
+                            <span className={styles.inquiryDate}>{formatDate(inquiry.createdAt)}</span>
                           </div>
-                          <button
-                            className={styles.expandButton}
-                            onClick={() => setExpandedInquiry(expandedInquiry === inquiry.id ? null : inquiry.id)}
-                          >
-                            {expandedInquiry === inquiry.id ? 'Hide' : 'Respond'}
-                          </button>
+                          <div className={styles.expandIcon}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points={expandedInquiry === inquiry.id ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}></polyline>
+                            </svg>
+                          </div>
                         </div>
                         
                         {expandedInquiry === inquiry.id && (
@@ -255,7 +265,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
                                   checked={shareEmail}
                                   onChange={(e) => setShareEmail(e.target.checked)}
                                 />
-                                Share email
+                                <span>Share email</span>
                               </label>
                               <label className={styles.checkbox}>
                                 <input
@@ -263,7 +273,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
                                   checked={sharePhone}
                                   onChange={(e) => setSharePhone(e.target.checked)}
                                 />
-                                Share phone
+                                <span>Share phone</span>
                               </label>
                             </div>
                             <div className={styles.actionButtons}>
@@ -275,6 +285,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
                                 Reject
                               </Button>
                               <Button
+                                variant="primary"
                                 onClick={() => handleRespondToInquiry(inquiry.id, true)}
                                 disabled={isResponding || (!shareEmail && !sharePhone)}
                               >
@@ -292,21 +303,18 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               {/* Accepted Inquiries */}
               {acceptedInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>
-                  <h3 className={styles.inquiryGroupTitle}>Accepted ({acceptedInquiries.length})</h3>
+                  <h3 className={styles.inquiryGroupTitle}>Accepted</h3>
                   <div className={styles.inquiryList}>
                     {acceptedInquiries.map((inquiry) => (
                       <div key={inquiry.id} className={styles.inquiryCard}>
-                        <div className={styles.inquiryHeader}>
+                        <div className={styles.inquiryMain}>
                           <div className={styles.buyerInfo}>
-                            <div className={styles.buyerAvatar}>
-                              {inquiry.buyer.name?.charAt(0).toUpperCase() || 'U'}
-                            </div>
-                            <div>
-                              <div className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</div>
-                              <div className={styles.inquiryDate}>Accepted {formatDate(inquiry.respondedAt || inquiry.createdAt)}</div>
-                            </div>
+                            <span className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</span>
+                            <span className={styles.separator}>•</span>
+                            <span className={styles.inquiryDate}>{formatDate(inquiry.respondedAt || inquiry.createdAt)}</span>
+                            <span className={styles.separator}>•</span>
+                            <span className={styles.statusLabel}>Accepted</span>
                           </div>
-                          <div className={styles.acceptedBadge}>Accepted</div>
                         </div>
                       </div>
                     ))}
@@ -317,40 +325,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
           )}
         </div>
         
-        {/* Quick Actions */}
-        <div className={styles.quickActions}>
-          <button
-            className={styles.deleteButton}
-            onClick={() => setShowDeleteConfirm(true)}
-          >
-            Delete Listing
-          </button>
-        </div>
-        
-        {showDeleteConfirm && (
-          <div className={styles.deleteModal}>
-            <div className={styles.deleteModalContent}>
-              <h3>Delete Listing?</h3>
-              <p>This action cannot be undone.</p>
-              <div className={styles.deleteModalActions}>
-                <button
-                  className={styles.cancelDeleteButton}
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.confirmDeleteButton}
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

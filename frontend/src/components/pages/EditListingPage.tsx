@@ -11,7 +11,9 @@ import LocationField from '../common/LocationField';
 import TextInput from '../common/TextInput';
 import TextArea from '../common/TextArea';
 import PriceInput from '../common/PriceInput';
+import Button from '../common/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { DeleteListingMutation } from '../../queries/listings';
 import type { EditListingPageQuery as QueryType } from '../../__generated__/EditListingPageQuery.graphql';
 import type { EditListingPage_listing$key } from '../../__generated__/EditListingPage_listing.graphql';
 import type { Photo } from '../../types/Photo';
@@ -68,9 +70,12 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
     listing.city && listing.state ? { lat: 0, lng: 0, city: listing.city, state: listing.state } : null
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [commitUpdate] = useMutation(UpdateListingMutation);
+  const [commitDelete] = useMutation(DeleteListingMutation);
   
   // Initialize photos from existing images
   useEffect(() => {
@@ -129,6 +134,21 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
     }
   };
   
+  const handleDelete = () => {
+    setIsDeleting(true);
+    commitDelete({
+      variables: { id: listing.id },
+      onCompleted: () => {
+        navigate('/me');
+      },
+      onError: (error) => {
+        setError(error.message);
+        setIsDeleting(false);
+        setShowDeleteConfirm(false);
+      }
+    });
+  };
+  
   const isValid = () => {
     return title.trim().length > 0 &&
            description.trim().length > 0 &&
@@ -142,13 +162,14 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Edit Listing</h1>
         <div className={styles.actions}>
-          <button 
-            className={styles.saveButton} 
+          <Button 
+            variant="primary"
             onClick={handleSave}
             disabled={!isValid() || isSaving}
+            loading={isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+            Save Changes
+          </Button>
         </div>
       </div>
       
@@ -197,7 +218,45 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
           location={location}
           onChange={setLocation}
         />
+        
+        <div className={styles.dangerZone}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteConfirm(true)}
+            type="button"
+            style={{ borderColor: '#ff4444', color: '#ff4444' }}
+          >
+            Delete Listing
+          </Button>
+        </div>
       </div>
+      
+      {showDeleteConfirm && (
+        <div className={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.deleteModalContent} onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Listing?</h3>
+            <p>This action cannot be undone.</p>
+            <div className={styles.deleteModalActions}>
+              <Button
+                variant="secondary"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                loading={isDeleting}
+                style={{ background: '#ff4444' }}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

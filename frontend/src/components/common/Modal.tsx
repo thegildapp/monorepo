@@ -48,7 +48,7 @@ const Modal: React.FC<ModalProps> = ({
 
   return createPortal(
     <div className={styles.modal}>
-      <div className={styles.overlay} onClick={onClose} />
+      <div className={styles.overlay} />
       <div className={`${styles.content} ${styles[size]} ${className}`}>
         {showHeader && (
           <div className={styles.header}>

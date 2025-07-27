@@ -91,3 +91,9 @@ export const GenerateUploadUrlMutation = graphql`
     }
   }
 `;
+
+export const DeleteListingMutation = graphql`
+  mutation listingsDeleteListingMutation($id: ID!) {
+    deleteListing(id: $id)
+  }
+`;

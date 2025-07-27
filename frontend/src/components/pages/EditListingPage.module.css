@@ -127,3 +127,53 @@
     gap: 20px;
   }
 }
+
+/* Danger Zone */
+.dangerZone {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Delete Modal */
+.deleteModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.deleteModalContent {
+  background: white;
+  padding: 32px;
+  border-radius: 2px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.deleteModalContent h3 {
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0 0 12px 0;
+  font-family: 'Tinos', serif;
+}
+
+.deleteModalContent p {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0 0 24px 0;
+  font-family: 'Tinos', serif;
+}
+
+.deleteModalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
