@@ -128,6 +128,163 @@
   font-family: 'Tinos', serif;
 }
 
+/* Inquiries Section */
+.inquiriesSection {
+  margin-bottom: 48px;
+}
+
+.noInquiries {
+  text-align: center;
+  padding: 48px 24px;
+  background: rgb(250, 249, 248);
+  border-radius: 2px;
+}
+
+.noInquiries p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  font-family: 'Tinos', serif;
+}
+
+.noInquiriesSubtext {
+  margin-top: 8px !important;
+  font-size: 14px !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.inquiryGroup {
+  margin-bottom: 32px;
+}
+
+.inquiryGroupTitle {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+  font-family: 'Tinos', serif;
+}
+
+.inquiryList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inquiryCard {
+  background: rgb(250, 249, 248);
+  padding: 16px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.inquiryCard:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.inquiryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buyerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.buyerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  font-family: 'Tinos', serif;
+}
+
+.buyerName {
+  font-size: 16px;
+  color: var(--color-text-primary);
+  font-weight: 400;
+  font-family: 'Tinos', serif;
+}
+
+.inquiryDate {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  font-family: 'Tinos', serif;
+}
+
+.expandButton {
+  padding: 8px 16px;
+  background: var(--color-text-primary);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  font-family: 'Tinos', serif;
+}
+
+.expandButton:hover {
+  opacity: 0.8;
+}
+
+.acceptedBadge {
+  padding: 6px 16px;
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'Tinos', serif;
+}
+
+.inquiryActions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shareOptions {
+  display: flex;
+  gap: 24px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-family: 'Tinos', serif;
+}
+
+.checkbox input {
+  cursor: pointer;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
 /* Quick Actions */
 .quickActions {
   display: flex;

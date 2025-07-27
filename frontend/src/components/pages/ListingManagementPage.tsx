@@ -7,9 +7,12 @@ import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
 import ImageWithFallback from '../common/ImageWithFallback';
+import Button from '../common/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { RespondToInquiryMutation } from '../../queries/inquiries';
 import type { ListingManagementPageQuery as QueryType } from '../../__generated__/ListingManagementPageQuery.graphql';
 import type { ListingManagementPage_listing$key } from '../../__generated__/ListingManagementPage_listing.graphql';
+import type { inquiriesRespondToInquiryMutation } from '../../__generated__/inquiriesRespondToInquiryMutation.graphql';
 import styles from './ListingManagementPage.module.css';
 
 const ManagementQuery = graphql`
@@ -31,6 +34,26 @@ const ListingFragment = graphql`
     state
     createdAt
     status
+    inquiries {
+      id
+      status
+      buyer {
+        id
+        name
+      }
+      seller {
+        id
+        name
+      }
+      listing {
+        id
+        title
+      }
+      contactEmail
+      contactPhone
+      createdAt
+      respondedAt
+    }
   }
 `;
 
@@ -48,8 +71,12 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
   const { user } = useAuth();
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [expandedInquiry, setExpandedInquiry] = useState<string | null>(null);
+  const [shareEmail, setShareEmail] = useState(true);
+  const [sharePhone, setSharePhone] = useState(false);
   
   const [commitDelete, isDeleting] = useMutation(DeleteListingMutation);
+  const [commitRespond, isResponding] = useMutation<inquiriesRespondToInquiryMutation>(RespondToInquiryMutation);
   
   // Note: In a real app, we'd check ownership through the backend
   // For now, we'll rely on backend authorization
@@ -76,12 +103,16 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
     return Math.max(0, days);
   };
   
+  const pendingInquiries = listing.inquiries?.filter(inq => inq.status === 'PENDING') || [];
+  const acceptedInquiries = listing.inquiries?.filter(inq => inq.status === 'ACCEPTED') || [];
+  const rejectedInquiries = listing.inquiries?.filter(inq => inq.status === 'REJECTED') || [];
+  
   // Engagement metrics (mock data for now)
   const engagementData = {
     views: 156,
     saves: 12,
     shares: 3,
-    inquiries: 2,
+    inquiries: listing.inquiries?.length || 0,
     viewsToday: 23,
     viewsThisWeek: 89,
     conversionRate: 1.3
@@ -97,6 +128,47 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
         alert('Failed to delete listing: ' + error.message);
       }
     });
+  };
+  
+  const handleRespondToInquiry = (inquiryId: string, accept: boolean) => {
+    commitRespond({
+      variables: {
+        inquiryId,
+        accept,
+        shareEmail: accept ? shareEmail : false,
+        sharePhone: accept ? sharePhone : false
+      },
+      onCompleted: (response) => {
+        if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {
+          alert(response.respondToInquiry.errors[0].message);
+        } else {
+          setExpandedInquiry(null);
+          setShareEmail(true);
+          setSharePhone(false);
+        }
+      },
+      onError: (error) => {
+        alert('Failed to respond to inquiry: ' + error.message);
+      }
+    });
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffHours < 1) {
+      return 'Just now';
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    } else if (diffDays < 7) {
+      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
   };
   
   
@@ -136,6 +208,113 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               <div className={styles.metricLabel}>Inquiries</div>
             </div>
           </div>
+        </div>
+        
+        {/* Inquiries Section */}
+        <div className={styles.inquiriesSection}>
+          <h2 className={styles.sectionTitle}>Inquiries</h2>
+          
+          {pendingInquiries.length === 0 && acceptedInquiries.length === 0 && rejectedInquiries.length === 0 ? (
+            <div className={styles.noInquiries}>
+              <p>No inquiries yet</p>
+              <p className={styles.noInquiriesSubtext}>When buyers contact you, their requests will appear here</p>
+            </div>
+          ) : (
+            <>
+              {/* Pending Inquiries */}
+              {pendingInquiries.length > 0 && (
+                <div className={styles.inquiryGroup}>
+                  <h3 className={styles.inquiryGroupTitle}>Pending ({pendingInquiries.length})</h3>
+                  <div className={styles.inquiryList}>
+                    {pendingInquiries.map((inquiry) => (
+                      <div key={inquiry.id} className={styles.inquiryCard}>
+                        <div className={styles.inquiryHeader}>
+                          <div className={styles.buyerInfo}>
+                            <div className={styles.buyerAvatar}>
+                              {inquiry.buyer.name?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <div>
+                              <div className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</div>
+                              <div className={styles.inquiryDate}>{formatDate(inquiry.createdAt)}</div>
+                            </div>
+                          </div>
+                          <button
+                            className={styles.expandButton}
+                            onClick={() => setExpandedInquiry(expandedInquiry === inquiry.id ? null : inquiry.id)}
+                          >
+                            {expandedInquiry === inquiry.id ? 'Hide' : 'Respond'}
+                          </button>
+                        </div>
+                        
+                        {expandedInquiry === inquiry.id && (
+                          <div className={styles.inquiryActions}>
+                            <div className={styles.shareOptions}>
+                              <label className={styles.checkbox}>
+                                <input
+                                  type="checkbox"
+                                  checked={shareEmail}
+                                  onChange={(e) => setShareEmail(e.target.checked)}
+                                />
+                                Share email
+                              </label>
+                              <label className={styles.checkbox}>
+                                <input
+                                  type="checkbox"
+                                  checked={sharePhone}
+                                  onChange={(e) => setSharePhone(e.target.checked)}
+                                />
+                                Share phone
+                              </label>
+                            </div>
+                            <div className={styles.actionButtons}>
+                              <Button
+                                variant="secondary"
+                                onClick={() => handleRespondToInquiry(inquiry.id, false)}
+                                disabled={isResponding}
+                              >
+                                Reject
+                              </Button>
+                              <Button
+                                onClick={() => handleRespondToInquiry(inquiry.id, true)}
+                                disabled={isResponding || (!shareEmail && !sharePhone)}
+                              >
+                                Accept
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Accepted Inquiries */}
+              {acceptedInquiries.length > 0 && (
+                <div className={styles.inquiryGroup}>
+                  <h3 className={styles.inquiryGroupTitle}>Accepted ({acceptedInquiries.length})</h3>
+                  <div className={styles.inquiryList}>
+                    {acceptedInquiries.map((inquiry) => (
+                      <div key={inquiry.id} className={styles.inquiryCard}>
+                        <div className={styles.inquiryHeader}>
+                          <div className={styles.buyerInfo}>
+                            <div className={styles.buyerAvatar}>
+                              {inquiry.buyer.name?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <div>
+                              <div className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</div>
+                              <div className={styles.inquiryDate}>Accepted {formatDate(inquiry.respondedAt || inquiry.createdAt)}</div>
+                            </div>
+                          </div>
+                          <div className={styles.acceptedBadge}>Accepted</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
         
         {/* Quick Actions */}

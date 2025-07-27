@@ -37,8 +37,6 @@ export const ListingDetailFragment = graphql`
     seller {
       id
       name
-      email
-      phone
       avatarUrl
     }
     hasInquired
@@ -63,7 +61,6 @@ export const CreateListingMutation = graphql`
       seller {
         id
         name
-        email
       }
     }
   }

@@ -50,3 +50,21 @@ export const MyInquiriesQuery = graphql`
     }
   }
 `;
+
+export const RespondToInquiryMutation = graphql`
+  mutation inquiriesRespondToInquiryMutation($inquiryId: ID!, $accept: Boolean!, $shareEmail: Boolean!, $sharePhone: Boolean!) {
+    respondToInquiry(inquiryId: $inquiryId, accept: $accept, shareEmail: $shareEmail, sharePhone: $sharePhone) {
+      inquiry {
+        id
+        status
+        contactEmail
+        contactPhone
+        respondedAt
+      }
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;

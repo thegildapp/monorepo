@@ -18,17 +18,6 @@ const safeUserSelect = {
   updatedAt: true,
 } as const;
 
-// Seller select with conditional contact info based on inquiry status
-const getSellerSelectForInquiry = (shareEmail: boolean, sharePhone: boolean) => ({
-  id: true,
-  name: true,
-  avatarUrl: true,
-  createdAt: true,
-  updatedAt: true,
-  ...(shareEmail && { email: true }),
-  ...(sharePhone && { phone: true }),
-});
-
 export const inquiryResolvers = {
   Query: {
     inquiry: async (_: any, { id }: { id: string }, context: GraphQLContext) => {
@@ -442,29 +431,139 @@ export const inquiryResolvers = {
           errors: [{ field: null, message: 'Failed to reject inquiry' }]
         };
       }
+    },
+    
+    respondToInquiry: async (
+      _: any,
+      { inquiryId, accept, shareEmail, sharePhone }: {
+        inquiryId: string;
+        accept: boolean;
+        shareEmail: boolean;
+        sharePhone: boolean;
+      },
+      context: GraphQLContext
+    ) => {
+      if (!context.userId) {
+        return {
+          inquiry: null,
+          errors: [{ field: null, message: 'Not authenticated' }]
+        };
+      }
+
+      try {
+        // Get the inquiry
+        const inquiry = await context.prisma.inquiry.findUnique({
+          where: { id: inquiryId },
+          include: {
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
+            listing: {
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
+            }
+          }
+        });
+
+        if (!inquiry) {
+          return {
+            inquiry: null,
+            errors: [{ field: 'inquiryId', message: 'Inquiry not found' }]
+          };
+        }
+
+        // Only seller can respond
+        if (inquiry.sellerId !== context.userId) {
+          return {
+            inquiry: null,
+            errors: [{ field: null, message: 'Not authorized' }]
+          };
+        }
+
+        // Only pending inquiries can be responded to
+        if (inquiry.status !== 'PENDING') {
+          return {
+            inquiry: null,
+            errors: [{ field: null, message: 'Inquiry has already been responded to' }]
+          };
+        }
+
+        // Update the inquiry
+        const updatedInquiry = await context.prisma.inquiry.update({
+          where: { id: inquiryId },
+          data: {
+            status: accept ? 'ACCEPTED' : 'REJECTED',
+            shareEmail: accept ? shareEmail : false,
+            sharePhone: accept ? sharePhone : false,
+            respondedAt: new Date()
+          },
+          include: {
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
+            listing: {
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
+            }
+          }
+        });
+
+        return {
+          inquiry: updatedInquiry,
+          errors: []
+        };
+      } catch (error) {
+        console.error('Error responding to inquiry:', error);
+        return {
+          inquiry: null,
+          errors: [{ field: null, message: 'Failed to respond to inquiry' }]
+        };
+      }
     }
   },
 
   Inquiry: {
     // Only show contact info if status is ACCEPTED and user is the buyer
-    contactEmail: (inquiry: any, _: any, context: GraphQLContext) => {
+    contactEmail: async (inquiry: any, _: any, context: GraphQLContext) => {
       if (inquiry.status !== 'ACCEPTED' || !inquiry.shareEmail) {
         return null;
       }
       if (context.userId !== inquiry.buyerId) {
         return null;
       }
-      return inquiry.seller.email;
+      // Fetch seller with email since it's not included in safeUserSelect
+      const seller = await context.prisma.user.findUnique({
+        where: { id: inquiry.sellerId },
+        select: { email: true }
+      });
+      return seller?.email || null;
     },
     
-    contactPhone: (inquiry: any, _: any, context: GraphQLContext) => {
+    contactPhone: async (inquiry: any, _: any, context: GraphQLContext) => {
       if (inquiry.status !== 'ACCEPTED' || !inquiry.sharePhone) {
         return null;
       }
       if (context.userId !== inquiry.buyerId) {
         return null;
       }
-      return inquiry.seller.phone;
+      // Fetch seller with phone since it's not included in safeUserSelect
+      const seller = await context.prisma.user.findUnique({
+        where: { id: inquiry.sellerId },
+        select: { phone: true }
+      });
+      return seller?.phone || null;
     }
   },
 
@@ -498,6 +597,39 @@ export const inquiryResolvers = {
           status: 'PENDING'
         }
       });
+    },
+    
+    inquiries: async (listing: any, _: any, context: GraphQLContext) => {
+      // Only the seller can see inquiries for their listing
+      if (!context.userId || listing.sellerId !== context.userId) {
+        return null;
+      }
+      
+      const inquiries = await context.prisma.inquiry.findMany({
+        where: {
+          listingId: listing.id
+        },
+        include: {
+          buyer: {
+            select: safeUserSelect
+          },
+          seller: {
+            select: safeUserSelect
+          },
+          listing: {
+            include: { 
+              seller: {
+                select: safeUserSelect
+              }
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+      
+      return inquiries;
     }
   }
 };

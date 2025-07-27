@@ -41,6 +41,7 @@ type Listing {
   # Inquiry-related fields
   hasInquired: Boolean!
   pendingInquiriesCount: Int
+  inquiries: [Inquiry!]
 }
 
 type Query {
@@ -111,6 +112,7 @@ type Mutation {
   requestContact(listingId: ID!): RequestContactPayload!
   acceptContactRequest(inquiryId: ID!, shareEmail: Boolean!, sharePhone: Boolean!): AcceptContactPayload!
   rejectContactRequest(inquiryId: ID!): RejectContactPayload!
+  respondToInquiry(inquiryId: ID!, accept: Boolean!, shareEmail: Boolean!, sharePhone: Boolean!): RespondToInquiryPayload!
 }
 
 type AuthPayload {
@@ -231,6 +233,11 @@ type AcceptContactPayload {
 }
 
 type RejectContactPayload {
+  inquiry: Inquiry
+  errors: [FieldError!]
+}
+
+type RespondToInquiryPayload {
   inquiry: Inquiry
   errors: [FieldError!]
 }

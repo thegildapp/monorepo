@@ -890,7 +890,12 @@ const resolvers = {
       }));
     },
   },
-  Inquiry: inquiryResolvers.Inquiry,
+  Inquiry: {
+    ...inquiryResolvers.Inquiry,
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    respondedAt: (parent: any) => parent.respondedAt?.toISOString() || null,
+  },
 };
 
 async function startServer(): Promise<void> {
