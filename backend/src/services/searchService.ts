@@ -1,6 +1,15 @@
 import client, { LISTINGS_INDEX, isOpenSearchAvailable } from '../config/opensearch';
 import prisma from '../config/prisma';
 
+// Safe user select to exclude password, email, and phone
+const safeUserSelect = {
+  id: true,
+  name: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 // Helper function to calculate distance between two points using Haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 3959; // Earth's radius in miles
@@ -180,7 +189,11 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     where: {
       id: { in: listingIds }
     },
-    include: { seller: true },
+    include: { 
+      seller: {
+        select: safeUserSelect
+      }
+    },
     orderBy: [
       // Maintain OpenSearch score order by using the original order
       { createdAt: 'desc' }
@@ -281,7 +294,11 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
   // Get listings
   const listings = await prisma.listing.findMany({
     where,
-    include: { seller: true },
+    include: { 
+      seller: {
+        select: safeUserSelect
+      }
+    },
     orderBy: { createdAt: 'desc' },
     skip: offset,
     take: limit

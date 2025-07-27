@@ -9,6 +9,26 @@ interface Context {
 
 type GraphQLContext = YogaInitialContext & Context;
 
+// Safe user select to exclude password, email, and phone
+const safeUserSelect = {
+  id: true,
+  name: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+// Seller select with conditional contact info based on inquiry status
+const getSellerSelectForInquiry = (shareEmail: boolean, sharePhone: boolean) => ({
+  id: true,
+  name: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  ...(shareEmail && { email: true }),
+  ...(sharePhone && { phone: true }),
+});
+
 export const inquiryResolvers = {
   Query: {
     inquiry: async (_: any, { id }: { id: string }, context: GraphQLContext) => {
@@ -19,10 +39,18 @@ export const inquiryResolvers = {
       const inquiry = await context.prisma.inquiry.findUnique({
         where: { id },
         include: {
-          buyer: true,
-          seller: true,
+          buyer: {
+            select: safeUserSelect
+          },
+          seller: {
+            select: safeUserSelect
+          },
           listing: {
-            include: { seller: true }
+            include: { 
+              seller: {
+                select: safeUserSelect
+              }
+            }
           }
         }
       });
@@ -65,10 +93,18 @@ export const inquiryResolvers = {
         context.prisma.inquiry.findMany({
           where: whereClause,
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           },
           orderBy: { createdAt: 'desc' },
@@ -131,7 +167,11 @@ export const inquiryResolvers = {
         // Get the listing
         const listing = await context.prisma.listing.findUnique({
           where: { id: listingId },
-          include: { seller: true }
+          include: { 
+            seller: {
+              select: safeUserSelect
+            }
+          }
         });
 
         if (!listing) {
@@ -175,10 +215,18 @@ export const inquiryResolvers = {
             status: 'PENDING'
           },
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           }
         });
@@ -217,10 +265,18 @@ export const inquiryResolvers = {
         const inquiry = await context.prisma.inquiry.findUnique({
           where: { id: inquiryId },
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           }
         });
@@ -266,10 +322,18 @@ export const inquiryResolvers = {
             respondedAt: new Date()
           },
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           }
         });
@@ -304,10 +368,18 @@ export const inquiryResolvers = {
         const inquiry = await context.prisma.inquiry.findUnique({
           where: { id: inquiryId },
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           }
         });
@@ -343,10 +415,18 @@ export const inquiryResolvers = {
             respondedAt: new Date()
           },
           include: {
-            buyer: true,
-            seller: true,
+            buyer: {
+              select: safeUserSelect
+            },
+            seller: {
+              select: safeUserSelect
+            },
             listing: {
-              include: { seller: true }
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              }
             }
           }
         });

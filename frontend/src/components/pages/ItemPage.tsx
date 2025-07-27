@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useLazyLoadQuery, useFragment, useMutation } from 'react-relay';
 import { useState, useEffect, useRef } from 'react';
 import Header from '../layout/Header';
@@ -14,11 +14,13 @@ import styles from './ItemPage.module.css';
 
 import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
+import Button from '../common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 
 function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_listing$key }) {
   const listing = useFragment(ListingDetailFragment, listingRef);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [commitRequestContact, isRequesting] = useMutation<inquiriesRequestContactMutation>(RequestContactMutation);
   const [hasRequested, setHasRequested] = useState(listing.hasInquired);
   const [error, setError] = useState<string | null>(null);
@@ -155,8 +157,8 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
 
   const handleContactSeller = () => {
     if (!user) {
-      // Redirect to sign in
-      window.location.href = '/signin';
+      // Redirect to sign in with return URL using React Router
+      navigate('/signin', { state: { from: window.location.pathname } });
       return;
     }
 
@@ -362,19 +364,19 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
             <div className={styles.section}>
               {hasRequested ? (
                 <div className={styles.contactStatus}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={styles.checkIcon}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={styles.checkIcon}>
                     <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <span>Contact request sent</span>
                 </div>
               ) : (
-                <button 
-                  className={styles.contactButton}
+                <Button
+                  fullWidth
                   onClick={handleContactSeller}
-                  disabled={isRequesting}
+                  loading={isRequesting}
                 >
-                  {isRequesting ? 'Sending...' : 'Contact Seller'}
-                </button>
+                  Contact Seller
+                </Button>
               )}
               {error && (
                 <p className={styles.errorMessage}>{error}</p>

@@ -684,41 +684,20 @@
   display: none;
 }
 
-/* Contact Seller Button */
-.contactButton {
-  width: 100%;
-  padding: 12px 24px;
-  background: #000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.contactButton:hover {
-  background: #333;
-}
-
-.contactButton:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
+/* Contact Seller Status */
 .contactStatus {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4CAF50;
-  font-size: 16px;
+  color: #666;
+  font-size: 14px;
   padding: 12px 0;
 }
 
 .checkIcon {
-  color: #4CAF50;
+  color: #666;
+  width: 16px;
+  height: 16px;
 }
 
 .errorMessage {

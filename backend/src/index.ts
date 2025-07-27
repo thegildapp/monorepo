@@ -39,6 +39,26 @@ const s3Client = new S3Client({
   },
 });
 
+// Safe user select to exclude password, email, and phone
+const safeUserSelect = {
+  id: true,
+  name: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+// Full user select for authenticated user's own data
+const fullUserSelect = {
+  id: true,
+  email: true,
+  name: true,
+  phone: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 
 
 const resolvers = {
@@ -77,7 +97,11 @@ const resolvers = {
       const queryOptions: any = {
         where,
         orderBy: { createdAt: 'desc' },
-        include: { seller: true },
+        include: { 
+          seller: {
+            select: safeUserSelect
+          }
+        },
       };
       
       // Only add pagination options if they are actual numbers
@@ -127,7 +151,11 @@ const resolvers = {
     listing: async (_: any, { id }: { id: string }) => {
       const listing = await prisma.listing.findUnique({
         where: { id },
-        include: { seller: true },
+        include: { 
+          seller: {
+            select: safeUserSelect
+          }
+        },
       });
       
       if (!listing) return null;
@@ -185,7 +213,11 @@ const resolvers = {
         const queryOptions: any = {
           where,
           orderBy: { createdAt: 'desc' },
-          include: { seller: true },
+          include: { 
+            seller: {
+              select: safeUserSelect
+            }
+          },
         };
         
         if (typeof limit === 'number') {
@@ -208,6 +240,7 @@ const resolvers = {
     user: async (_: any, { id }: { id: string }) => {
       return await prisma.user.findUnique({
         where: { id },
+        select: safeUserSelect,
       });
     },
     
@@ -216,6 +249,7 @@ const resolvers = {
       
       const user = await prisma.user.findUnique({
         where: { id: context.userId },
+        select: fullUserSelect,
       });
       
       if (!user) return null;
@@ -236,7 +270,11 @@ const resolvers = {
         where: {
           sellerId: context.userId,
         },
-        include: { seller: true },
+        include: { 
+          seller: {
+            select: safeUserSelect
+          }
+        },
         orderBy: { createdAt: 'desc' },
       });
       
@@ -264,7 +302,11 @@ const resolvers = {
           },
           status: 'PENDING',
         },
-        include: { seller: true },
+        include: { 
+          seller: {
+            select: safeUserSelect
+          }
+        },
       });
       
       // Perform content moderation asynchronously
@@ -277,7 +319,11 @@ const resolvers = {
             // Fetch the full listing with seller info for indexing
             const fullListing = await prisma.listing.findUnique({
               where: { id: listing.id },
-              include: { seller: true },
+              include: { 
+                seller: {
+                  select: safeUserSelect
+                }
+              },
             });
             if (fullListing) {
               await indexListing(fullListing);
@@ -361,7 +407,11 @@ const resolvers = {
       const updatedListing = await prisma.listing.update({
         where: { id },
         data: input,
-        include: { seller: true },
+        include: { 
+          seller: {
+            select: safeUserSelect
+          }
+        },
       });
       
       return {
@@ -418,6 +468,7 @@ const resolvers = {
           name: input.name,
           phone: input.phone,
         },
+        select: fullUserSelect,
       });
       
       // Generate token
@@ -453,10 +504,13 @@ const resolvers = {
       // Generate token
       const token = generateToken(user.id);
       
+      // Exclude password from the response
+      const { password, ...userWithoutPassword } = user;
+      
       return {
         token,
         user: {
-          ...user,
+          ...userWithoutPassword,
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
         },
@@ -471,6 +525,7 @@ const resolvers = {
       // Get the user
       const user = await prisma.user.findUnique({
         where: { id: context.userId },
+        select: fullUserSelect,
       });
       
       if (!user) {
@@ -502,6 +557,7 @@ const resolvers = {
           ...(input.phone !== undefined && { phone: input.phone }),
           ...(input.avatarUrl !== undefined && { avatarUrl: input.avatarUrl }),
         },
+        select: fullUserSelect,
       });
       
       return {
@@ -641,11 +697,14 @@ const resolvers = {
 
       // Generate JWT token
       const token = generateToken(user.id);
+      
+      // Exclude password and passkeys from the response
+      const { password, passkeys, ...userWithoutPassword } = user;
 
       return {
         token,
         user: {
-          ...user,
+          ...userWithoutPassword,
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
         },
@@ -739,18 +798,22 @@ const resolvers = {
             },
           },
         },
-        include: {
+        select: {
+          ...fullUserSelect,
           passkeys: true,
         },
       });
 
       // Generate JWT token
       const token = generateToken(user.id);
+      
+      // Exclude passkeys from the response (keep other fields)
+      const { passkeys, ...userWithoutPasskeys } = user;
 
       return {
         token,
         user: {
-          ...user,
+          ...userWithoutPasskeys,
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
         },
