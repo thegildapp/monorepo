@@ -22,7 +22,9 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
   const isOnProfilePage = location.pathname === '/me';
 
   const handleLogoClick = () => {
-    navigate('/');
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
   };
 
   const handleCategoryClick = () => {
@@ -33,9 +35,13 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
 
   const handleProfileClick = () => {
     if (user) {
-      navigate('/me');
+      if (location.pathname !== '/me') {
+        navigate('/me');
+      }
     } else {
-      navigate('/signin');
+      if (location.pathname !== '/signin') {
+        navigate('/signin');
+      }
     }
   };
 
@@ -99,13 +105,21 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
                 List
               </button>
               <button
-                onClick={() => navigate('/me/profile')}
+                onClick={() => {
+                  if (location.pathname !== '/me/profile') {
+                    navigate('/me/profile');
+                  }
+                }}
                 className={styles.headerActionLink}
               >
                 Profile
               </button>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => {
+                  if (location.pathname !== '/') {
+                    navigate('/');
+                  }
+                }}
                 className={styles.headerActionLink}
               >
                 Browse
