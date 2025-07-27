@@ -1,20 +1,27 @@
 import { useParams } from 'react-router-dom';
-import { useLazyLoadQuery, useFragment } from 'react-relay';
+import { useLazyLoadQuery, useFragment, useMutation } from 'react-relay';
 import { useState, useEffect, useRef } from 'react';
 import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
 import { GetListingQuery } from '../../queries/listings';
+import { RequestContactMutation } from '../../queries/inquiries';
 import type { listingsGetListingQuery as GetListingQueryType } from '../../__generated__/listingsGetListingQuery.graphql';
 import type { listingsListingDetail_listing$key } from '../../__generated__/listingsListingDetail_listing.graphql';
+import type { inquiriesRequestContactMutation } from '../../__generated__/inquiriesRequestContactMutation.graphql';
 import styles from './ItemPage.module.css';
 
 import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_listing$key }) {
   const listing = useFragment(ListingDetailFragment, listingRef);
+  const { user } = useAuth();
+  const [commitRequestContact, isRequesting] = useMutation<inquiriesRequestContactMutation>(RequestContactMutation);
+  const [hasRequested, setHasRequested] = useState(listing.hasInquired);
+  const [error, setError] = useState<string | null>(null);
   
   // Define images early to avoid reference errors
   const images = listing.images?.length > 0 ? listing.images : [];
@@ -145,6 +152,36 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
       maximumFractionDigits: 0,
     }).format(price);
   };
+
+  const handleContactSeller = () => {
+    if (!user) {
+      // Redirect to sign in
+      window.location.href = '/signin';
+      return;
+    }
+
+    setError(null);
+    
+    commitRequestContact({
+      variables: {
+        listingId: listing.id
+      },
+      onCompleted: (response) => {
+        if (response.requestContact.errors && response.requestContact.errors.length > 0) {
+          setError(response.requestContact.errors[0].message);
+        } else {
+          setHasRequested(true);
+        }
+      },
+      onError: (error) => {
+        setError('Failed to send contact request. Please try again.');
+        console.error('Contact request error:', error);
+      }
+    });
+  };
+
+  // Check if current user is the seller
+  const isOwnListing = user?.id === listing.seller.id;
 
 
   const handleImageClick = (e: React.MouseEvent) => {
@@ -317,6 +354,34 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
             <span className={styles.sellerName}>{listing.seller.name || 'Unknown'}</span>
           </div>
         </div>
+
+        {/* Contact Seller Button */}
+        {!isOwnListing && (
+          <>
+            <div className={styles.divider}></div>
+            <div className={styles.section}>
+              {hasRequested ? (
+                <div className={styles.contactStatus}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={styles.checkIcon}>
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Contact request sent</span>
+                </div>
+              ) : (
+                <button 
+                  className={styles.contactButton}
+                  onClick={handleContactSeller}
+                  disabled={isRequesting}
+                >
+                  {isRequesting ? 'Sending...' : 'Contact Seller'}
+                </button>
+              )}
+              {error && (
+                <p className={styles.errorMessage}>{error}</p>
+              )}
+            </div>
+          </>
+        )}
 
       </div>
 

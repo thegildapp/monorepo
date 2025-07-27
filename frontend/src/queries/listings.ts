@@ -41,6 +41,7 @@ export const ListingDetailFragment = graphql`
       phone
       avatarUrl
     }
+    hasInquired
     createdAt
     updatedAt
   }
