@@ -15,6 +15,7 @@ import {
   generateAuthenticationOptionsForUser,
   verifyAuthentication
 } from './utils/webauthn';
+import { inquiryResolvers } from './graphql/inquiryResolvers';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -25,6 +26,7 @@ if (!globalThis.crypto) {
 // Context type
 interface Context {
   userId: string | undefined;
+  prisma: typeof prisma;
 }
 
 // Configure S3 client for Digital Ocean Spaces
@@ -41,6 +43,7 @@ const s3Client = new S3Client({
 
 const resolvers = {
   Query: {
+    ...inquiryResolvers.Query,
     listings: async (_: any, args: { limit?: number | null; offset?: number | null; filters?: { latitude?: number; longitude?: number; radius?: number } | null }) => {
       const { limit, offset, filters } = args;
       
@@ -246,6 +249,7 @@ const resolvers = {
   },
   
   Mutation: {
+    ...inquiryResolvers.Mutation,
     createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');
@@ -784,6 +788,7 @@ const resolvers = {
       }
       return parent.updatedAt;
     },
+    ...inquiryResolvers.Listing,
   },
   User: {
     createdAt: (parent: any) => {
@@ -822,6 +827,7 @@ const resolvers = {
       }));
     },
   },
+  Inquiry: inquiryResolvers.Inquiry,
 };
 
 async function startServer(): Promise<void> {
@@ -886,6 +892,7 @@ async function startServer(): Promise<void> {
       return {
         ...initialContext,
         userId,
+        prisma,
       };
     },
   });

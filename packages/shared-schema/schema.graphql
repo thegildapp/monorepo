@@ -37,6 +37,10 @@ type Listing {
   seller: User!
   createdAt: String!
   updatedAt: String!
+  
+  # Inquiry-related fields
+  hasInquired: Boolean!
+  pendingInquiriesCount: Int
 }
 
 type Query {
@@ -46,6 +50,16 @@ type Query {
   user(id: ID!): User
   me: User
   myListings: [Listing!]!
+  
+  # Inquiry queries
+  inquiry(id: ID!): Inquiry
+  myInquiries(type: InquiryType!, status: InquiryStatus, limit: Int, offset: Int): InquiryConnection!
+  myInquiryStats: InquiryStats!
+}
+
+enum InquiryType {
+  SENT
+  RECEIVED
 }
 
 input LocationFilter {
@@ -92,6 +106,11 @@ type Mutation {
   # Passkey-first auth
   startPasskeyRegistration(email: String!, name: String!): PasskeyRegistrationOptions!
   completePasskeyRegistration(input: CompletePasskeyRegistrationInput!): AuthPayload!
+  
+  # Inquiry mutations
+  requestContact(listingId: ID!): RequestContactPayload!
+  acceptContactRequest(inquiryId: ID!, shareEmail: Boolean!, sharePhone: Boolean!): AcceptContactPayload!
+  rejectContactRequest(inquiryId: ID!): RejectContactPayload!
 }
 
 type AuthPayload {
@@ -162,5 +181,62 @@ input UpdateListingInput {
   state: String
   latitude: Float
   longitude: Float
+}
+
+# Inquiry System Types
+enum InquiryStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Inquiry {
+  id: ID!
+  buyer: User!
+  seller: User!
+  listing: Listing!
+  status: InquiryStatus!
+  
+  # Contact info (only visible when status is ACCEPTED)
+  contactEmail: String
+  contactPhone: String
+  
+  createdAt: String!
+  updatedAt: String!
+  respondedAt: String
+}
+
+type InquiryConnection {
+  inquiries: [Inquiry!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+type InquiryStats {
+  totalReceived: Int!
+  pendingCount: Int!
+  acceptedCount: Int!
+  rejectedCount: Int!
+}
+
+# Inquiry Payloads
+type RequestContactPayload {
+  inquiry: Inquiry
+  errors: [FieldError!]
+}
+
+type AcceptContactPayload {
+  inquiry: Inquiry
+  errors: [FieldError!]
+}
+
+type RejectContactPayload {
+  inquiry: Inquiry
+  errors: [FieldError!]
+}
+
+type FieldError {
+  field: String
+  message: String!
 }
 

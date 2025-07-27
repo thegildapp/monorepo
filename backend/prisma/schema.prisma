@@ -18,6 +18,10 @@ model User {
   updatedAt DateTime  @updatedAt
   listings  Listing[]
   passkeys  Passkey[]
+  
+  // Inquiry relationships
+  sentInquiries     Inquiry[] @relation("BuyerInquiries")
+  receivedInquiries Inquiry[] @relation("SellerInquiries")
 
   @@map("users")
 }
@@ -63,7 +67,50 @@ model Listing {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   seller         User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  inquiries      Inquiry[]
 
   @@map("listings")
+}
+
+enum InquiryStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Inquiry {
+  id          String        @id @default(cuid())
+  
+  // Core relationships
+  buyerId     String
+  buyer       User          @relation("BuyerInquiries", fields: [buyerId], references: [id], onDelete: Cascade)
+  
+  sellerId    String
+  seller      User          @relation("SellerInquiries", fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  listingId   String
+  listing     Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  // Status
+  status      InquiryStatus @default(PENDING)
+  
+  // Contact preferences (set by seller when accepting)
+  shareEmail  Boolean       @default(false)
+  sharePhone  Boolean       @default(false)
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  respondedAt DateTime?     // When seller accepted/rejected
+  
+  // Prevent duplicate inquiries
+  @@unique([buyerId, listingId])
+  
+  // Indexes for performance
+  @@index([sellerId, status])
+  @@index([buyerId, status])
+  @@index([listingId])
+  
+  @@map("inquiries")
 }
 
