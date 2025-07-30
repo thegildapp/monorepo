@@ -101,16 +101,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
   const acceptedInquiries = listing.inquiries?.filter(inq => inq.status === 'ACCEPTED') || [];
   const rejectedInquiries = listing.inquiries?.filter(inq => inq.status === 'REJECTED') || [];
   
-  // Engagement metrics (mock data for now)
-  const engagementData = {
-    views: 156,
-    saves: 12,
-    shares: 3,
-    inquiries: listing.inquiries?.length || 0,
-    viewsToday: 23,
-    viewsThisWeek: 89,
-    conversionRate: 1.3
-  };
   
   const handleRespondToInquiry = (inquiryId: string, accept: boolean) => {
     commitRespond({
@@ -177,21 +167,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
             >
               Edit Details
             </Button>
-          </div>
-        </div>
-        
-        {/* Engagement Overview */}
-        <div className={styles.engagementSection}>
-          <h2 className={styles.sectionTitle}>Engagement Overview</h2>
-          <div className={styles.metricsGrid}>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{engagementData.views}</div>
-              <div className={styles.metricLabel}>Total Views</div>
-            </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{engagementData.inquiries}</div>
-              <div className={styles.metricLabel}>Inquiries</div>
-            </div>
           </div>
         </div>
         

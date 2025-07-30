@@ -8,12 +8,12 @@ const SellerListingCardFragment = graphql`
   fragment SellerListingCard_listing on Listing {
     id
     title
-    price
     images
-    city
-    state
     createdAt
-    status
+    pendingInquiriesCount
+    inquiries {
+      id
+    }
   }
 `;
 
@@ -25,13 +25,11 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
   const listing = useFragment(SellerListingCardFragment, listingRef);
   const navigate = useNavigate();
   
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
+  // Mock views data - in a real app this would come from the backend
+  const getViewsCount = () => {
+    // Generate consistent mock data based on listing ID
+    const hash = listing.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return 20 + (hash % 180); // Returns a number between 20-200
   };
 
   const getDaysActive = (dateString: string) => {
@@ -88,24 +86,35 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
       
       <div className={styles.contentSection}>
         <h3 className={styles.title}>{listing.title}</h3>
-        <p className={styles.price}>{formatPrice(listing.price)}</p>
         
-        <div className={styles.meta}>
-          {listing.city && (
-            <div className={styles.location}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
-              <span>{listing.city}{listing.state ? `, ${listing.state}` : ''}</span>
-            </div>
-          )}
+        <div className={styles.statsContainer}>
+          <div className={styles.statItem}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span className={styles.statText}>
+              <span className={styles.statValue}>{getViewsCount()}</span> views
+            </span>
+          </div>
           
-          <div className={styles.stats}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className={styles.statItem}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+            <span className={styles.statText}>
+              <span className={styles.statValue}>{listing.inquiries?.length || 0}</span> contacts
+            </span>
+          </div>
+          
+          <div className={styles.statItem}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
-            <span>{daysActive} {daysActive === 1 ? 'day' : 'days'} active</span>
+            <span className={styles.statText}>
+              <span className={styles.statValue}>{daysActive}</span> {daysActive === 1 ? 'day' : 'days'} active
+            </span>
           </div>
         </div>
       </div>
