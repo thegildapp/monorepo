@@ -68,7 +68,7 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
     if (diffHours < 1) {
-      return 'Just now';
+      return 'just now';
     } else if (diffHours < 24) {
       return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
     } else if (diffDays < 7) {
@@ -153,18 +153,14 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
                     
                     <div className={styles.contactBox}>
                       {inquiry.status === 'PENDING' ? (
-                        <span className={styles.offerPending}>Offer pending</span>
+                        <span className={styles.offerPending}>Sent {formatDate(inquiry.createdAt)}</span>
                       ) : inquiry.status === 'REJECTED' ? (
                         <span className={styles.offerRejected}>Offer rejected</span>
                       ) : inquiry.status === 'ACCEPTED' && (inquiry.contactEmail || inquiry.contactPhone) ? (
                         <div className={styles.contactInfo}>
                           {inquiry.contactEmail && (
                             <a href={`mailto:${inquiry.contactEmail}`} onClick={(e) => e.stopPropagation()} className={styles.contactLink}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                                <path d="m22 7-10 5L2 7"/>
-                              </svg>
-                              Email
+                              {inquiry.contactEmail}
                             </a>
                           )}
                           {inquiry.contactPhone && (
@@ -230,11 +226,7 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
                             <div className={styles.contactInfo}>
                               {inquiry.contactEmail && (
                                 <a href={`mailto:${inquiry.contactEmail}`} onClick={(e) => e.stopPropagation()} className={styles.contactLink}>
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="2" y="4" width="20" height="16" rx="2"/>
-                                    <path d="m22 7-10 5L2 7"/>
-                                  </svg>
-                                  Email
+                                  {inquiry.contactEmail}
                                 </a>
                               )}
                               {inquiry.contactPhone && (

@@ -48,7 +48,7 @@ const InquiryCard: React.FC<InquiryCardProps> = ({
   const isAccepted = inquiry.status === 'ACCEPTED';
 
   return (
-    <div className={`${styles.card} ${isAccepted ? styles.accepted : ''}`}>
+    <div className={styles.card}>
       <div className={styles.header}>
         <Avatar 
           src={inquiry.buyer.avatarUrl} 
