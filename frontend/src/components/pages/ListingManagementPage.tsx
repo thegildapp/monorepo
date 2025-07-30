@@ -8,6 +8,7 @@ import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
 import ImageWithFallback from '../common/ImageWithFallback';
 import Button from '../common/Button';
+import InquiryCard from '../features/InquiryCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { RespondToInquiryMutation } from '../../queries/inquiries';
 import type { ListingManagementPageQuery as QueryType } from '../../__generated__/ListingManagementPageQuery.graphql';
@@ -65,9 +66,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [expandedInquiry, setExpandedInquiry] = useState<string | null>(null);
-  const [shareEmail, setShareEmail] = useState(true);
-  const [sharePhone, setSharePhone] = useState(false);
   
   const [commitRespond, isResponding] = useMutation<inquiriesRespondToInquiryMutation>(RespondToInquiryMutation);
   
@@ -118,16 +116,12 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
       variables: {
         inquiryId,
         accept,
-        shareEmail: accept ? shareEmail : false,
-        sharePhone: accept ? sharePhone : false
+        shareEmail: accept,
+        sharePhone: false
       },
       onCompleted: (response) => {
         if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {
           alert(response.respondToInquiry.errors[0].message);
-        } else {
-          setExpandedInquiry(null);
-          setShareEmail(true);
-          setSharePhone(false);
         }
       },
       onError: (error) => {
@@ -136,23 +130,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
     });
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffHours < 1) {
-      return 'Just now';
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
   
   
   return (
@@ -240,61 +217,15 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               {pendingInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>
                   <h3 className={styles.inquiryGroupTitle}>Pending</h3>
-                  <div className={styles.inquiryList}>
+                  <div className={styles.inquiryGrid}>
                     {pendingInquiries.map((inquiry) => (
-                      <div key={inquiry.id} className={`${styles.inquiryCard} ${expandedInquiry === inquiry.id ? styles.expanded : ''}`}>
-                        <div className={styles.inquiryMain} onClick={() => setExpandedInquiry(expandedInquiry === inquiry.id ? null : inquiry.id)}>
-                          <div className={styles.buyerInfo}>
-                            <span className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</span>
-                            <span className={styles.separator}>•</span>
-                            <span className={styles.inquiryDate}>{formatDate(inquiry.createdAt)}</span>
-                          </div>
-                          <div className={styles.expandIcon}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points={expandedInquiry === inquiry.id ? "18 15 12 9 6 15" : "6 9 12 15 18 9"}></polyline>
-                            </svg>
-                          </div>
-                        </div>
-                        
-                        {expandedInquiry === inquiry.id && (
-                          <div className={styles.inquiryActions}>
-                            <div className={styles.shareOptions}>
-                              <label className={styles.checkbox}>
-                                <input
-                                  type="checkbox"
-                                  checked={shareEmail}
-                                  onChange={(e) => setShareEmail(e.target.checked)}
-                                />
-                                <span>Share email</span>
-                              </label>
-                              <label className={styles.checkbox}>
-                                <input
-                                  type="checkbox"
-                                  checked={sharePhone}
-                                  onChange={(e) => setSharePhone(e.target.checked)}
-                                />
-                                <span>Share phone</span>
-                              </label>
-                            </div>
-                            <div className={styles.actionButtons}>
-                              <Button
-                                variant="secondary"
-                                onClick={() => handleRespondToInquiry(inquiry.id, false)}
-                                disabled={isResponding}
-                              >
-                                Reject
-                              </Button>
-                              <Button
-                                variant="primary"
-                                onClick={() => handleRespondToInquiry(inquiry.id, true)}
-                                disabled={isResponding || (!shareEmail && !sharePhone)}
-                              >
-                                Accept
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <InquiryCard
+                        key={inquiry.id}
+                        inquiry={inquiry}
+                        onAccept={(id) => handleRespondToInquiry(id, true)}
+                        onReject={(id) => handleRespondToInquiry(id, false)}
+                        isResponding={isResponding}
+                      />
                     ))}
                   </div>
                 </div>
@@ -303,20 +234,13 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               {/* Accepted Inquiries */}
               {acceptedInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>
-                  <h3 className={styles.inquiryGroupTitle}>Accepted</h3>
-                  <div className={styles.inquiryList}>
+                  <h3 className={styles.inquiryGroupTitle}>Accepted ({acceptedInquiries.length})</h3>
+                  <div className={styles.inquiryGrid}>
                     {acceptedInquiries.map((inquiry) => (
-                      <div key={inquiry.id} className={styles.inquiryCard}>
-                        <div className={styles.inquiryMain}>
-                          <div className={styles.buyerInfo}>
-                            <span className={styles.buyerName}>{inquiry.buyer.name || 'Unknown'}</span>
-                            <span className={styles.separator}>•</span>
-                            <span className={styles.inquiryDate}>{formatDate(inquiry.respondedAt || inquiry.createdAt)}</span>
-                            <span className={styles.separator}>•</span>
-                            <span className={styles.statusLabel}>Accepted</span>
-                          </div>
-                        </div>
-                      </div>
+                      <InquiryCard
+                        key={inquiry.id}
+                        inquiry={inquiry}
+                      />
                     ))}
                   </div>
                 </div>

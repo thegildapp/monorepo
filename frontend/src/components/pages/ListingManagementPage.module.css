@@ -122,42 +122,46 @@
 }
 
 .sectionTitle {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 400;
   color: var(--color-text-primary);
-  margin: 0 0 24px 0;
+  margin: 0 0 16px 0;
   font-family: 'Tinos', serif;
+  opacity: 0.8;
 }
 
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  margin-bottom: 24px;
-  background: var(--color-border);
-  border: 1px solid var(--color-border);
-  border-radius: 2px;
-  overflow: hidden;
+  gap: 24px;
 }
 
 .metricCard {
-  background: white;
-  padding: 20px;
-  text-align: center;
+  background: transparent;
+  padding: 16px 0;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s;
+}
+
+.metricCard:hover {
+  border-bottom-color: rgba(0, 0, 0, 0.12);
 }
 
 .metricValue {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 400;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+  margin: 0 0 4px 0;
   font-family: 'Tinos', serif;
+  line-height: 1;
 }
 
 .metricLabel {
   font-size: 13px;
   color: var(--color-text-secondary);
   font-family: 'Tinos', serif;
+  opacity: 0.8;
 }
 
 .trendsSection {
@@ -189,7 +193,7 @@
 
 /* Inquiries Section */
 .inquiriesSection {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 
 .noInquiries {
@@ -219,29 +223,20 @@
 .inquiryGroupTitle {
   font-size: 16px;
   font-weight: 400;
-  color: var(--color-text-secondary);
-  margin: 0 0 8px 0;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
   font-family: 'Tinos', serif;
+  opacity: 0.8;
 }
 
-.inquiryList {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: var(--color-border);
-  border: 1px solid var(--color-border);
-  border-radius: 2px;
-  overflow: hidden;
+.inquiryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0;
+  column-gap: 24px;
 }
 
-.inquiryCard {
-  background: white;
-  transition: background-color 0.2s;
-}
 
-.inquiryCard.expanded {
-  background: rgb(250, 249, 248);
-}
 
 .inquiryMain {
   display: flex;
@@ -298,22 +293,6 @@
   gap: 20px;
 }
 
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.checkbox input {
-  cursor: pointer;
-}
-
-.checkbox span {
-  user-select: none;
-}
 
 .actionButtons {
   display: flex;
@@ -471,27 +450,33 @@
   }
   
   .listingHeader {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 16px;
     margin: 24px 0;
   }
   
   .listingThumbnail {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .listingDetails {
+    flex: 1;
+    min-width: calc(100% - 76px); /* 60px thumbnail + 16px gap */
   }
   
   .listingTitle {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .listingMeta {
-    font-size: 13px;
+    font-size: 12px;
+    flex-wrap: wrap;
   }
   
   .headerActions {
     width: 100%;
+    margin-top: 8px;
   }
   
   .viewButton,
@@ -507,6 +492,10 @@
   .metricsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+  }
+  
+  .inquiryGrid {
+    grid-template-columns: 1fr;
   }
   
   .metricCard {
