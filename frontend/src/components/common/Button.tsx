@@ -3,6 +3,7 @@ import styles from './Button.module.css';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'link';
+  size?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
   loading?: boolean;
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
+  size = 'medium',
   fullWidth = false,
   loading = false,
   disabled,
@@ -20,6 +22,7 @@ const Button: React.FC<ButtonProps> = ({
   const buttonClass = [
     styles.button,
     styles[variant],
+    styles[size],
     fullWidth && styles.fullWidth,
     className
   ].filter(Boolean).join(' ');

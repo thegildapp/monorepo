@@ -177,7 +177,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
           {pendingInquiries.length === 0 && acceptedInquiries.length === 0 && rejectedInquiries.length === 0 ? (
             <div className={styles.noInquiries}>
               <p>No inquiries yet</p>
-              <p className={styles.noInquiriesSubtext}>When buyers contact you, their requests will appear here</p>
+              <p className={styles.noInquiriesSubtext}>When buyers send inquiries, they will appear here</p>
             </div>
           ) : (
             <>
@@ -202,7 +202,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               {/* Accepted Inquiries */}
               {acceptedInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>
-                  <h3 className={styles.inquiryGroupTitle}>Accepted ({acceptedInquiries.length})</h3>
+                  <h3 className={styles.inquiryGroupTitle}>Accepted</h3>
                   <div className={styles.inquiryGrid}>
                     {acceptedInquiries.map((inquiry) => (
                       <InquiryCard

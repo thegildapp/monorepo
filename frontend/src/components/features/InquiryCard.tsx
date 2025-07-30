@@ -63,32 +63,32 @@ const InquiryCard: React.FC<InquiryCardProps> = ({
             {formatDate(inquiry.respondedAt || inquiry.createdAt)}
           </div>
         </div>
-      </div>
-      
-      {isPending && onAccept && onReject && (
-        <div className={styles.actions}>
-          <Button
-            variant="secondary"
-            onClick={() => onReject(inquiry.id)}
-            disabled={isResponding}
-            fullWidth
-          >
-            Pass
-          </Button>
+        {isPending && onAccept && (
           <Button
             variant="primary"
             onClick={() => onAccept(inquiry.id)}
             disabled={isResponding}
-            fullWidth
+            size="small"
           >
             Accept
           </Button>
-        </div>
-      )}
+        )}
+        {isPending && onReject && (
+          <Button
+            variant="secondary"
+            onClick={() => onReject(inquiry.id)}
+            disabled={isResponding}
+            size="small"
+          >
+            Pass
+          </Button>
+        )}
+      </div>
       
-      {isAccepted && (
+      
+      {isAccepted && inquiry.contactEmail && (
         <div className={styles.status}>
-          {inquiry.contactEmail ? 'Contact info shared' : 'Accepted'}
+          Contact info shared
         </div>
       )}
     </div>
