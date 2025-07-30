@@ -1,51 +1,43 @@
 .location-selector-inline {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   width: 100%;
-}
-
-.location-icon-button {
   background: none;
   border: none;
-  padding: 0;
+  padding: 8px 12px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: opacity 0.2s ease;
+  font-family: 'Tinos', serif;
+}
+
+.location-selector-inline:hover {
+  opacity: 0.7;
+}
+
+.location-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
   color: #000;
 }
 
-.location-text-button {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: 'Tinos', serif;
+.location-text {
   font-size: 16px;
   color: #000;
   text-align: left;
 }
 
-.location-text-button:hover {
-  opacity: 0.7;
-}
-
-.location-selector-inline .location-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  color: #000;
-  position: relative;
-  top: 2px;
-}
-
 @media (max-width: 640px) {
-  .location-text-button {
+  .location-selector-inline {
+    padding: 6px 10px;
+  }
+
+  .location-text {
     font-size: 14px;
   }
 
-  .location-selector-inline .location-icon {
+  .location-icon {
     width: 12px;
     height: 12px;
   }

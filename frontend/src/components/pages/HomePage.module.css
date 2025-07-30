@@ -37,3 +37,36 @@
     transform: translateY(calc(-100% - 51px));
   }
 }
+
+/* No location state */
+.noLocationState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px); /* Account for header and footer */
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.locationIcon {
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-4);
+}
+
+.noLocationTitle {
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+  font-family: 'Tinos', serif;
+}
+
+.noLocationText {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  max-width: 400px;
+  font-family: 'Tinos', serif;
+}

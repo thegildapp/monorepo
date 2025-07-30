@@ -58,26 +58,19 @@ const LocationSelectorInline: React.FC<LocationSelectorInlineProps> = ({ onLocat
 
   return (
     <>
-      <div className="location-selector-inline">
-        <button 
-          type="button"
-          className="location-icon-button"
-          onClick={() => setIsModalOpen(true)}
-          aria-label="Set search location"
-        >
-          <svg className="location-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
-        </button>
-        <button 
-          type="button"
-          className="location-text-button"
-          onClick={() => setIsModalOpen(true)}
-          aria-label="Set search location"
-        >
-          {getLocationText()}{!hideRadius && ` • ${radius} mile radius`}
-        </button>
-      </div>
+      <button 
+        type="button"
+        className="location-selector-inline"
+        onClick={() => setIsModalOpen(true)}
+        aria-label="Set search location"
+      >
+        <svg className="location-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+        <span className="location-text">
+          {getLocationText()}{!hideRadius && location && ` • ${radius} mile radius`}
+        </span>
+      </button>
 
       <LocationPickerModal
         isOpen={isModalOpen}

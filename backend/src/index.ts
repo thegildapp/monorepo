@@ -68,12 +68,17 @@ const resolvers = {
     listings: async (_: any, args: { limit?: number | null; offset?: number | null; filters?: { latitude?: number; longitude?: number; radius?: number } | null }) => {
       const { limit, offset, filters } = args;
       
+      // Return empty array if no location filters provided
+      if (!filters?.latitude || !filters?.longitude || !filters?.radius) {
+        return [];
+      }
+      
       const where: any = {
         status: 'APPROVED',
       };
       
-      // Add location filtering if provided
-      if (filters?.latitude && filters?.longitude && filters?.radius) {
+      // Add location filtering
+      if (filters.latitude && filters.longitude && filters.radius) {
         // Convert radius from miles to degrees (approximate)
         const radiusInDegrees = filters.radius / 69;
         
