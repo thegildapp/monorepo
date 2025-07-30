@@ -45,7 +45,6 @@
 
 .primary:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Secondary variant */
@@ -62,7 +61,6 @@
 
 .secondary:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Link variant */
@@ -80,5 +78,4 @@
 
 .link:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
 }
