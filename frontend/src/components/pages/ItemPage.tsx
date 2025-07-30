@@ -14,6 +14,7 @@ import styles from './ItemPage.module.css';
 
 import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
+import Avatar from '../common/Avatar';
 import Button from '../common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -350,9 +351,11 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Seller</h2>
           <div className={styles.seller}>
-            <div className={styles.sellerAvatar}>
-              {listing.seller.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            <Avatar 
+              src={listing.seller.avatarUrl} 
+              name={listing.seller.name || 'Unknown'} 
+              size="medium"
+            />
             <span className={styles.sellerName}>{listing.seller.name || 'Unknown'}</span>
           </div>
         </div>

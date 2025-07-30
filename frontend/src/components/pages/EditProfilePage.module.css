@@ -99,6 +99,95 @@
   color: var(--color-text-primary);
 }
 
+.avatarSection {
+  margin-top: var(--space-4);
+}
+
+.avatarLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.avatarPreview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.avatarActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadButton {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: inherit;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.uploadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.removeButton {
+  padding: var(--space-2) var(--space-3);
+  background: none;
+  color: var(--color-text-secondary);
+  border: none;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.removeButton:hover {
+  color: #c00;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: var(--space-4);

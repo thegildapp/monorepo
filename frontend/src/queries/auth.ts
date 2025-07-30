@@ -45,7 +45,17 @@ export const UpdateProfileMutation = graphql`
       id
       email
       name
+      phone
       avatarUrl
+    }
+  }
+`;
+
+export const GenerateAvatarUploadUrlMutation = graphql`
+  mutation authGenerateAvatarUploadUrlMutation($filename: String!, $contentType: String!) {
+    generateAvatarUploadUrl(filename: $filename, contentType: $contentType) {
+      url
+      key
     }
   }
 `;

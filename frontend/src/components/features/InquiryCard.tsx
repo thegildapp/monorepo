@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '../common/Button';
+import Avatar from '../common/Avatar';
 import styles from './InquiryCard.module.css';
 
 interface InquiryCardProps {
@@ -7,6 +8,7 @@ interface InquiryCardProps {
     id: string;
     buyer: {
       name: string | null;
+      avatarUrl?: string | null;
     };
     status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
     createdAt: string;
@@ -48,9 +50,12 @@ const InquiryCard: React.FC<InquiryCardProps> = ({
   return (
     <div className={`${styles.card} ${isAccepted ? styles.accepted : ''}`}>
       <div className={styles.header}>
-        <div className={styles.avatar}>
-          {inquiry.buyer.name?.charAt(0).toUpperCase() || '?'}
-        </div>
+        <Avatar 
+          src={inquiry.buyer.avatarUrl} 
+          name={inquiry.buyer.name || 'Anonymous'} 
+          size="medium"
+          className={styles.avatar}
+        />
         <div className={styles.info}>
           <div className={styles.name}>{inquiry.buyer.name || 'Anonymous'}</div>
           <div className={styles.time}>

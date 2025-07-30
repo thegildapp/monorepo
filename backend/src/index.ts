@@ -386,6 +386,46 @@ const resolvers = {
       }
     },
     
+    generateAvatarUploadUrl: async (_: any, { filename, contentType }: { filename: string; contentType: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to upload an avatar');
+      }
+      
+      // Validate content type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(contentType)) {
+        throw new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      }
+      
+      // Generate unique key for the avatar
+      const timestamp = Date.now();
+      const key = `avatars/${context.userId}/${timestamp}-${filename}`;
+      
+      const bucketName = process.env['SPACES_BUCKET'] || 'gild';
+      
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        ContentType: contentType,
+        ACL: 'public-read',
+      });
+      
+      try {
+        const signedUrl = await getSignedUrl(s3Client, command, { 
+          expiresIn: 900, // 15 minutes
+          signableHeaders: new Set(['x-amz-acl'])
+        });
+        
+        return {
+          url: signedUrl,
+          key: key,
+        };
+      } catch (error) {
+        console.error('Error generating avatar upload URL:', error);
+        throw new Error('Failed to generate avatar upload URL');
+      }
+    },
+    
     updateListing: async (_: any, { id, input }: { id: string; input: any }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to update a listing');

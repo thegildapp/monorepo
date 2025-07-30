@@ -41,6 +41,7 @@ const ListingFragment = graphql`
       buyer {
         id
         name
+        avatarUrl
       }
       seller {
         id
@@ -186,14 +187,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
             <div className={styles.metricCard}>
               <div className={styles.metricValue}>{engagementData.views}</div>
               <div className={styles.metricLabel}>Total Views</div>
-            </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{engagementData.saves}</div>
-              <div className={styles.metricLabel}>Saves</div>
-            </div>
-            <div className={styles.metricCard}>
-              <div className={styles.metricValue}>{engagementData.shares}</div>
-              <div className={styles.metricLabel}>Shares</div>
             </div>
             <div className={styles.metricCard}>
               <div className={styles.metricValue}>{engagementData.inquiries}</div>

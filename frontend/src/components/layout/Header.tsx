@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderSearch from '../common/HeaderSearch';
+import Avatar from '../common/Avatar';
 import { useAuth } from '../../contexts/AuthContext';
 import { useScrollVisibility } from '../../contexts/ScrollVisibilityContext';
 import styles from './Header.module.css';
@@ -51,13 +52,11 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
         <div className={styles.leftSection}>
           <button className={styles.profileButton} onClick={handleProfileClick}>
             {user ? (
-              user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.name} className={styles.avatar} />
-              ) : (
-                <div className={styles.avatarPlaceholder}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )
+              <Avatar 
+                src={user.avatarUrl} 
+                name={user.name} 
+                size="small"
+              />
             ) : (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="6.5" r="5" fill="white"/>

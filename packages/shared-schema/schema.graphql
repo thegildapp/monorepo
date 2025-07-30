@@ -92,6 +92,7 @@ type Mutation {
   updateListing(id: ID!, input: UpdateListingInput!): Listing!
   deleteListing(id: ID!): Boolean!
   generateUploadUrl(filename: String!, contentType: String!): UploadUrl!
+  generateAvatarUploadUrl(filename: String!, contentType: String!): UploadUrl!
   register(input: RegisterInput!): AuthPayload!
   login(input: LoginInput!): AuthPayload!
   refreshToken: AuthPayload!
