@@ -88,6 +88,26 @@ spec:
             secretKeyRef:
               name: openai-secret
               key: OPENAI_API_KEY
+        - name: VALKEY_URL
+          valueFrom:
+            secretKeyRef:
+              name: valkey-secret
+              key: VALKEY_URL
+        - name: VALKEY_HOST
+          valueFrom:
+            secretKeyRef:
+              name: valkey-secret
+              key: VALKEY_HOST
+        - name: VALKEY_PORT
+          valueFrom:
+            secretKeyRef:
+              name: valkey-secret
+              key: VALKEY_PORT
+        - name: VALKEY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: valkey-secret
+              key: VALKEY_PASSWORD
         - name: NODE_ENV
           value: "development"
         - name: RP_ID

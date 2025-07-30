@@ -103,6 +103,15 @@ jobs:
             --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create Valkey secret
+        run: |
+          kubectl create secret generic valkey-secret \
+            --from-literal=VALKEY_URL="${{ secrets.VALKEY_URL }}" \
+            --from-literal=VALKEY_HOST="${{ secrets.VALKEY_HOST }}" \
+            --from-literal=VALKEY_PORT="${{ secrets.VALKEY_PORT }}" \
+            --from-literal=VALKEY_PASSWORD="${{ secrets.VALKEY_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         run: |
           # Apply nginx configurations

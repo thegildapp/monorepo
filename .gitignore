@@ -76,6 +76,7 @@ k8s/database-secret.yaml
 k8s/opensearch-secret.yaml
 k8s/spaces-secret.yaml
 k8s/openai-secret.yaml
+k8s/valkey-secret.yaml
 
 # Generated schema copies
 frontend/schema.graphql
