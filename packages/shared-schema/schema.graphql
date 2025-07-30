@@ -42,6 +42,9 @@ type Listing {
   hasInquired: Boolean!
   pendingInquiriesCount: Int
   inquiries: [Inquiry!]
+  
+  # View tracking
+  viewCount: Int!
 }
 
 type Query {
@@ -114,6 +117,14 @@ type Mutation {
   acceptContactRequest(inquiryId: ID!, shareEmail: Boolean!, sharePhone: Boolean!): AcceptContactPayload!
   rejectContactRequest(inquiryId: ID!): RejectContactPayload!
   respondToInquiry(inquiryId: ID!, accept: Boolean!, shareEmail: Boolean!, sharePhone: Boolean!): RespondToInquiryPayload!
+  
+  # View tracking
+  trackListingView(listingId: ID!): TrackViewPayload!
+}
+
+type TrackViewPayload {
+  success: Boolean!
+  viewCount: Int!
 }
 
 type AuthPayload {

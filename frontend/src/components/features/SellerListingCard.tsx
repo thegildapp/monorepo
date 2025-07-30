@@ -11,6 +11,7 @@ const SellerListingCardFragment = graphql`
     images
     createdAt
     pendingInquiriesCount
+    viewCount
     inquiries {
       id
     }
@@ -25,12 +26,6 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
   const listing = useFragment(SellerListingCardFragment, listingRef);
   const navigate = useNavigate();
   
-  // Mock views data - in a real app this would come from the backend
-  const getViewsCount = () => {
-    // Generate consistent mock data based on listing ID
-    const hash = listing.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return 20 + (hash % 180); // Returns a number between 20-200
-  };
 
   const getDaysActive = (dateString: string) => {
     try {
@@ -94,7 +89,7 @@ const SellerListingCard: React.FC<SellerListingCardProps> = ({ listing: listingR
               <circle cx="12" cy="12" r="3"/>
             </svg>
             <span className={styles.statText}>
-              <span className={styles.statValue}>{getViewsCount()}</span> views
+              <span className={styles.statValue}>{listing.viewCount || 0}</span> views
             </span>
           </div>
           

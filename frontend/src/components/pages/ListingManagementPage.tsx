@@ -35,6 +35,7 @@ const ListingFragment = graphql`
     state
     createdAt
     status
+    viewCount
     inquiries {
       id
       status
@@ -150,6 +151,8 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
               <span className={styles.listingPrice}>{formatPrice(listing.price)}</span>
               <span className={styles.separator}>•</span>
               <span className={styles.listingLocation}>{listing.city}, {listing.state}</span>
+              <span className={styles.separator}>•</span>
+              <span className={styles.viewCount}>{listing.viewCount || 0} {listing.viewCount === 1 ? 'view' : 'views'}</span>
               <span className={styles.separator}>•</span>
               <span className={styles.daysActive}>{daysActive} {daysActive === 1 ? 'day' : 'days'} active</span>
             </div>

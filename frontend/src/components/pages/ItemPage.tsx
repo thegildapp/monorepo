@@ -7,9 +7,11 @@ import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
 import { GetListingQuery } from '../../queries/listings';
 import { RequestContactMutation } from '../../queries/inquiries';
+import { TrackListingViewMutation } from '../../queries/viewTracking';
 import type { listingsGetListingQuery as GetListingQueryType } from '../../__generated__/listingsGetListingQuery.graphql';
 import type { listingsListingDetail_listing$key } from '../../__generated__/listingsListingDetail_listing.graphql';
 import type { inquiriesRequestContactMutation } from '../../__generated__/inquiriesRequestContactMutation.graphql';
+import type { viewTrackingTrackListingViewMutation } from '../../__generated__/viewTrackingTrackListingViewMutation.graphql';
 import styles from './ItemPage.module.css';
 
 import { ListingDetailFragment } from '../../queries/listings';
@@ -23,11 +25,33 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
   const { user } = useAuth();
   const navigate = useNavigate();
   const [commitRequestContact, isRequesting] = useMutation<inquiriesRequestContactMutation>(RequestContactMutation);
+  const [commitTrackView] = useMutation<viewTrackingTrackListingViewMutation>(TrackListingViewMutation);
   const [hasRequested, setHasRequested] = useState(listing.hasInquired);
   const [error, setError] = useState<string | null>(null);
   
   // Define images early to avoid reference errors
   const images = listing.images?.length > 0 ? listing.images : [];
+  
+  // Track view when component mounts
+  useEffect(() => {
+    const trackView = async () => {
+      try {
+        commitTrackView({
+          variables: { listingId: listing.id },
+          onCompleted: (response) => {
+            console.log('View tracked:', response.trackListingView.viewCount);
+          },
+          onError: (error) => {
+            console.error('Failed to track view:', error);
+          }
+        });
+      } catch (error) {
+        console.error('Error tracking view:', error);
+      }
+    };
+    
+    trackView();
+  }, [listing.id, commitTrackView]);
   const hasImages = images.length > 0;
   
   // Helper functions to get image URLs

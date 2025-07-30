@@ -17,6 +17,10 @@ import {
 } from './utils/webauthn';
 import { inquiryResolvers } from './graphql/inquiryResolvers';
 import { closeValkeyClient } from './utils/valkey';
+import { 
+  trackListingView, 
+  getListingViewCount
+} from './services/viewTrackingService';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -294,6 +298,50 @@ const resolvers = {
   
   Mutation: {
     ...inquiryResolvers.Mutation,
+    
+    trackListingView: async (_: any, { listingId }: { listingId: string }, context: YogaInitialContext & Context) => {
+      try {
+        // Get listing to check seller
+        const listing = await prisma.listing.findUnique({
+          where: { id: listingId },
+          select: { sellerId: true }
+        });
+        
+        if (!listing) {
+          return {
+            success: false,
+            viewCount: 0
+          };
+        }
+        
+        // Get client info from request
+        const request = context.request;
+        const ipAddress = request.headers.get('x-forwarded-for') || 
+                         request.headers.get('x-real-ip') || 
+                         'unknown';
+        const userAgent = request.headers.get('user-agent') || undefined;
+        
+        // Track the view
+        const result = await trackListingView(
+          listingId,
+          context.userId,
+          ipAddress,
+          userAgent,
+          listing.sellerId
+        );
+        
+        return {
+          success: result.success,
+          viewCount: result.viewCount
+        };
+      } catch (error) {
+        console.error('Error in trackListingView mutation:', error);
+        return {
+          success: false,
+          viewCount: 0
+        };
+      }
+    },
     createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');
@@ -898,6 +946,9 @@ const resolvers = {
       return parent.updatedAt;
     },
     ...inquiryResolvers.Listing,
+    viewCount: async (parent: any) => {
+      return await getListingViewCount(parent.id);
+    },
   },
   User: {
     createdAt: (parent: any) => {
