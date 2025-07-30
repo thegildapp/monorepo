@@ -16,6 +16,7 @@ import {
   verifyAuthentication
 } from './utils/webauthn';
 import { inquiryResolvers } from './graphql/inquiryResolvers';
+import { closeValkeyClient } from './utils/valkey';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -983,10 +984,12 @@ startServer().catch(error => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   await prisma.$disconnect();
+  await closeValkeyClient();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
+  await closeValkeyClient();
   process.exit(0);
 });
