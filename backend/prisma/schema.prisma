@@ -63,6 +63,7 @@ model Listing {
   latitude       Float?
   longitude      Float?
   status         ListingStatus @default(PENDING)
+  viewCount      Int           @default(0)
   sellerId       String
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
