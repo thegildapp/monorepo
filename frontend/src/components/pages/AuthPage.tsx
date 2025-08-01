@@ -72,6 +72,7 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const [commitLogin, isLoginInFlight] = useMutation<authLoginMutation>(LoginMutation);
   const [commitRegister, isRegisterInFlight] = useMutation<authRegisterMutation>(RegisterMutation);
@@ -113,9 +114,13 @@ export default function AuthPage() {
           },
         },
         onCompleted: (response) => {
-          if (response.register) {
+          if (response.register && response.register.token && response.register.user) {
+            // Normal flow (shouldn't happen with email verification)
             login(response.register.token, response.register.user);
             navigate(from, { replace: true });
+          } else {
+            // Email verification required
+            setEmailSent(true);
           }
         },
         onError: (error) => {
@@ -133,9 +138,12 @@ export default function AuthPage() {
           input: { email, password },
         },
         onCompleted: (response) => {
-          if (response.login) {
+          if (response.login && response.login.token && response.login.user) {
             login(response.login.token, response.login.user);
             navigate(from, { replace: true });
+          } else {
+            // Email verification required
+            setEmailSent(true);
           }
         },
         onError: (error) => {
@@ -238,11 +246,17 @@ export default function AuthPage() {
               },
             },
             onCompleted: (completeResponse) => {
-              if (completeResponse.completePasskeyRegistration) {
+              if (completeResponse.completePasskeyRegistration && 
+                  completeResponse.completePasskeyRegistration.token && 
+                  completeResponse.completePasskeyRegistration.user) {
+                // Normal flow (shouldn't happen with email verification)
                 login(
                   completeResponse.completePasskeyRegistration.token,
                   completeResponse.completePasskeyRegistration.user
                 );
+              } else {
+                // Email verification required
+                setEmailSent(true);
               }
             },
             onError: (error) => {
@@ -281,6 +295,31 @@ export default function AuthPage() {
       <Header logoText="Gild" showSearch={false} />
       <Main>
         <div className={styles.container}>
+          {emailSent ? (
+            <div className={styles.emailSentContainer}>
+              <h1 className={styles.title}>Check your email</h1>
+              <p className={styles.message}>
+                We've sent a verification link to {email}
+              </p>
+              <p className={styles.message}>
+                Click the link in the email to complete your registration.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailSent(false);
+                  setEmail('');
+                  setPassword('');
+                  setName('');
+                  setIsNewUser(false);
+                  setShowPassword(false);
+                }}
+                className={styles.linkButton}
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
             <h1 className={styles.title}>Welcome to Gild</h1>
             
@@ -390,6 +429,7 @@ export default function AuthPage() {
               {isNewUser ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
             </button>
           </form>
+          )}
         </div>
       </Main>
     </Layout>

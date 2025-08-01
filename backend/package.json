@@ -19,6 +19,7 @@
     "@gild/shared-schema": "file:../packages/shared-schema",
     "@opensearch-project/opensearch": "^3.5.1",
     "@prisma/client": "^6.11.1",
+    "@sendgrid/mail": "^8.1.5",
     "@simplewebauthn/server": "^13.1.2",
     "@types/ioredis": "^4.28.10",
     "@types/uuid": "^10.0.0",

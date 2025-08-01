@@ -21,6 +21,12 @@ import {
   trackListingView, 
   getListingViewCount
 } from './services/viewTrackingService';
+import {
+  generateVerificationToken,
+  sendVerificationEmail,
+  verifyEmailToken,
+  resendVerificationEmail
+} from './services/emailService';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -550,31 +556,49 @@ const resolvers = {
       if (existingUser) {
         throw new Error('User with this email already exists');
       }
+
+      // Check if there's already a pending user
+      const existingPendingUser = await prisma.pendingUser.findUnique({
+        where: { email: input.email },
+      });
+
+      if (existingPendingUser) {
+        // Delete the old pending user if it exists
+        await prisma.pendingUser.delete({
+          where: { id: existingPendingUser.id },
+        });
+      }
       
       // Hash password
       const hashedPassword = await hashPassword(input.password);
       
-      // Create user
-      const user = await prisma.user.create({
+      // Generate verification token
+      const token = await generateVerificationToken();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Create pending user
+      await prisma.pendingUser.create({
         data: {
           email: input.email,
           password: hashedPassword,
           name: input.name,
           phone: input.phone,
+          token,
+          expiresAt,
         },
-        select: fullUserSelect,
       });
       
-      // Generate token
-      const token = generateToken(user.id);
-      
-      return {
+      // Send verification email
+      await sendVerificationEmail({
+        email: input.email,
+        name: input.name,
         token,
-        user: {
-          ...user,
-          createdAt: user.createdAt.toISOString(),
-          updatedAt: user.updatedAt.toISOString(),
-        },
+      });
+      
+      // Return null token and user to indicate email verification is required
+      return {
+        token: null,
+        user: null,
       };
     },
     
@@ -585,6 +609,19 @@ const resolvers = {
       });
       
       if (!user) {
+        // Check if there's a pending user with this email
+        const pendingUser = await prisma.pendingUser.findUnique({
+          where: { email: input.email },
+        });
+        
+        if (pendingUser) {
+          // Return null to indicate email verification is required
+          return {
+            token: null,
+            user: null,
+          };
+        }
+        
         throw new Error('Invalid email or password');
       }
       
@@ -858,6 +895,18 @@ const resolvers = {
         throw new Error('User with this email already exists');
       }
 
+      // Check if there's already a pending user
+      const existingPendingUser = await prisma.pendingUser.findUnique({
+        where: { email: input.email },
+      });
+
+      if (existingPendingUser) {
+        // Delete the old pending user if it exists
+        await prisma.pendingUser.delete({
+          where: { id: existingPendingUser.id },
+        });
+      }
+
       // Use the same temporary user ID that was used in startPasskeyRegistration
       const tempUserId = `temp_${input.email}`;
       
@@ -872,46 +921,84 @@ const resolvers = {
       const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
       const { publicKey: credentialPublicKey, id: credentialID, counter } = credential;
 
-      // Create the user with a random password (they won't use it)
+      // Generate verification token
+      const token = await generateVerificationToken();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Create a random password for the pending user
       const randomPassword = await hashPassword(Math.random().toString(36).slice(-12));
       
-      const user = await prisma.user.create({
+      // Create pending user with passkey data
+      await prisma.pendingUser.create({
         data: {
           email: input.email,
-          name: input.name,
           password: randomPassword,
-          passkeys: {
-            create: {
-              credentialId: credentialID,
-              credentialPublicKey: credentialPublicKey,
-              counter: BigInt(counter),
-              deviceType: credentialDeviceType,
-              backedUp: credentialBackedUp,
-              transports: parsedResponse.response.transports || [],
-              name: input.passkeyName || `Passkey ${new Date().toLocaleDateString()}`,
-            },
+          name: input.name,
+          token,
+          expiresAt,
+          passkeyData: {
+            credentialId: credentialID,
+            credentialPublicKey: Buffer.from(credentialPublicKey).toString('base64'),
+            counter: counter.toString(),
+            deviceType: credentialDeviceType,
+            backedUp: credentialBackedUp,
+            transports: parsedResponse.response.transports || [],
+            name: input.passkeyName || `Passkey ${new Date().toLocaleDateString()}`,
           },
         },
-        select: {
-          ...fullUserSelect,
-          passkeys: true,
-        },
+      });
+      
+      // Send verification email
+      await sendVerificationEmail({
+        email: input.email,
+        name: input.name,
+        token,
       });
 
-      // Generate JWT token
-      const token = generateToken(user.id);
-      
-      // Exclude passkeys from the response (keep other fields)
-      const { passkeys, ...userWithoutPasskeys } = user;
-
+      // Return null token and user to indicate email verification is required
       return {
-        token,
+        token: null,
+        user: null,
+      };
+    },
+
+    verifyEmail: async (_: any, { token }: { token: string }) => {
+      const userId = await verifyEmailToken(token);
+      
+      if (!userId) {
+        throw new Error('Invalid or expired verification token');
+      }
+      
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: fullUserSelect,
+      });
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // Generate token
+      const authToken = generateToken(user.id);
+      
+      return {
+        token: authToken,
         user: {
-          ...userWithoutPasskeys,
+          ...user,
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString(),
         },
       };
+    },
+
+    resendVerificationEmail: async (_: any, { email }: { email: string }) => {
+      try {
+        await resendVerificationEmail(email);
+        return true;
+      } catch (error) {
+        console.error('Error resending verification email:', error);
+        return false;
+      }
     },
   },
   

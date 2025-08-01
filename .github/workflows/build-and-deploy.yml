@@ -112,6 +112,12 @@ jobs:
             --from-literal=VALKEY_PASSWORD="${{ secrets.VALKEY_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create SendGrid secret
+        run: |
+          kubectl create secret generic sendgrid-secret \
+            --from-literal=SENDGRID_API_KEY="${{ secrets.SENDGRID_API_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         run: |
           # Apply nginx configurations

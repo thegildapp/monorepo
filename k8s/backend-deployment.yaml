@@ -114,6 +114,12 @@ spec:
           value: "localhost"
         - name: FRONTEND_URL
           value: "http://localhost:5173"
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sendgrid-secret
+              key: SENDGRID_API_KEY
+              optional: true
         resources:
           requests:
             memory: "512Mi"

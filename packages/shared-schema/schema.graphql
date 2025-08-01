@@ -120,6 +120,10 @@ type Mutation {
   
   # View tracking
   trackListingView(listingId: ID!): TrackViewPayload!
+  
+  # Email verification
+  verifyEmail(token: String!): AuthPayload!
+  resendVerificationEmail(email: String!): Boolean!
 }
 
 type TrackViewPayload {
@@ -128,8 +132,8 @@ type TrackViewPayload {
 }
 
 type AuthPayload {
-  token: String!
-  user: User!
+  token: String
+  user: User
 }
 
 input RegisterInput {
