@@ -282,7 +282,8 @@ export default function AuthPage() {
           setError('An account with this email already exists. Please sign in.');
           setIsNewUser(false);
         } else {
-          setError(error.message);
+          // In production, don't show raw error messages
+          setError('Unable to create account. Please try again.');
         }
       },
     });

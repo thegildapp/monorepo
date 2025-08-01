@@ -24,20 +24,28 @@ const VERIFY_EMAIL_MUTATION = graphql`
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
-  const { login } = useAuth();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState('');
+  const [hasVerified, setHasVerified] = useState(false);
   
   const [commit] = useMutation(VERIFY_EMAIL_MUTATION);
   
   const token = searchParams.get('token');
   
   useEffect(() => {
+    // Prevent multiple verification attempts
+    if (hasVerified) {
+      return;
+    }
+    
     if (!token) {
       setStatus('error');
       setError('No verification token provided');
       return;
     }
+    
+    // Mark as verified to prevent re-runs
+    setHasVerified(true);
     
     // Verify the email
     commit({
@@ -45,8 +53,7 @@ export default function VerifyEmailPage() {
       onCompleted: (response) => {
         if (response.verifyEmail) {
           setStatus('success');
-          // Store the auth but don't redirect - let user click sign in
-          login(response.verifyEmail.token, response.verifyEmail.user);
+          // Don't auto-login to prevent page refresh issues
         }
       },
       onError: (error) => {
@@ -58,7 +65,7 @@ export default function VerifyEmailPage() {
         }
       },
     });
-  }, [token, commit, login]);
+  }, [token, commit, hasVerified]);
   
   return (
     <Layout>

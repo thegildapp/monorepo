@@ -114,77 +114,105 @@ export async function sendVerificationEmail(data: EmailVerificationData): Promis
 }
 
 export async function verifyEmailToken(token: string): Promise<string | null> {
-  return await prisma.$transaction(async (tx) => {
-    const pendingUser = await tx.pendingUser.findUnique({
-      where: { token },
-    });
+  // First, get the pending user without a transaction
+  const pendingUser = await prisma.pendingUser.findUnique({
+    where: { token },
+  });
 
-    if (!pendingUser) {
-      return null;
+  if (!pendingUser) {
+    return null;
+  }
+
+  // Check if token has expired
+  if (new Date() > pendingUser.expiresAt) {
+    // Delete expired pending user
+    try {
+      await prisma.pendingUser.delete({
+        where: { id: pendingUser.id },
+      });
+    } catch (error) {
+      // Already deleted
     }
+    return null;
+  }
 
-    // Check if token has expired
-    if (new Date() > pendingUser.expiresAt) {
-      // Delete expired pending user
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: pendingUser.email },
+  });
+
+  if (existingUser) {
+    // User already created, just delete the pending user and return the existing user ID
+    try {
+      await prisma.pendingUser.delete({
+        where: { id: pendingUser.id },
+      });
+    } catch (error) {
+      // Pending user might already be deleted in another request
+    }
+    return existingUser.id;
+  }
+
+  // Try to create the user in a transaction
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the actual user
+      let userData: any = {
+        email: pendingUser.email,
+        password: pendingUser.password, // Already hashed
+        name: pendingUser.name,
+        phone: pendingUser.phone,
+      };
+
+      // If there's passkey data, prepare it for creation
+      if (pendingUser.passkeyData && typeof pendingUser.passkeyData === 'object') {
+        const passkeyData = pendingUser.passkeyData as any;
+        userData.passkeys = {
+          create: {
+            credentialId: passkeyData.credentialId,
+            credentialPublicKey: Buffer.from(passkeyData.credentialPublicKey, 'base64'),
+            counter: BigInt(passkeyData.counter),
+            deviceType: passkeyData.deviceType,
+            backedUp: passkeyData.backedUp,
+            transports: passkeyData.transports || [],
+            name: passkeyData.name,
+          },
+        };
+      }
+
+      const user = await tx.user.create({
+        data: userData,
+      });
+
+      // Delete the pending user
       await tx.pendingUser.delete({
         where: { id: pendingUser.id },
       });
-      return null;
-    }
 
-    // Check if user already exists (in case of race condition)
-    const existingUser = await tx.user.findUnique({
-      where: { email: pendingUser.email },
+      return user.id;
     });
 
-    if (existingUser) {
-      // User already created, just delete the pending user and return the existing user ID
-      try {
-        await tx.pendingUser.delete({
-          where: { id: pendingUser.id },
-        });
-      } catch (error) {
-        // Pending user might already be deleted in another request
-        console.log('Pending user already deleted');
+    return result;
+  } catch (error: any) {
+    // If user was created by another request (race condition)
+    if (error.code === 'P2002') {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: pendingUser.email },
+      });
+      if (existingUser) {
+        // Clean up pending user
+        try {
+          await prisma.pendingUser.delete({
+            where: { id: pendingUser.id },
+          });
+        } catch (deleteError) {
+          // Ignore if already deleted
+        }
+        return existingUser.id;
       }
-      return existingUser.id;
     }
-
-    // Create the actual user
-    let userData: any = {
-      email: pendingUser.email,
-      password: pendingUser.password, // Already hashed
-      name: pendingUser.name,
-      phone: pendingUser.phone,
-    };
-
-    // If there's passkey data, prepare it for creation
-    if (pendingUser.passkeyData && typeof pendingUser.passkeyData === 'object') {
-      const passkeyData = pendingUser.passkeyData as any;
-      userData.passkeys = {
-        create: {
-          credentialId: passkeyData.credentialId,
-          credentialPublicKey: Buffer.from(passkeyData.credentialPublicKey, 'base64'),
-          counter: BigInt(passkeyData.counter),
-          deviceType: passkeyData.deviceType,
-          backedUp: passkeyData.backedUp,
-          transports: passkeyData.transports || [],
-          name: passkeyData.name,
-        },
-      };
-    }
-
-    const user = await tx.user.create({
-      data: userData,
-    });
-
-    // Delete the pending user
-    await tx.pendingUser.delete({
-      where: { id: pendingUser.id },
-    });
-
-    return user.id;
-  });
+    throw error;
+  }
 }
 
 export async function resendVerificationEmail(email: string): Promise<void> {
