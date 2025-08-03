@@ -201,7 +201,8 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       size="medium"
-      showHeader={false}
+      showHeader={!!error}
+      title=""
       className={styles.createListingModal}
     >
       <ErrorBoundary
@@ -218,23 +219,15 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
               title="Unable to create listing"
               message={error}
             />
-            <div className={styles.errorActions}>
-              <button
-                className={styles.retryButton}
-                onClick={() => {
-                  setError(null);
-                  setIsSubmitting(false);
-                }}
-              >
-                Try Again
-              </button>
-              <button
-                className={styles.cancelButton}
-                onClick={handleClose}
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              className={styles.retryButton}
+              onClick={() => {
+                setError(null);
+                setIsSubmitting(false);
+              }}
+            >
+              Try Again
+            </button>
           </div>
         ) : (
         <PagedContainer

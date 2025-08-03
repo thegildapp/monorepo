@@ -175,8 +175,6 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
         
         {/* Inquiries Section */}
         <div className={styles.inquiriesSection}>
-          <h2 className={styles.sectionTitle}>Inquiries</h2>
-          
           {pendingInquiries.length === 0 && acceptedInquiries.length === 0 && rejectedInquiries.length === 0 ? (
             <div className={styles.noInquiries}>
               <p>No inquiries yet</p>
@@ -184,6 +182,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
             </div>
           ) : (
             <>
+              <h2 className={styles.sectionTitle}>Inquiries</h2>
               {/* Pending Inquiries */}
               {pendingInquiries.length > 0 && (
                 <div className={styles.inquiryGroup}>

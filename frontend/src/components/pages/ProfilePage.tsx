@@ -90,13 +90,15 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
   return (
     <>
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>My Listings</h2>
         {myListings.length > 0 ? (
-          <div className={styles.sellerListingsContainer}>
-            {myListings.map((listing) => (
-              <SellerListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          <>
+            <h2 className={styles.sectionTitle}>My Listings</h2>
+            <div className={styles.sellerListingsContainer}>
+              {myListings.map((listing) => (
+                <SellerListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </>
         ) : (
           <div className={styles.emptyState}>
             <p className={styles.emptyMessage}>You haven't created any listings yet</p>
