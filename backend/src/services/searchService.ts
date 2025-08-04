@@ -161,7 +161,6 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     });
   }
 
-  console.log('OpenSearch query:', JSON.stringify(searchBody, null, 2));
 
   // Execute search
   const response: any = await client.search({
@@ -169,7 +168,6 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
     body: searchBody
   });
 
-  console.log('OpenSearch response:', JSON.stringify(response.body, null, 2));
 
   const hits = response.body.hits.hits;
   const total = typeof response.body.hits.total === 'object' 

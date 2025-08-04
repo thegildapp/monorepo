@@ -40,7 +40,6 @@ export async function ensureListingsIndex(): Promise<void> {
     });
 
     if (!exists) {
-      console.log('Creating listings index...');
       await client.indices.create({
         index: LISTINGS_INDEX,
         body: {
@@ -115,7 +114,6 @@ export async function ensureListingsIndex(): Promise<void> {
           }
         }
       });
-      console.log('Listings index created successfully');
     }
   } catch (error) {
     console.error('Error creating listings index:', error);

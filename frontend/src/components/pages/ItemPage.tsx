@@ -39,14 +39,14 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
         commitTrackView({
           variables: { listingId: listing.id },
           onCompleted: (response) => {
-            console.log('View tracked:', response.trackListingView.viewCount);
+            // View tracked successfully
           },
           onError: (error) => {
-            console.error('Failed to track view:', error);
+            // Failed to track view
           }
         });
       } catch (error) {
-        console.error('Error tracking view:', error);
+        // Error tracking view
       }
     };
     

@@ -214,7 +214,6 @@ const resolvers = {
           } : undefined
         });
         
-        console.log(`Search completed in ${result.took}ms, found ${result.total} results`);
         return result.listings;
       } catch (error) {
         console.error('Search failed:', error);

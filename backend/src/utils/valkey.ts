@@ -34,7 +34,7 @@ export function getValkeyClient(): Redis {
     });
 
     valkeyClient.on('connect', () => {
-      console.log('Connected to Valkey');
+      // Connected to Valkey
     });
   }
 
