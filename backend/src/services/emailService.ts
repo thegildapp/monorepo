@@ -91,7 +91,6 @@ export async function sendVerificationEmail(data: EmailVerificationData): Promis
                   <tr>
                     <td align="center" style="padding-top: 48px;">
                       <p style="font-family: 'Tinos', Georgia, serif; margin: 8px 0; color: #737373; font-size: 14px;">© ${new Date().getFullYear()} Gild</p>
-                      <p style="font-family: 'Tinos', Georgia, serif; margin: 8px 0; color: #737373; font-size: 14px;">This email was sent to <span style="color: #737373; text-decoration: none;">${data.email}</span></p>
                     </td>
                   </tr>
                 </table>

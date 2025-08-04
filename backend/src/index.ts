@@ -27,6 +27,7 @@ import {
   verifyEmailToken,
   resendVerificationEmail
 } from './services/emailService';
+import { ERROR_CODES } from './constants/errorCodes';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -548,13 +549,22 @@ const resolvers = {
     },
     
     register: async (_: any, { input }: { input: { email: string; password: string; name: string; phone?: string } }) => {
+      
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { email: input.email },
       });
       
       if (existingUser) {
-        throw new Error('User with this email already exists');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'email',
+            message: 'An account with this email already exists',
+            code: ERROR_CODES.USER_ALREADY_EXISTS
+          }]
+        };
       }
 
       // Check if there's already a pending user
@@ -595,6 +605,7 @@ const resolvers = {
         token,
       });
       
+      
       // Return null token and user to indicate email verification is required
       return {
         token: null,
@@ -615,21 +626,42 @@ const resolvers = {
         });
         
         if (pendingUser) {
-          // Return null to indicate email verification is required
+          // Return error to indicate email verification is required
           return {
             token: null,
             user: null,
+            errors: [{
+              field: 'email',
+              message: 'Please verify your email before signing in',
+              code: ERROR_CODES.EMAIL_NOT_VERIFIED
+            }]
           };
         }
         
-        throw new Error('Invalid email or password');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'email',
+            message: 'Invalid email or password',
+            code: ERROR_CODES.INVALID_CREDENTIALS
+          }]
+        };
       }
       
       // Check password
       const validPassword = await comparePassword(input.password, user.password);
       
       if (!validPassword) {
-        throw new Error('Invalid email or password');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'password',
+            message: 'Invalid email or password',
+            code: ERROR_CODES.INVALID_CREDENTIALS
+          }]
+        };
       }
       
       // Generate token
@@ -701,7 +733,16 @@ const resolvers = {
     // Passkey operations
     createPasskeyRegistrationOptions: async (_: any, __: any, context: YogaInitialContext & Context) => {
       if (!context.userId) {
-        throw new Error('You must be logged in to register a passkey');
+        return {
+          token: null,
+          user: null,
+          publicKey: null,
+          errors: [{
+            field: 'auth',
+            message: 'You must be logged in to register a passkey',
+            code: ERROR_CODES.UNAUTHORIZED
+          }]
+        };
       }
 
       const user = await prisma.user.findUnique({
@@ -709,13 +750,25 @@ const resolvers = {
       });
 
       if (!user) {
-        throw new Error('User not found');
+        return {
+          token: null,
+          user: null,
+          publicKey: null,
+          errors: [{
+            field: 'user',
+            message: 'User not found',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
 
       const options = await generateRegistrationOptionsForUser(user.id, user.email, user.name);
       
       return {
+        token: null,
+        user: null,
         publicKey: JSON.stringify(options),
+        errors: null
       };
     },
 
@@ -766,13 +819,29 @@ const resolvers = {
       });
 
       if (!user) {
-        // Return a specific error code that the frontend can use
-        throw new Error('User not found');
+        return {
+          token: null,
+          user: null,
+          publicKey: null,
+          errors: [{
+            field: 'email',
+            message: 'No account found. Please create one first.',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
       
       if (user.passkeys.length === 0) {
-        // Return a specific error code for existing users without passkeys
-        throw new Error('No passkeys found for this user');
+        return {
+          token: null,
+          user: null,
+          publicKey: null,
+          errors: [{
+            field: 'passkey',
+            message: 'No passkeys found. Please use password.',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
 
       const allowCredentials = user.passkeys.map(passkey => ({
@@ -783,7 +852,10 @@ const resolvers = {
       const options = await generateAuthenticationOptionsForUser(user.id, allowCredentials);
 
       return {
+        token: null,
+        user: null,
         publicKey: JSON.stringify(options),
+        errors: null
       };
     },
 
@@ -796,14 +868,30 @@ const resolvers = {
       });
 
       if (!user) {
-        throw new Error('User not found');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'email',
+            message: 'User not found',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
 
       // Find the passkey used
       const passkey = user.passkeys.find(pk => pk.credentialId === parsedResponse.id);
       
       if (!passkey) {
-        throw new Error('Passkey not found');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'passkey',
+            message: 'Passkey not found',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
 
       const verification = await verifyAuthentication(
@@ -814,7 +902,15 @@ const resolvers = {
       );
 
       if (!verification.verified) {
-        throw new Error('Authentication failed');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'passkey',
+            message: 'Authentication failed',
+            code: ERROR_CODES.INVALID_CREDENTIALS
+          }]
+        };
       }
 
       // Update counter and last used
@@ -870,7 +966,16 @@ const resolvers = {
       });
 
       if (existingUser) {
-        throw new Error('User with this email already exists');
+        return {
+          token: null,
+          user: null,
+          publicKey: null,
+          errors: [{
+            field: 'email',
+            message: 'An account with this email already exists',
+            code: ERROR_CODES.USER_ALREADY_EXISTS
+          }]
+        };
       }
 
       // Create a temporary user ID for the registration process
@@ -881,7 +986,10 @@ const resolvers = {
       const options = await generateRegistrationOptionsForUser(tempUserId, email, name);
       
       return {
+        token: null,
+        user: null,
         publicKey: JSON.stringify(options),
+        errors: null
       };
     },
 
@@ -892,7 +1000,14 @@ const resolvers = {
       });
 
       if (existingUser) {
-        throw new Error('User with this email already exists');
+        return {
+          publicKey: null,
+          errors: [{
+            field: 'email',
+            message: 'An account with this email already exists',
+            code: ERROR_CODES.USER_ALREADY_EXISTS
+          }]
+        };
       }
 
       // Check if there's already a pending user
@@ -966,7 +1081,15 @@ const resolvers = {
       const userId = await verifyEmailToken(token);
       
       if (!userId) {
-        throw new Error('Invalid or expired verification token');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'token',
+            message: 'Invalid or expired verification token',
+            code: ERROR_CODES.INVALID_VERIFICATION_TOKEN
+          }]
+        };
       }
       
       const user = await prisma.user.findUnique({
@@ -975,7 +1098,15 @@ const resolvers = {
       });
       
       if (!user) {
-        throw new Error('User not found');
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'token',
+            message: 'User not found',
+            code: ERROR_CODES.NOT_FOUND
+          }]
+        };
       }
       
       // Generate token

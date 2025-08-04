@@ -18,6 +18,11 @@ const VERIFY_EMAIL_MUTATION = graphql`
         phone
         avatarUrl
       }
+      errors {
+        field
+        message
+        code
+      }
     }
   }
 `;
@@ -51,15 +56,19 @@ export default function VerifyEmailPage() {
     commit({
       variables: { token },
       onCompleted: (response) => {
-        if (response.verifyEmail) {
+        if (response.verifyEmail && response.verifyEmail.errors && response.verifyEmail.errors.length > 0) {
+          setStatus('error');
+          const error = response.verifyEmail.errors[0];
+          setError(error.message);
+        } else if (response.verifyEmail && response.verifyEmail.token && response.verifyEmail.user) {
           setStatus('success');
           // Don't auto-login to prevent page refresh issues
         }
       },
       onError: (error) => {
         setStatus('error');
-        if (error.message.includes('Invalid or expired')) {
-          setError('This verification link has expired or is invalid.');
+        if (error.message.includes('Failed to fetch')) {
+          setError('Unable to connect. Please check your connection and try again.');
         } else {
           setError('Something went wrong. Please try again.');
         }

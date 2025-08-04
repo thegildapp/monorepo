@@ -1,170 +1,276 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useMutation } from 'react-relay';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useMutation, graphql } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
-import PasskeyAuth from '../features/PasskeyAuth';
 import { useAuth } from '../../contexts/AuthContext';
-import { LoginMutation, RegisterMutation } from '../../queries/auth';
+import { LoginMutation } from '../../queries/auth';
+import { 
+  isPasskeySupported,
+  authenticateWithPasskey,
+} from '../../utils/webauthn';
 import type { authLoginMutation } from '../../__generated__/authLoginMutation.graphql';
-import type { authRegisterMutation } from '../../__generated__/authRegisterMutation.graphql';
-import styles from './SignInPage.module.css';
+import styles from './AuthPage.module.css';
+
+const CREATE_AUTH_OPTIONS = graphql`
+  mutation SignInPageCreateAuthOptionsMutation($email: String!) {
+    createPasskeyAuthenticationOptions(email: $email) {
+      publicKey
+      errors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+const VERIFY_AUTH = graphql`
+  mutation SignInPageVerifyMutation($input: VerifyPasskeyAuthenticationInput!) {
+    verifyPasskeyAuthentication(input: $input) {
+      token
+      user {
+        id
+        email
+        name
+        phone
+        avatarUrl
+      }
+      errors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
 
 export default function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const [commitLogin, isLoginInFlight] = useMutation<authLoginMutation>(LoginMutation);
-  const [commitRegister, isRegisterInFlight] = useMutation<authRegisterMutation>(RegisterMutation);
+  const [commitCreateAuthOptions] = useMutation(CREATE_AUTH_OPTIONS);
+  const [commitVerifyAuth] = useMutation(VERIFY_AUTH);
 
-  // Get the intended destination from location state
   const from = (location.state as any)?.from || '/me';
-  
-  // Redirect if already signed in
+
   useEffect(() => {
     if (user) {
       navigate(from, { replace: true });
     }
   }, [user, navigate, from]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setPasskeySupported(isPasskeySupported());
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (isSignUp) {
-      commitRegister({
-        variables: {
-          input: {
-            email,
-            password,
-            name,
-            phone: phone || null,
-          },
-        },
-        onCompleted: (response) => {
-          if (response.register) {
-            login(response.register.token, response.register.user);
-            navigate(from, { replace: true });
-          }
-        },
-        onError: (error) => {
-          setError(error.message);
-        },
-      });
-    } else {
-      commitLogin({
-        variables: {
-          input: {
-            email,
-            password,
-          },
-        },
-        onCompleted: (response) => {
-          if (response.login) {
-            login(response.login.token, response.login.user);
-            navigate(from, { replace: true });
-          }
-        },
-        onError: (error) => {
-          setError(error.message);
-        },
-      });
+    // Don't do anything if password field isn't visible yet
+    if (!showPassword) {
+      return;
     }
+
+    commitLogin({
+      variables: {
+        input: { email, password },
+      },
+      onCompleted: (response) => {
+        if (response.login && response.login.errors && response.login.errors.length > 0) {
+          const error = response.login.errors[0];
+          setError(error.message);
+          if (error.code === 'EMAIL_NOT_VERIFIED') {
+            // Show email verification page
+            setEmailSent(true);
+          }
+        } else if (response.login && response.login.token && response.login.user) {
+          login(response.login.token, response.login.user);
+          navigate(from, { replace: true });
+        }
+      },
+      onError: (error) => {
+        if (error.message.includes('Failed to fetch')) {
+          setError('Unable to connect. Please check your connection and try again.');
+        } else {
+          const errorMessage = error.source?.errors?.[0]?.message || error.message;
+          setError(errorMessage);
+        }
+      },
+    });
   };
 
-  const isLoading = isLoginInFlight || isRegisterInFlight;
+  const handlePasskeySignIn = async () => {
+    if (!email) {
+      setError('Please enter your email first');
+      return;
+    }
+
+    setError('');
+    
+    commitCreateAuthOptions({
+      variables: { email },
+      onCompleted: async (response) => {
+        if (response.createPasskeyAuthenticationOptions && response.createPasskeyAuthenticationOptions.errors && response.createPasskeyAuthenticationOptions.errors.length > 0) {
+          const error = response.createPasskeyAuthenticationOptions.errors[0];
+          setError(error.message);
+          return;
+        }
+        
+        if (!response.createPasskeyAuthenticationOptions?.publicKey) {
+          setError('Unable to start authentication');
+          return;
+        }
+        
+        try {
+          const options = JSON.parse(response.createPasskeyAuthenticationOptions.publicKey);
+          const authResponse = await authenticateWithPasskey(options);
+          
+          commitVerifyAuth({
+            variables: {
+              input: {
+                email,
+                response: JSON.stringify(authResponse),
+              },
+            },
+            onCompleted: (verifyResponse) => {
+              if (verifyResponse.verifyPasskeyAuthentication && verifyResponse.verifyPasskeyAuthentication.errors && verifyResponse.verifyPasskeyAuthentication.errors.length > 0) {
+                const error = verifyResponse.verifyPasskeyAuthentication.errors[0];
+                setError(error.message);
+              } else if (verifyResponse.verifyPasskeyAuthentication && verifyResponse.verifyPasskeyAuthentication.token && verifyResponse.verifyPasskeyAuthentication.user) {
+                login(
+                  verifyResponse.verifyPasskeyAuthentication.token,
+                  verifyResponse.verifyPasskeyAuthentication.user
+                );
+              }
+            },
+            onError: (error) => {
+              if (error.message.includes('Failed to fetch')) {
+                setError('Unable to connect. Please check your connection and try again.');
+              } else {
+                setError('An error occurred. Please try again.');
+              }
+            },
+          });
+        } catch (error: any) {
+          if (error.name === 'NotAllowedError') {
+            setError('Authentication was cancelled');
+          } else {
+            setError('Authentication failed');
+          }
+        }
+      },
+      onError: (error) => {
+        if (error.message.includes('Failed to fetch')) {
+          setError('Unable to connect. Please check your connection and try again.');
+        } else {
+          setError('An error occurred. Please try again.');
+        }
+      },
+    });
+  };
+
+  const isLoading = isLoginInFlight;
 
   return (
     <Layout>
       <Header logoText="Gild" showSearch={false} />
       <Main>
         <div className={styles.container}>
-          {!showPassword ? (
-            <PasskeyAuth 
-              onShowPassword={() => setShowPassword(true)}
-            />
+          {emailSent ? (
+            <div className={styles.emailSentContainer}>
+              <h1 className={styles.title}>Check your email</h1>
+              <p className={styles.message}>
+                We've sent a verification link to {email}
+              </p>
+              <p className={styles.message}>
+                Click the link in the email to complete your registration.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailSent(false);
+                  setEmail('');
+                  setPassword('');
+                  setShowPassword(false);
+                }}
+                className={styles.linkButton}
+              >
+                Back to sign in
+              </button>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <h1 className={styles.title}>Welcome to Gild</h1>
-              
-              {isSignUp && (
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name"
-                required
-                className={styles.input}
-                autoFocus
-              />
-            )}
-
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              required
               className={styles.input}
-              autoFocus={!isSignUp}
+              autoFocus
             />
-
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-              minLength={6}
-              className={styles.input}
-            />
-
-            {isSignUp && (
+            
+            {showPassword && (
               <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Phone (optional)"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
                 className={styles.input}
               />
             )}
-
-            {error && (
-              <div className={styles.error}>{error}</div>
+            
+            {error && <div className={styles.error}>{error}</div>}
+            
+            {!showPassword && (
+              <>
+                {passkeySupported && (
+                  <button
+                    type="button"
+                    onClick={handlePasskeySignIn}
+                    className={styles.primaryButton}
+                  >
+                    <img 
+                      src="/passkey-icon.svg" 
+                      alt="Passkey" 
+                      style={{ width: '20px', height: '20px', marginRight: '8px', verticalAlign: 'middle', filter: 'invert(1)' }}
+                    />
+                    Sign in with passkey
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(true)}
+                  className={passkeySupported ? styles.secondaryButton : styles.primaryButton}
+                >
+                  Continue with password
+                </button>
+              </>
             )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={styles.submitButton}
-            >
-              {isLoading ? 'Loading...' : (isSignUp ? 'Create account' : 'Continue')}
-            </button>
             
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className={styles.linkButton}
-            >
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-            </button>
+            {showPassword && (
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={styles.primaryButton}
+              >
+                {isLoading ? 'Loading...' : 'Sign in'}
+              </button>
+            )}
             
-            <button
-              type="button"
-              onClick={() => setShowPassword(false)}
-              className={styles.linkButton}
-            >
-              Use passkey instead
-            </button>
+            <Link to="/signup" className={styles.linkButton}>
+              Don't have an account? Create one
+            </Link>
           </form>
           )}
         </div>

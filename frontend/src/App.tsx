@@ -6,7 +6,8 @@ import PageErrorBoundary from './components/common/PageErrorBoundary';
 import HomePage from './components/pages/HomePage';
 import ItemPage from './components/pages/ItemPage';
 import SearchPage from './components/pages/SearchPage';
-import AuthPage from './components/pages/AuthPage';
+import SignInPage from './components/pages/SignInPage';
+import SignUpPage from './components/pages/SignUpPage';
 import ProfilePage from './components/pages/ProfilePage';
 import EditProfilePage from './components/pages/EditProfilePage';
 import ListingManagementPage from './components/pages/ListingManagementPage';
@@ -26,7 +27,8 @@ function App() {
             <Route path="/listing/:itemId" element={<ItemPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/listing/:itemId/manage" element={<ListingManagementPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/listing/:itemId/edit" element={<EditListingPage />} errorElement={<PageErrorBoundary />} />
-            <Route path="/signin" element={<AuthPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/signin" element={<SignInPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/signup" element={<SignUpPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me" element={<ProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me/profile" element={<EditProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} errorElement={<PageErrorBoundary />} />

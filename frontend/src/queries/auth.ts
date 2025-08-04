@@ -10,6 +10,11 @@ export const LoginMutation = graphql`
         name
         avatarUrl
       }
+      errors {
+        field
+        message
+        code
+      }
     }
   }
 `;
@@ -23,6 +28,11 @@ export const RegisterMutation = graphql`
         email
         name
         avatarUrl
+      }
+      errors {
+        field
+        message
+        code
       }
     }
   }

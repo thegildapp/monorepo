@@ -96,21 +96,21 @@ type Mutation {
   deleteListing(id: ID!): Boolean!
   generateUploadUrl(filename: String!, contentType: String!): UploadUrl!
   generateAvatarUploadUrl(filename: String!, contentType: String!): UploadUrl!
-  register(input: RegisterInput!): AuthPayload!
-  login(input: LoginInput!): AuthPayload!
+  register(input: RegisterInput!): AuthPayload
+  login(input: LoginInput!): AuthPayload
   refreshToken: AuthPayload!
   updateProfile(input: UpdateProfileInput!): User!
   
   # Passkey operations
-  createPasskeyRegistrationOptions: PasskeyRegistrationOptions!
+  createPasskeyRegistrationOptions: AuthPayload
   verifyPasskeyRegistration(input: VerifyPasskeyRegistrationInput!): Passkey!
-  createPasskeyAuthenticationOptions(email: String!): PasskeyAuthenticationOptions!
-  verifyPasskeyAuthentication(input: VerifyPasskeyAuthenticationInput!): AuthPayload!
+  createPasskeyAuthenticationOptions(email: String!): AuthPayload
+  verifyPasskeyAuthentication(input: VerifyPasskeyAuthenticationInput!): AuthPayload
   deletePasskey(id: ID!): Boolean!
   
   # Passkey-first auth
-  startPasskeyRegistration(email: String!, name: String!): PasskeyRegistrationOptions!
-  completePasskeyRegistration(input: CompletePasskeyRegistrationInput!): AuthPayload!
+  startPasskeyRegistration(email: String!, name: String!): AuthPayload
+  completePasskeyRegistration(input: CompletePasskeyRegistrationInput!): AuthPayload
   
   # Inquiry mutations
   requestContact(listingId: ID!): RequestContactPayload!
@@ -122,7 +122,7 @@ type Mutation {
   trackListingView(listingId: ID!): TrackViewPayload!
   
   # Email verification
-  verifyEmail(token: String!): AuthPayload!
+  verifyEmail(token: String!): AuthPayload
   resendVerificationEmail(email: String!): Boolean!
 }
 
@@ -134,6 +134,8 @@ type TrackViewPayload {
 type AuthPayload {
   token: String
   user: User
+  errors: [FieldError!]
+  publicKey: String  # For passkey operations
 }
 
 input RegisterInput {
@@ -154,13 +156,6 @@ input UpdateProfileInput {
   avatarUrl: String
 }
 
-type PasskeyRegistrationOptions {
-  publicKey: String!
-}
-
-type PasskeyAuthenticationOptions {
-  publicKey: String!
-}
 
 input VerifyPasskeyRegistrationInput {
   response: String!
@@ -261,5 +256,6 @@ type RespondToInquiryPayload {
 type FieldError {
   field: String
   message: String!
+  code: String
 }
 
