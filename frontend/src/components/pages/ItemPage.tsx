@@ -18,6 +18,7 @@ import { ListingDetailFragment } from '../../queries/listings';
 import ImageWithFallback from '../common/ImageWithFallback';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
+import LocationPin from '../common/LocationPin';
 import { useAuth } from '../../contexts/AuthContext';
 
 function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_listing$key }) {
@@ -362,10 +363,7 @@ function ListingDetailView({ listingRef }: { listingRef: listingsListingDetail_l
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Location</h2>
           <div className={styles.location}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={styles.locationIcon}>
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
-            </svg>
+            <LocationPin className={styles.locationIcon} />
             <span>{location}</span>
           </div>
         </div>

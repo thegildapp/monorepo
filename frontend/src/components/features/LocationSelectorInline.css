@@ -1,7 +1,7 @@
 .location-selector-inline {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 4px;
   width: 100%;
   background: none;
   border: none;
@@ -19,7 +19,7 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  color: #000;
+  color: inherit;
 }
 
 .location-text {

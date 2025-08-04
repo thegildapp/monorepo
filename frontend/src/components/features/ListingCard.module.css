@@ -176,10 +176,8 @@
 .locationIcon {
   width: 14px;
   height: 14px;
-  color: #999;
+  color: inherit;
   flex-shrink: 0;
-  position: relative;
-  top: 2px;
 }
 
 .listingLocation {

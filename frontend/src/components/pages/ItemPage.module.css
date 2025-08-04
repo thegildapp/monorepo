@@ -209,10 +209,10 @@
 }
 
 .locationIcon {
-  color: rgba(0, 0, 0, 0.6);
+  width: 14px;
+  height: 14px;
+  color: inherit;
   flex-shrink: 0;
-  position: relative;
-  top: 2px;
 }
 
 .seller {
