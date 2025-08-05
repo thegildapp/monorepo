@@ -1,17 +1,111 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from '../services/loggingService';
 
-const prismaClientSingleton = () => {
+// Create write client (primary database)
+const prismaWriteClientSingleton = () => {
   return new PrismaClient({
-    log: ['error'],
+    datasources: {
+      db: {
+        url: process.env['DATABASE_URL'],
+      },
+    },
+    log: [
+      {
+        emit: 'event',
+        level: 'query',
+      },
+      {
+        emit: 'event',
+        level: 'error',
+      },
+      {
+        emit: 'event',
+        level: 'warn',
+      },
+    ],
+  });
+};
+
+// Create read client (read replica or fallback to primary)
+const prismaReadClientSingleton = () => {
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env['DATABASE_READ_URL'] || process.env['DATABASE_URL'],
+      },
+    },
+    log: [
+      {
+        emit: 'event',
+        level: 'query',
+      },
+      {
+        emit: 'event',
+        level: 'error',
+      },
+      {
+        emit: 'event',
+        level: 'warn',
+      },
+    ],
   });
 };
 
 declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+  var prismaWrite: undefined | ReturnType<typeof prismaWriteClientSingleton>;
+  var prismaRead: undefined | ReturnType<typeof prismaReadClientSingleton>;
 }
 
-const prisma = globalThis.prisma ?? prismaClientSingleton();
+const prismaWrite = globalThis.prismaWrite ?? prismaWriteClientSingleton();
+const prismaRead = globalThis.prismaRead ?? prismaReadClientSingleton();
 
-export default prisma;
+// Log slow queries
+prismaWrite.$on('query', (e) => {
+  if (e.duration > 100) {
+    logger.warn('Slow write query', {
+      duration: e.duration,
+      metadata: {
+        query: e.query,
+        params: e.params,
+        target: e.target,
+      },
+    });
+  }
+});
 
-if (process.env['NODE_ENV'] !== 'production') globalThis.prisma = prisma;
+prismaRead.$on('query', (e) => {
+  if (e.duration > 100) {
+    logger.warn('Slow read query', {
+      duration: e.duration,
+      metadata: {
+        query: e.query,
+        params: e.params,
+        target: e.target,
+      },
+    });
+  }
+});
+
+// Log errors
+prismaWrite.$on('error', (e) => {
+  logger.error('Prisma write error', new Error(e.message), {
+    metadata: { target: e.target },
+  });
+});
+
+prismaRead.$on('error', (e) => {
+  logger.error('Prisma read error', new Error(e.message), {
+    metadata: { target: e.target },
+  });
+});
+
+// Export both clients
+export { prismaWrite, prismaRead };
+
+// Default export for backward compatibility
+export default prismaWrite;
+
+if (process.env['NODE_ENV'] !== 'production') {
+  globalThis.prismaWrite = prismaWrite;
+  globalThis.prismaRead = prismaRead;
+}

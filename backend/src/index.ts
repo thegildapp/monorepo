@@ -4,7 +4,8 @@ import cors from 'cors';
 import { typeDefs } from '@gild/shared-schema';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import prisma from './config/prisma';
+import { prismaWrite, prismaRead } from './config/prisma';
+import prisma from './config/prisma'; // Keep for backward compatibility
 import { searchListings } from './services/searchService';
 import { ensureListingsIndex, indexListing } from './config/opensearch';
 import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
@@ -41,6 +42,8 @@ if (!globalThis.crypto) {
 interface Context {
   userId: string | undefined;
   prisma: typeof prisma;
+  prismaWrite: typeof prismaWrite;
+  prismaRead: typeof prismaRead;
 }
 
 // Configure S3 client for Digital Ocean Spaces
@@ -131,7 +134,7 @@ const resolvers = {
         queryOptions.skip = offset;
       }
       
-      let listings = await prisma.listing.findMany(queryOptions);
+      let listings = await prismaRead.listing.findMany(queryOptions);
       
       // Filter by exact distance if location filter was applied
       if (filters?.latitude && filters?.longitude && filters?.radius) {
@@ -245,7 +248,7 @@ const resolvers = {
           queryOptions.skip = offset;
         }
         
-        const listings = await prisma.listing.findMany(queryOptions);
+        const listings = await prismaRead.listing.findMany(queryOptions);
         
         return listings.map(listing => ({
           ...listing,
@@ -256,7 +259,7 @@ const resolvers = {
     },
     
     user: async (_: any, { id }: { id: string }) => {
-      return await prisma.user.findUnique({
+      return await prismaRead.user.findUnique({
         where: { id },
         select: safeUserSelect,
       });
@@ -265,7 +268,7 @@ const resolvers = {
     me: async (_: any, __: any, context: YogaInitialContext & Context) => {
       if (!context.userId) return null;
       
-      const user = await prisma.user.findUnique({
+      const user = await prismaRead.user.findUnique({
         where: { id: context.userId },
         select: fullUserSelect,
       });
@@ -284,7 +287,7 @@ const resolvers = {
         throw new Error('You must be logged in to view your listings');
       }
       
-      const listings = await prisma.listing.findMany({
+      const listings = await prismaRead.listing.findMany({
         where: {
           sellerId: context.userId,
         },
@@ -356,7 +359,7 @@ const resolvers = {
       }
       
       // Create listing with PENDING status by default
-      const listing = await prisma.listing.create({
+      const listing = await prismaWrite.listing.create({
         data: {
           ...input,
           seller: {
@@ -506,7 +509,7 @@ const resolvers = {
         throw new Error('You can only update your own listings');
       }
       
-      const updatedListing = await prisma.listing.update({
+      const updatedListing = await prismaWrite.listing.update({
         where: { id },
         data: input,
         include: { 
@@ -1280,7 +1283,9 @@ async function startServer(): Promise<void> {
       return {
         ...initialContext,
         userId,
-        prisma,
+        prisma, // Keep for backward compatibility
+        prismaWrite,
+        prismaRead,
       };
     },
   });

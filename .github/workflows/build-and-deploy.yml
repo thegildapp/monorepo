@@ -79,6 +79,12 @@ jobs:
             --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
       
+      - name: Create database read secret
+        run: |
+          kubectl create secret generic database-read-secret \
+            --from-literal=DATABASE_READ_URL="${{ secrets.DATABASE_READ_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
       - name: Create logs database secret
         run: |
           kubectl create secret generic logs-database-secret \

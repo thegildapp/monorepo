@@ -73,6 +73,7 @@ node_modules/
 
 # Kubernetes secrets (NEVER commit these)
 k8s/database-secret.yaml
+k8s/database-read-secret.yaml
 k8s/opensearch-secret.yaml
 k8s/spaces-secret.yaml
 k8s/openai-secret.yaml
