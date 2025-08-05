@@ -78,6 +78,12 @@ jobs:
           kubectl create secret generic database-secret \
             --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Create logs database secret
+        run: |
+          kubectl create secret generic logs-database-secret \
+            --from-literal=LOGS_DATABASE_URL="${{ secrets.LOGS_DATABASE_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create OpenSearch secret
         run: |

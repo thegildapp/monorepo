@@ -1,5 +1,6 @@
 import client, { LISTINGS_INDEX, isOpenSearchAvailable } from '../config/opensearch';
 import prisma from '../config/prisma';
+import { logger } from './loggingService';
 
 // Safe user select to exclude password, email, and phone
 const safeUserSelect = {
@@ -53,7 +54,7 @@ export async function searchListings(options: SearchOptions): Promise<SearchResu
     try {
       return await searchWithOpenSearch(options);
     } catch (error) {
-      console.warn('OpenSearch failed, falling back to database:', error);
+      logger.warn('OpenSearch failed, falling back to database', { error, query: options.query });
       return await searchWithDatabase(options);
     }
   } else {
@@ -361,7 +362,7 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
       }
       return [];
     } catch (error) {
-      console.warn('OpenSearch suggestions failed:', error);
+      logger.warn('OpenSearch suggestions failed', { error, query });
     }
   }
 

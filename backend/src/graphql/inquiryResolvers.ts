@@ -1,6 +1,7 @@
 import { InquiryStatus } from '@prisma/client';
 import { YogaInitialContext } from 'graphql-yoga';
 import type { PrismaClient } from '@prisma/client';
+import { logger } from '../services/loggingService';
 
 interface Context {
   userId: string | undefined;
@@ -225,7 +226,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        console.error('Error creating inquiry:', error);
+        logger.error('Error creating inquiry', error as Error, { userId: context.userId, listingId });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to create inquiry' }]
@@ -332,7 +333,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        console.error('Error accepting inquiry:', error);
+        logger.error('Error accepting inquiry', error as Error, { userId: context.userId, inquiryId });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to accept inquiry' }]
@@ -425,7 +426,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        console.error('Error rejecting inquiry:', error);
+        logger.error('Error rejecting inquiry', error as Error, { userId: context.userId, inquiryId });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to reject inquiry' }]
@@ -525,7 +526,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        console.error('Error responding to inquiry:', error);
+        logger.error('Error responding to inquiry', error as Error, { userId: context.userId, inquiryId });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to respond to inquiry' }]

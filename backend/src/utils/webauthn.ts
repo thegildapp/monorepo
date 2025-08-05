@@ -12,6 +12,7 @@ import type {
   AuthenticationResponseJSON,
 } from '@simplewebauthn/types';
 import { getValkeyClient } from './valkey';
+import { logger } from '../services/loggingService';
 
 // Configuration
 const RP_NAME = 'Gild Marketplace';
@@ -39,7 +40,7 @@ async function setChallenge(userId: string, challenge: string): Promise<void> {
     const key = `passkey:challenge:${userId}`;
     await valkey.setex(key, CHALLENGE_TTL, challenge);
   } catch (error) {
-    console.error('Failed to set challenge in Valkey, falling back to in-memory:', error);
+    logger.error('Failed to set challenge in Valkey, falling back to in-memory', error as Error, { userId });
     useInMemory = true;
     inMemoryChallenges.set(userId, challenge);
     setTimeout(() => inMemoryChallenges.delete(userId), CHALLENGE_TTL * 1000);
@@ -56,7 +57,7 @@ async function getChallenge(userId: string): Promise<string | null> {
     const key = `passkey:challenge:${userId}`;
     return await valkey.get(key);
   } catch (error) {
-    console.error('Failed to get challenge from Valkey, falling back to in-memory:', error);
+    logger.error('Failed to get challenge from Valkey, falling back to in-memory', error as Error, { userId });
     useInMemory = true;
     return inMemoryChallenges.get(userId) || null;
   }
@@ -73,7 +74,7 @@ async function deleteChallenge(userId: string): Promise<void> {
     const key = `passkey:challenge:${userId}`;
     await valkey.del(key);
   } catch (error) {
-    console.error('Failed to delete challenge from Valkey:', error);
+    logger.error('Failed to delete challenge from Valkey', error as Error, { userId });
     inMemoryChallenges.delete(userId);
   }
 }

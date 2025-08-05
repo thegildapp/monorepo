@@ -1,4 +1,5 @@
 import { Client } from '@opensearch-project/opensearch';
+import { logger } from '../services/loggingService';
 
 // OpenSearch client configuration for managed database
 const client = new Client({
@@ -27,7 +28,7 @@ export async function isOpenSearchAvailable(): Promise<boolean> {
     await client.ping();
     return true;
   } catch (error) {
-    console.warn('OpenSearch not available, falling back to database search:', error);
+    logger.warn('OpenSearch not available, falling back to database search', { error });
     return false;
   }
 }
@@ -116,7 +117,7 @@ export async function ensureListingsIndex(): Promise<void> {
       });
     }
   } catch (error) {
-    console.error('Error creating listings index:', error);
+    logger.error('Error creating listings index', error as Error);
     throw error;
   }
 }
@@ -135,7 +136,7 @@ export async function indexListing(listing: any): Promise<void> {
       }
     });
   } catch (error) {
-    console.error('Error indexing listing:', error);
+    logger.error('Error indexing listing', error as Error, { listingId: listing.id });
     throw error;
   }
 }
@@ -148,7 +149,7 @@ export async function deleteListing(id: string): Promise<void> {
       id
     });
   } catch (error) {
-    console.error('Error deleting listing from index:', error);
+    logger.error('Error deleting listing from index', error as Error, { listingId: id });
     throw error;
   }
 }

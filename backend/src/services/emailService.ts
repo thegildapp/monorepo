@@ -1,6 +1,7 @@
 import sgMail from '@sendgrid/mail';
 import crypto from 'crypto';
 import prisma from '../config/prisma';
+import { logger } from './loggingService';
 
 // Initialize SendGrid
 const sendgridApiKey = process.env['SENDGRID_API_KEY'];
@@ -20,7 +21,7 @@ export async function generateVerificationToken(): Promise<string> {
 
 export async function sendVerificationEmail(data: EmailVerificationData): Promise<void> {
   if (!sendgridApiKey) {
-    console.warn('SendGrid API key not configured, skipping email send');
+    logger.warn('SendGrid API key not configured, skipping email send');
     return;
   }
 
@@ -106,7 +107,7 @@ export async function sendVerificationEmail(data: EmailVerificationData): Promis
   try {
     await sgMail.send(msg);
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    logger.error('Error sending verification email', error as Error, { email: data.email });
     throw new Error('Failed to send verification email');
   }
 }

@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { logger } from '../services/loggingService';
 
 let valkeyClient: Redis | null = null;
 
@@ -7,7 +8,7 @@ export function getValkeyClient(): Redis {
     const valkeyUrl = process.env['VALKEY_URL'];
     
     if (!valkeyUrl) {
-      console.warn('VALKEY_URL not set, using in-memory fallback for development');
+      logger.warn('VALKEY_URL not set, using in-memory fallback for development');
       // For development without Valkey, we'll create a mock client
       // In production, this should throw an error
       throw new Error('VALKEY_URL environment variable is required');
@@ -30,11 +31,11 @@ export function getValkeyClient(): Redis {
     });
 
     valkeyClient.on('error', (err) => {
-      console.error('Valkey Client Error:', err);
+      logger.error('Valkey Client Error', err);
     });
 
     valkeyClient.on('connect', () => {
-      // Connected to Valkey
+      logger.info('Connected to Valkey');
     });
   }
 

@@ -7,7 +7,10 @@
     "start": "node dist/index.js",
     "dev": "npm run typecheck && nodemon --exec ts-node src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:logs:generate": "prisma generate --schema=./prisma-logs/schema.prisma",
+    "prisma:logs:migrate": "prisma migrate dev --schema=./prisma-logs/schema.prisma",
+    "prisma:logs:deploy": "prisma migrate deploy --schema=./prisma-logs/schema.prisma"
   },
   "keywords": [],
   "author": "",

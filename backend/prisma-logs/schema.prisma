@@ -1,0 +1,62 @@
+// Separate Prisma schema for logs database
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/logs-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("LOGS_DATABASE_URL")
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  level     String   // info, warn, error, debug
+  service   String   // backend, frontend, worker
+  message   String
+  
+  // Request context
+  traceId   String?
+  spanId    String?
+  userId    String?
+  
+  // HTTP context
+  method    String?
+  path      String?
+  statusCode Int?
+  duration  Int?     // milliseconds
+  userAgent String?
+  ip        String?
+  
+  // Error context
+  errorName    String?
+  errorMessage String?
+  errorStack   String?
+  
+  // Additional metadata as JSON
+  metadata  Json?
+  
+  @@index([timestamp])
+  @@index([level])
+  @@index([service])
+  @@index([traceId])
+  @@index([userId])
+  @@index([path])
+}
+
+// Table for aggregated metrics (optional, for performance)
+model LogMetrics {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  hour      DateTime // Rounded to hour
+  service   String
+  path      String?
+  
+  requestCount Int @default(0)
+  errorCount   Int @default(0)
+  avgDuration  Int @default(0)
+  
+  @@unique([hour, service, path])
+  @@index([hour])
+}

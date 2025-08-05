@@ -26,6 +26,7 @@ build:
 manifests:
   rawYaml:
     - k8s/database-secret.yaml
+    - k8s/logs-database-secret.yaml
     - k8s/spaces-secret.yaml
     - k8s/openai-secret.yaml
     - k8s/valkey-secret.yaml

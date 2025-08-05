@@ -28,6 +28,8 @@ import {
   resendVerificationEmail
 } from './services/emailService';
 import { ERROR_CODES } from './constants/errorCodes';
+import { logger } from './services/loggingService';
+import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -216,7 +218,7 @@ const resolvers = {
         
         return result.listings;
       } catch (error) {
-        console.error('Search failed:', error);
+        logger.error('Search failed', error as Error, { query });
         
         // Fallback to basic database search
         const where = {
@@ -341,7 +343,7 @@ const resolvers = {
           viewCount: result.viewCount
         };
       } catch (error) {
-        console.error('Error in trackListingView mutation:', error);
+        logger.error('Error in trackListingView mutation', error as Error, { listingId });
         return {
           success: false,
           viewCount: 0
@@ -389,11 +391,11 @@ const resolvers = {
               await indexListing(fullListing);
             }
           } catch (error) {
-            console.error('Error indexing listing:', error);
+            logger.error('Error indexing listing', error as Error, { listingId: listing.id });
           }
         }
       }).catch(error => {
-        console.error('Error in content moderation:', error);
+        logger.error('Error in content moderation', error as Error, { listingId: listing.id });
         // Default to approved if moderation fails
         updateListingStatus(listing.id, true);
       });
@@ -440,7 +442,7 @@ const resolvers = {
           key: key,
         };
       } catch (error) {
-        console.error('Error generating upload URL:', error);
+        logger.error('Error generating upload URL', error as Error, { userId: context.userId });
         throw new Error('Failed to generate upload URL');
       }
     },
@@ -480,7 +482,7 @@ const resolvers = {
           key: key,
         };
       } catch (error) {
-        console.error('Error generating avatar upload URL:', error);
+        logger.error('Error generating avatar upload URL', error as Error, { userId: context.userId });
         throw new Error('Failed to generate avatar upload URL');
       }
     },
@@ -1126,7 +1128,7 @@ const resolvers = {
         await resendVerificationEmail(email);
         return true;
       } catch (error) {
-        console.error('Error resending verification email:', error);
+        logger.error('Error resending verification email', error as Error, { email });
         return false;
       }
     },
@@ -1216,18 +1218,18 @@ async function startServer(): Promise<void> {
   // Test database connection
   try {
     await prisma.$connect();
-    console.log('✅ Database connected successfully');
+    logger.info('Database connected successfully');
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    logger.error('Database connection failed', error as Error);
     throw error;
   }
 
   // Initialize OpenSearch index
   try {
     await ensureListingsIndex();
-    console.log('✅ OpenSearch index initialized');
+    logger.info('OpenSearch index initialized');
   } catch (error) {
-    console.warn('⚠️ OpenSearch initialization failed, will use database fallback:', error);
+    logger.warn('OpenSearch initialization failed, will use database fallback', { error });
   }
   
   const app = express();
@@ -1241,6 +1243,10 @@ async function startServer(): Promise<void> {
   };
   
   app.use(cors(corsOptions));
+  app.use(requestLoggingMiddleware);
+  
+  // Start log processing
+  logger.startProcessing();
   
   const schema = createSchema({
     typeDefs,
@@ -1280,28 +1286,37 @@ async function startServer(): Promise<void> {
   });
   
   app.use('/graphql', yoga);
+  app.use(errorLoggingMiddleware);
 
   const PORT = Number(process.env['PORT']) || 4000;
   const HOST = process.env['HOST'] || '0.0.0.0';
   
   app.listen(PORT, HOST, () => {
-    console.log(`Server ready at http://${HOST}:${PORT}/graphql`);
+    logger.info('Server ready', { 
+      host: HOST, 
+      port: PORT, 
+      endpoint: `http://${HOST}:${PORT}/graphql` 
+    });
   });
 }
 
 startServer().catch(error => {
-  console.error('Error starting server:', error);
+  logger.error('Error starting server', error as Error);
   process.exit(1);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  logger.stopProcessing();
   await prisma.$disconnect();
   await closeValkeyClient();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  logger.stopProcessing();
   await prisma.$disconnect();
   await closeValkeyClient();
   process.exit(0);

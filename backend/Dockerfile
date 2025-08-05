@@ -16,8 +16,9 @@ RUN npm install --legacy-peer-deps
 
 COPY backend/ .
 
-# Generate Prisma client
+# Generate Prisma clients
 RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma-logs/schema.prisma
 
 RUN npm run build
 
