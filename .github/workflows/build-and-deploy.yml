@@ -143,6 +143,12 @@ jobs:
           # Apply deployments
           kubectl apply -f k8s/backend-deployment.prod.yaml
           kubectl apply -f k8s/frontend-deployment.prod.yaml
+          
+          # Apply scaling configurations
+          kubectl apply -f k8s/backend-hpa.yaml
+          kubectl apply -f k8s/frontend-hpa.yaml
+          kubectl apply -f k8s/backend-pdb.yaml
+          kubectl apply -f k8s/frontend-pdb.yaml
 
           # Update image tags
           kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}

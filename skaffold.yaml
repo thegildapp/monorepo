@@ -34,6 +34,7 @@ manifests:
     - k8s/sendgrid-secret.yaml
     - k8s/backend-deployment.yaml
     - k8s/frontend-deployment.yaml
+    # Note: HPA, PDB, and NetworkPolicy are for production only
 
 deploy:
   kubeContext: kind-gild-dev
