@@ -6,6 +6,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { prismaWrite, prismaRead } from './config/prisma';
 import prisma from './config/prisma'; // Keep for backward compatibility
+import prismaLogs from './config/prismaLogs';
 import { searchListings } from './services/searchService';
 import { ensureListingsIndex, indexListing } from './config/opensearch';
 import { generateToken, verifyToken, hashPassword, comparePassword, extractTokenFromHeader } from './utils/auth';
@@ -30,6 +31,7 @@ import {
 } from './services/emailService';
 import { ERROR_CODES } from './constants/errorCodes';
 import { logger } from './services/loggingService';
+import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 
 // Polyfill for Web Crypto API in Node.js
@@ -1304,6 +1306,10 @@ async function startServer(): Promise<void> {
         endpoint: `http://${HOST}:${PORT}/graphql`
       }
     });
+
+    // Start log retention service
+    logRetentionService.startRetentionJob();
+    logger.info('Log retention service initialized');
   });
 }
 
@@ -1315,16 +1321,20 @@ startServer().catch(error => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  logRetentionService.stopRetentionJob();
   logger.stopProcessing();
   await prisma.$disconnect();
+  await prismaLogs.$disconnect();
   await closeValkeyClient();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
+  logRetentionService.stopRetentionJob();
   logger.stopProcessing();
   await prisma.$disconnect();
+  await prismaLogs.$disconnect();
   await closeValkeyClient();
   process.exit(0);
 });
