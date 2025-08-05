@@ -218,7 +218,7 @@ const resolvers = {
         
         return result.listings;
       } catch (error) {
-        logger.error('Search failed', error as Error, { query });
+        logger.error('Search failed', error as Error, { metadata: { query } });
         
         // Fallback to basic database search
         const where = {
@@ -343,7 +343,7 @@ const resolvers = {
           viewCount: result.viewCount
         };
       } catch (error) {
-        logger.error('Error in trackListingView mutation', error as Error, { listingId });
+        logger.error('Error in trackListingView mutation', error as Error, { metadata: { listingId } });
         return {
           success: false,
           viewCount: 0
@@ -391,11 +391,11 @@ const resolvers = {
               await indexListing(fullListing);
             }
           } catch (error) {
-            logger.error('Error indexing listing', error as Error, { listingId: listing.id });
+            logger.error('Error indexing listing', error as Error, { metadata: { listingId: listing.id } });
           }
         }
       }).catch(error => {
-        logger.error('Error in content moderation', error as Error, { listingId: listing.id });
+        logger.error('Error in content moderation', error as Error, { metadata: { listingId: listing.id } });
         // Default to approved if moderation fails
         updateListingStatus(listing.id, true);
       });
@@ -1128,7 +1128,7 @@ const resolvers = {
         await resendVerificationEmail(email);
         return true;
       } catch (error) {
-        logger.error('Error resending verification email', error as Error, { email });
+        logger.error('Error resending verification email', error as Error, { metadata: { email } });
         return false;
       }
     },
@@ -1229,7 +1229,7 @@ async function startServer(): Promise<void> {
     await ensureListingsIndex();
     logger.info('OpenSearch index initialized');
   } catch (error) {
-    logger.warn('OpenSearch initialization failed, will use database fallback', { error });
+    logger.warn('OpenSearch initialization failed, will use database fallback', { metadata: { error: error instanceof Error ? error.message : String(error) } });
   }
   
   const app = express();
@@ -1293,9 +1293,11 @@ async function startServer(): Promise<void> {
   
   app.listen(PORT, HOST, () => {
     logger.info('Server ready', { 
-      host: HOST, 
-      port: PORT, 
-      endpoint: `http://${HOST}:${PORT}/graphql` 
+      metadata: {
+        host: HOST, 
+        port: PORT, 
+        endpoint: `http://${HOST}:${PORT}/graphql`
+      }
     });
   });
 }

@@ -48,7 +48,7 @@ export async function updateListingStatus(listingId: string, isApproved: boolean
     
     // Listing status updated
   } catch (error) {
-    logger.error('Error updating listing status', error as Error, { listingId, isApproved });
+    logger.error('Error updating listing status', error as Error, { metadata: { listingId, isApproved } });
   } finally {
     await prisma.$disconnect();
   }

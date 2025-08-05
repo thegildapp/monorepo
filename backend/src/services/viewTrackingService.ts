@@ -76,7 +76,7 @@ export async function trackListingView(
       viewCount: newCount
     };
   } catch (error) {
-    logger.error('Error tracking listing view', error as Error, { listingId, userId });
+    logger.error('Error tracking listing view', error as Error, { userId: userId ?? undefined, metadata: { listingId } });
     return {
       success: false,
       isNewView: false,
@@ -96,7 +96,7 @@ export async function getListingViewCount(listingId: string): Promise<number> {
     const count = await valkey.get(key);
     return count ? parseInt(count, 10) : 0;
   } catch (error) {
-    logger.error('Error getting view count', error as Error, { listingId });
+    logger.error('Error getting view count', error as Error, { metadata: { listingId } });
     return 0;
   }
 }
@@ -137,7 +137,7 @@ export async function getBatchViewCounts(listingIds: string[]): Promise<Map<stri
     
     return viewCounts;
   } catch (error) {
-    logger.error('Error getting batch view counts', error as Error, { count: listingIds.length });
+    logger.error('Error getting batch view counts', error as Error, { metadata: { count: listingIds.length } });
     return new Map();
   }
 }
@@ -152,7 +152,7 @@ export async function getUniqueViewerCount(listingId: string): Promise<number> {
   try {
     return await valkey.scard(key);
   } catch (error) {
-    logger.error('Error getting unique viewer count', error as Error, { listingId });
+    logger.error('Error getting unique viewer count', error as Error, { metadata: { listingId } });
     return 0;
   }
 }
@@ -168,6 +168,6 @@ export async function syncViewCountsToDatabase(
     const viewCount = await getListingViewCount(listingId);
     await updateFn(listingId, viewCount);
   } catch (error) {
-    logger.error('Error syncing view count to database', error as Error, { listingId });
+    logger.error('Error syncing view count to database', error as Error, { metadata: { listingId } });
   }
 }

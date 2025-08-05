@@ -54,7 +54,7 @@ export async function searchListings(options: SearchOptions): Promise<SearchResu
     try {
       return await searchWithOpenSearch(options);
     } catch (error) {
-      logger.warn('OpenSearch failed, falling back to database', { error, query: options.query });
+      logger.warn('OpenSearch failed, falling back to database', { metadata: { error: error instanceof Error ? error.message : String(error), query: options.query } });
       return await searchWithDatabase(options);
     }
   } else {
@@ -362,7 +362,7 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
       }
       return [];
     } catch (error) {
-      logger.warn('OpenSearch suggestions failed', { error, query });
+      logger.warn('OpenSearch suggestions failed', { metadata: { error: error instanceof Error ? error.message : String(error), query } });
     }
   }
 

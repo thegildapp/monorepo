@@ -107,7 +107,7 @@ export async function sendVerificationEmail(data: EmailVerificationData): Promis
   try {
     await sgMail.send(msg);
   } catch (error) {
-    logger.error('Error sending verification email', error as Error, { email: data.email });
+    logger.error('Error sending verification email', error as Error, { metadata: { email: data.email } });
     throw new Error('Failed to send verification email');
   }
 }

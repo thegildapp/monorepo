@@ -28,7 +28,7 @@ export async function isOpenSearchAvailable(): Promise<boolean> {
     await client.ping();
     return true;
   } catch (error) {
-    logger.warn('OpenSearch not available, falling back to database search', { error });
+    logger.warn('OpenSearch not available, falling back to database search', { metadata: { error: error instanceof Error ? error.message : String(error) } });
     return false;
   }
 }
@@ -136,7 +136,7 @@ export async function indexListing(listing: any): Promise<void> {
       }
     });
   } catch (error) {
-    logger.error('Error indexing listing', error as Error, { listingId: listing.id });
+    logger.error('Error indexing listing', error as Error, { metadata: { listingId: listing.id } });
     throw error;
   }
 }
@@ -149,7 +149,7 @@ export async function deleteListing(id: string): Promise<void> {
       id
     });
   } catch (error) {
-    logger.error('Error deleting listing from index', error as Error, { listingId: id });
+    logger.error('Error deleting listing from index', error as Error, { metadata: { listingId: id } });
     throw error;
   }
 }

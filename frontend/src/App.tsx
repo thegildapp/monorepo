@@ -14,6 +14,7 @@ import ListingManagementPage from './components/pages/ListingManagementPage';
 import EditListingPage from './components/pages/EditListingPage';
 import VerifyEmailPage from './components/pages/VerifyEmailPage';
 import ScrollToTop from './components/utils/ScrollToTop';
+import AboutPage from './components/pages/AboutPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/me" element={<ProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me/profile" element={<EditProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/about" element={<AboutPage />} errorElement={<PageErrorBoundary />} />
           </Routes>
         </ScrollVisibilityProvider>
       </AuthProvider>

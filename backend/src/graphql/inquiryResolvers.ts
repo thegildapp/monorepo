@@ -226,7 +226,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        logger.error('Error creating inquiry', error as Error, { userId: context.userId, listingId });
+        logger.error('Error creating inquiry', error as Error, { userId: context.userId, metadata: { listingId } });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to create inquiry' }]
@@ -333,7 +333,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        logger.error('Error accepting inquiry', error as Error, { userId: context.userId, inquiryId });
+        logger.error('Error accepting inquiry', error as Error, { userId: context.userId, metadata: { inquiryId } });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to accept inquiry' }]
@@ -426,7 +426,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        logger.error('Error rejecting inquiry', error as Error, { userId: context.userId, inquiryId });
+        logger.error('Error rejecting inquiry', error as Error, { userId: context.userId, metadata: { inquiryId } });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to reject inquiry' }]
@@ -526,7 +526,7 @@ export const inquiryResolvers = {
           errors: []
         };
       } catch (error) {
-        logger.error('Error responding to inquiry', error as Error, { userId: context.userId, inquiryId });
+        logger.error('Error responding to inquiry', error as Error, { userId: context.userId, metadata: { inquiryId } });
         return {
           inquiry: null,
           errors: [{ field: null, message: 'Failed to respond to inquiry' }]
