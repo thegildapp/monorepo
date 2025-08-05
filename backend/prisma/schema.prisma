@@ -70,6 +70,12 @@ model Listing {
   seller         User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   inquiries      Inquiry[]
 
+  // Indexes for performance
+  @@index([status, createdAt(sort: Desc)])
+  @@index([latitude, longitude])
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([status])
+  
   @@map("listings")
 }
 
@@ -126,6 +132,7 @@ model PendingUser {
   createdAt DateTime @default(now())
   passkeyData Json?  // Store passkey registration data temporarily
   
+  @@index([expiresAt])
   @@map("pending_users")
 }
 

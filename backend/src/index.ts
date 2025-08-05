@@ -33,6 +33,7 @@ import { ERROR_CODES } from './constants/errorCodes';
 import { logger } from './services/loggingService';
 import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
+import { cache } from './services/cacheService';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -89,6 +90,15 @@ const resolvers = {
       // Return empty array if no location filters provided
       if (!filters?.latitude || !filters?.longitude || !filters?.radius) {
         return [];
+      }
+
+      // Create cache key based on query parameters
+      const cacheKey = `listings:${JSON.stringify({ limit, offset, filters })}`;
+      
+      // Try to get from cache
+      const cachedListings = await cache.get(cacheKey);
+      if (cachedListings) {
+        return cachedListings;
       }
       
       const where: any = {
@@ -165,15 +175,27 @@ const resolvers = {
       }
       
       // Convert dates to ISO strings
-      return listings.map(listing => ({
+      const result = listings.map(listing => ({
         ...listing,
         createdAt: listing.createdAt.toISOString(),
         updatedAt: listing.updatedAt.toISOString(),
       }));
+
+      // Cache the results for 5 minutes
+      await cache.set(cacheKey, result, { ttl: 300, tags: ['listings'] });
+
+      return result;
     },
     
     listing: async (_: any, { id }: { id: string }) => {
-      const listing = await prisma.listing.findUnique({
+      // Try cache first
+      const cacheKey = `listing:${id}`;
+      const cached = await cache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      const listing = await prismaRead.listing.findUnique({
         where: { id },
         include: { 
           seller: {
@@ -185,11 +207,16 @@ const resolvers = {
       if (!listing) return null;
       
       // Convert dates to ISO strings
-      return {
+      const result = {
         ...listing,
         createdAt: listing.createdAt.toISOString(),
         updatedAt: listing.updatedAt.toISOString(),
       };
+
+      // Cache for 10 minutes
+      await cache.set(cacheKey, result, { ttl: 600, tags: ['listings', `listing:${id}`] });
+
+      return result;
     },
     
     searchListings: async (_: any, args: { query: string; limit?: number | null; offset?: number | null; filters?: any }) => {
@@ -405,6 +432,9 @@ const resolvers = {
         updateListingStatus(listing.id, true);
       });
       
+      // Invalidate listings cache
+      await cache.invalidateTag('listings');
+
       return {
         ...listing,
         createdAt: listing.createdAt.toISOString(),
@@ -521,6 +551,11 @@ const resolvers = {
         },
       });
       
+      // Invalidate caches
+      await cache.invalidateTag('listings');
+      await cache.invalidateTag(`listing:${id}`);
+      await cache.delete(`listing:${id}`);
+
       return {
         ...updatedListing,
         createdAt: updatedListing.createdAt.toISOString(),
@@ -547,9 +582,14 @@ const resolvers = {
         throw new Error('You can only delete your own listings');
       }
       
-      await prisma.listing.delete({
+      await prismaWrite.listing.delete({
         where: { id },
       });
+      
+      // Invalidate caches
+      await cache.invalidateTag('listings');
+      await cache.invalidateTag(`listing:${id}`);
+      await cache.delete(`listing:${id}`);
       
       return true;
     },
