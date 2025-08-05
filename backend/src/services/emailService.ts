@@ -15,8 +15,52 @@ export interface EmailVerificationData {
   token: string;
 }
 
+export interface EmailOptions {
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+}
+
 export async function generateVerificationToken(): Promise<string> {
   return crypto.randomBytes(32).toString('hex');
+}
+
+export async function sendEmail(options: EmailOptions): Promise<void> {
+  if (!sendgridApiKey) {
+    logger.warn('SendGrid API key not configured, skipping email send');
+    return;
+  }
+
+  const msg = {
+    to: options.to,
+    from: {
+      email: 'contact@thegild.app',
+      name: 'Gild'
+    },
+    subject: options.subject,
+    text: options.text || '',
+    html: options.html || options.text || '',
+    trackingSettings: {
+      clickTracking: {
+        enable: false
+      },
+      openTracking: {
+        enable: false
+      },
+      subscriptionTracking: {
+        enable: false
+      }
+    }
+  };
+
+  try {
+    await sgMail.send(msg);
+    logger.info('Email sent successfully', { metadata: { to: options.to, subject: options.subject } });
+  } catch (error) {
+    logger.error('Error sending email', error as Error, { metadata: { to: options.to, subject: options.subject } });
+    throw error;
+  }
 }
 
 export async function sendVerificationEmail(data: EmailVerificationData): Promise<void> {
@@ -113,7 +157,7 @@ export async function sendVerificationEmail(data: EmailVerificationData): Promis
 }
 
 export async function verifyEmailToken(token: string): Promise<string | null> {
-  // First, get the pending user without a transaction
+  // First, get the pending user
   const pendingUser = await prisma.pendingUser.findUnique({
     where: { token },
   });
@@ -125,93 +169,93 @@ export async function verifyEmailToken(token: string): Promise<string | null> {
   // Check if token has expired
   if (new Date() > pendingUser.expiresAt) {
     // Delete expired pending user
-    try {
-      await prisma.pendingUser.delete({
-        where: { id: pendingUser.id },
-      });
-    } catch (error) {
-      // Already deleted
-    }
+    await prisma.pendingUser.deleteMany({
+      where: { id: pendingUser.id },
+    });
     return null;
   }
 
+  const email = pendingUser.email.toLowerCase();
+
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
-    where: { email: pendingUser.email },
+    where: { email },
   });
 
   if (existingUser) {
-    // User already created, just delete the pending user and return the existing user ID
-    try {
-      await prisma.pendingUser.delete({
-        where: { id: pendingUser.id },
-      });
-    } catch (error) {
-      // Pending user might already be deleted in another request
-    }
+    // User already exists, clean up pending user and return
+    await prisma.pendingUser.deleteMany({
+      where: { id: pendingUser.id },
+    });
     return existingUser.id;
   }
 
-  // Try to create the user in a transaction
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Create the actual user
-      let userData: any = {
-        email: pendingUser.email,
-        password: pendingUser.password, // Already hashed
-        name: pendingUser.name,
-        phone: pendingUser.phone,
-      };
+  // Prepare user data
+  let userData: any = {
+    email,
+    password: pendingUser.password, // Already hashed
+    name: pendingUser.name,
+    phone: pendingUser.phone,
+  };
 
-      // If there's passkey data, prepare it for creation
-      if (pendingUser.passkeyData && typeof pendingUser.passkeyData === 'object') {
-        const passkeyData = pendingUser.passkeyData as any;
-        userData.passkeys = {
-          create: {
-            credentialId: passkeyData.credentialId,
-            credentialPublicKey: Buffer.from(passkeyData.credentialPublicKey, 'base64'),
-            counter: BigInt(passkeyData.counter),
-            deviceType: passkeyData.deviceType,
-            backedUp: passkeyData.backedUp,
-            transports: passkeyData.transports || [],
-            name: passkeyData.name,
-          },
-        };
-      }
+  // If there's passkey data, prepare it for creation
+  if (pendingUser.passkeyData && typeof pendingUser.passkeyData === 'object') {
+    const passkeyData = pendingUser.passkeyData as any;
+    userData.passkeys = {
+      create: {
+        credentialId: passkeyData.credentialId,
+        credentialPublicKey: Buffer.from(passkeyData.credentialPublicKey, 'base64'),
+        counter: BigInt(passkeyData.counter),
+        deviceType: passkeyData.deviceType,
+        backedUp: passkeyData.backedUp,
+        transports: passkeyData.transports || [],
+        name: passkeyData.name,
+      },
+    };
+  }
 
-      const user = await tx.user.create({
-        data: userData,
-      });
-
-      // Delete the pending user
-      await tx.pendingUser.delete({
-        where: { id: pendingUser.id },
-      });
-
-      return user.id;
+  // Use a transaction to handle the user creation atomically
+  const result = await prisma.$transaction(async (tx) => {
+    // Double-check if user exists within the transaction
+    const existingUserInTx = await tx.user.findUnique({
+      where: { email },
     });
 
-    return result;
-  } catch (error: any) {
-    // If user was created by another request (race condition)
-    if (error.code === 'P2002') {
-      const existingUser = await prisma.user.findUnique({
-        where: { email: pendingUser.email },
+    if (existingUserInTx) {
+      // User already exists, return it
+      return existingUserInTx;
+    }
+
+    // Create the new user
+    const newUser = await tx.user.create({
+      data: userData,
+    });
+
+    return newUser;
+  }).catch(async (error: any) => {
+    // If unique constraint error (user was created by another concurrent request)
+    if (error.code === 'P2002' || error.message?.includes('Unique constraint failed')) {
+      // Try to find the user that was created
+      const createdUser = await prisma.user.findUnique({
+        where: { email },
       });
-      if (existingUser) {
-        // Clean up pending user
-        try {
-          await prisma.pendingUser.delete({
-            where: { id: pendingUser.id },
-          });
-        } catch (deleteError) {
-          // Ignore if already deleted
-        }
-        return existingUser.id;
+
+      if (createdUser) {
+        return createdUser;
       }
     }
+    
+    // Re-throw other errors
     throw error;
-  }
+  });
+
+  // Clean up pending user after successful user creation
+  // Do this outside the transaction to avoid holding locks
+  await prisma.pendingUser.deleteMany({
+    where: { id: pendingUser.id },
+  });
+
+  return result.id;
 }
 
 export async function resendVerificationEmail(email: string): Promise<void> {

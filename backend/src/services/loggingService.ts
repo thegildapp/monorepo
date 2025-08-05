@@ -28,11 +28,44 @@ export interface LogEntry {
 class LoggingService {
   private isProcessing = false;
   private processInterval: NodeJS.Timeout | null = null;
+  private isDevelopment = process.env['NODE_ENV'] !== 'production';
 
   /**
    * Log an entry to Valkey queue (non-blocking)
    */
   async log(entry: LogEntry): Promise<void> {
+    // In development, log to console for immediate visibility
+    if (this.isDevelopment) {
+      const timestamp = new Date().toISOString();
+      const level = entry.level.toUpperCase();
+      const color = {
+        'INFO': '\x1b[36m',    // Cyan
+        'WARN': '\x1b[33m',    // Yellow
+        'ERROR': '\x1b[31m',   // Red
+        'DEBUG': '\x1b[90m',   // Gray
+      }[level] || '\x1b[0m';
+      
+      // Include key request details in the log message for better visibility
+      let logMessage = entry.message;
+      if (entry.method && entry.path) {
+        logMessage = `${entry.method} ${entry.path} - ${entry.message}`;
+      }
+      
+      console.log(`${color}[${timestamp}] [${level}]\x1b[0m ${logMessage}`);
+      
+      // Log additional context if present
+      if (entry.errorStack) {
+        console.error(entry.errorStack);
+      }
+      if (entry.metadata && Object.keys(entry.metadata).length > 0) {
+        console.log('Metadata:', entry.metadata);
+      }
+      
+      // Skip persistence in development
+      return;
+    }
+
+    // Only persist logs in production
     try {
       const valkey = getValkeyClient();
       const logData = {
@@ -115,6 +148,11 @@ class LoggingService {
    * Start background processing of logs
    */
   startProcessing(): void {
+    // Skip background processing in development
+    if (this.isDevelopment) {
+      return;
+    }
+    
     if (this.processInterval) return;
     
     // Process immediately

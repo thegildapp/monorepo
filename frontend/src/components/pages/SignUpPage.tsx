@@ -55,6 +55,7 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordText, setShowPasswordText] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const [commitRegister, isRegisterInFlight] = useMutation<authRegisterMutation>(RegisterMutation);
@@ -231,13 +232,34 @@ export default function SignUpPage() {
             />
             
             {(showPassword || !passkeySupported) && (
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className={styles.input}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPasswordText ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className={styles.input}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordText(!showPasswordText)}
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    color: 'var(--color-text-secondary)',
+                    fontFamily: 'Tinos, Georgia, serif',
+                  }}
+                  aria-label={showPasswordText ? 'Hide password' : 'Show password'}
+                >
+                  {showPasswordText ? 'Hide' : 'Show'}
+                </button>
+              </div>
             )}
             
             {error && <div className={styles.error}>{error}</div>}

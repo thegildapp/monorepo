@@ -695,6 +695,23 @@ const resolvers = {
     },
     
     login: async (_: any, { input }: { input: { email: string; password: string } }) => {
+      // Import rate limit service
+      const { checkRateLimit, RATE_LIMITS } = await import('./services/rateLimitService');
+      
+      // Rate limit login attempts
+      const loginRateLimit = await checkRateLimit(input.email.toLowerCase(), RATE_LIMITS.LOGIN);
+      if (!loginRateLimit.allowed) {
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'email',
+            message: `Too many login attempts. Please wait ${loginRateLimit.retryAfter} seconds.`,
+            code: 'RATE_LIMIT_EXCEEDED'
+          }]
+        };
+      }
+      
       // Find user
       const user = await prisma.user.findUnique({
         where: { email: input.email },
@@ -1210,6 +1227,139 @@ const resolvers = {
       } catch (error) {
         logger.error('Error resending verification email', error as Error, { metadata: { email } });
         return false;
+      }
+    },
+
+    requestPasswordReset: async (_: any, { email }: { email: string }, context: YogaInitialContext & Context) => {
+      const { requestPasswordReset } = await import('./services/passwordResetService');
+      
+      // Get IP address from request
+      const request = context.request;
+      const ipAddress = request.headers.get('x-forwarded-for') || 
+                       request.headers.get('x-real-ip') || 
+                       request.headers.get('cf-connecting-ip') || // Cloudflare
+                       'unknown';
+      
+      return await requestPasswordReset(email, ipAddress);
+    },
+
+    resetPassword: async (_: any, { token, newPassword }: { token: string; newPassword: string }) => {
+      const { resetPassword } = await import('./services/passwordResetService');
+      return await resetPassword(token, newPassword);
+    },
+
+    validatePasswordResetToken: async (_: any, { token }: { token: string }) => {
+      const { validatePasswordResetToken } = await import('./services/passwordResetService');
+      return await validatePasswordResetToken(token);
+    },
+
+    createPasskeyWithResetToken: async (_: any, { resetToken }: { resetToken: string }) => {
+      const { validatePasswordResetToken } = await import('./services/passwordResetService');
+      
+      // Validate the reset token first
+      const validation = await validatePasswordResetToken(resetToken);
+      
+      if (!validation.valid || !validation.user) {
+        return {
+          publicKey: null,
+          user: null,
+          errors: validation.errors
+        };
+      }
+      
+      // Generate passkey registration options for this user
+      const options = await generateRegistrationOptionsForUser(
+        validation.user.id,
+        validation.user.email,
+        validation.user.name
+      );
+      
+      return {
+        publicKey: JSON.stringify(options),
+        user: validation.user,
+        errors: []
+      };
+    },
+
+    verifyPasskeyWithResetToken: async (_: any, { resetToken, response, name }: { resetToken: string; response: string; name?: string }) => {
+      const { validatePasswordResetToken } = await import('./services/passwordResetService');
+      
+      // Validate the reset token first
+      const validation = await validatePasswordResetToken(resetToken);
+      
+      if (!validation.valid || !validation.user) {
+        return {
+          token: null,
+          user: null,
+          errors: validation.errors
+        };
+      }
+      
+      try {
+        // Verify the passkey registration
+        const verification = await verifyRegistration(
+          validation.user.id,
+          JSON.parse(response)
+        );
+        
+        if (!verification.verified || !verification.registrationInfo) {
+          return {
+            token: null,
+            user: null,
+            errors: [{
+              field: 'passkey',
+              message: 'Failed to verify passkey',
+              code: 'VERIFICATION_FAILED'
+            }]
+          };
+        }
+        
+        // Mark the reset token as used
+        await prisma.passwordResetToken.update({
+          where: { token: resetToken },
+          data: { usedAt: new Date() }
+        });
+        
+        // Extract properties from registrationInfo
+        const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+        const { publicKey: credentialPublicKey, id: credentialID, counter } = credential;
+        
+        // Save the passkey
+        await prisma.passkey.create({
+          data: {
+            userId: validation.user.id,
+            credentialId: credentialID,
+            credentialPublicKey: credentialPublicKey,
+            counter: BigInt(counter),
+            deviceType: credentialDeviceType,
+            backedUp: credentialBackedUp,
+            transports: JSON.parse(response).response.transports || [],
+            name: name || `Passkey ${new Date().toLocaleDateString()}`,
+          },
+        });
+        
+        // Generate auth token
+        const authToken = generateToken(validation.user.id);
+        
+        return {
+          token: authToken,
+          user: validation.user,
+          errors: []
+        };
+      } catch (error: any) {
+        logger.error('Failed to verify passkey with reset token', error, { 
+          metadata: { userId: validation.user.id } 
+        });
+        
+        return {
+          token: null,
+          user: null,
+          errors: [{
+            field: 'passkey',
+            message: 'Failed to add passkey',
+            code: 'PASSKEY_ERROR'
+          }]
+        };
       }
     },
   },

@@ -121,6 +121,13 @@ type Mutation {
   # View tracking
   trackListingView(listingId: ID!): TrackViewPayload!
   
+  # Password reset
+  requestPasswordReset(email: String!): PasswordResetRequestPayload!
+  resetPassword(token: String!, newPassword: String!): PasswordResetPayload!
+  validatePasswordResetToken(token: String!): PasswordResetTokenValidation!
+  createPasskeyWithResetToken(resetToken: String!): PasskeyResetPayload!
+  verifyPasskeyWithResetToken(resetToken: String!, response: String!, name: String): PasswordResetPayload!
+  
   # Email verification
   verifyEmail(token: String!): AuthPayload
   resendVerificationEmail(email: String!): Boolean!
@@ -257,5 +264,30 @@ type FieldError {
   field: String
   message: String!
   code: String
+}
+
+# Password Reset Payloads
+type PasswordResetRequestPayload {
+  success: Boolean!
+  message: String!
+  errors: [FieldError!]
+}
+
+type PasswordResetPayload {
+  user: User
+  token: String
+  errors: [FieldError!]
+}
+
+type PasswordResetTokenValidation {
+  valid: Boolean!
+  user: User
+  errors: [FieldError!]
+}
+
+type PasskeyResetPayload {
+  publicKey: String
+  user: User
+  errors: [FieldError!]
 }
 

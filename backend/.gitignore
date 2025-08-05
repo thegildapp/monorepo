@@ -13,3 +13,6 @@ yarn-error.log*
 coverage/
 .nyc_output/
 /src/generated/prisma
+
+# Database scripts with potential credentials
+scripts/reset-db.sh

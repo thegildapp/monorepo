@@ -58,7 +58,11 @@ const VERIFY_AUTH = graphql`
 `;
 
 interface PasskeyAuthProps {
-  onShowPassword: () => void;
+  onShowPassword?: () => void;
+  mode?: 'signin' | 'resetAccess';
+  resetToken?: string | null;
+  onSuccess?: (token: string) => void;
+  onError?: (message: string) => void;
 }
 
 export default function PasskeyAuth({ onShowPassword }: PasskeyAuthProps) {

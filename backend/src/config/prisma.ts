@@ -59,14 +59,14 @@ declare global {
 const prismaWrite = globalThis.prismaWrite ?? prismaWriteClientSingleton();
 const prismaRead = globalThis.prismaRead ?? prismaReadClientSingleton();
 
-// Log slow queries
+// Log slow queries (without sensitive params)
 prismaWrite.$on('query', (e) => {
   if (e.duration > 100) {
     logger.warn('Slow write query', {
       duration: e.duration,
       metadata: {
         query: e.query,
-        params: e.params,
+        // Don't log params as they may contain sensitive data (passwords, tokens, etc.)
         target: e.target,
       },
     });
@@ -79,7 +79,7 @@ prismaRead.$on('query', (e) => {
       duration: e.duration,
       metadata: {
         query: e.query,
-        params: e.params,
+        // Don't log params as they may contain sensitive data
         target: e.target,
       },
     });
@@ -88,6 +88,10 @@ prismaRead.$on('query', (e) => {
 
 // Log errors
 prismaWrite.$on('error', (e) => {
+  // Skip logging unique constraint errors as they're often handled in application code
+  if (e.message?.includes('Unique constraint failed')) {
+    return;
+  }
   logger.error('Prisma write error', new Error(e.message), {
     metadata: { target: e.target },
   });

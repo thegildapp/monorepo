@@ -18,6 +18,7 @@ model User {
   updatedAt DateTime  @updatedAt
   listings  Listing[]
   passkeys  Passkey[]
+  passwordResetTokens PasswordResetToken[]
   
   // Inquiry relationships
   sentInquiries     Inquiry[] @relation("BuyerInquiries")
@@ -75,6 +76,7 @@ model Listing {
   @@index([latitude, longitude])
   @@index([sellerId, createdAt(sort: Desc)])
   @@index([status])
+  @@index([status, latitude, longitude, createdAt(sort: Desc)])  // For geospatial queries with status filter
   
   @@map("listings")
 }
@@ -116,6 +118,8 @@ model Inquiry {
   // Indexes for performance
   @@index([sellerId, status])
   @@index([buyerId, status])
+  @@index([buyerId, createdAt(sort: Desc)])  // For buyer's inquiry list sorted by date
+  @@index([sellerId, createdAt(sort: Desc)])  // For seller's inquiry list sorted by date
   @@index([listingId])
   
   @@map("inquiries")
@@ -134,5 +138,20 @@ model PendingUser {
   
   @@index([expiresAt])
   @@map("pending_users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 

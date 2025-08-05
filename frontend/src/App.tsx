@@ -13,6 +13,8 @@ import EditProfilePage from './components/pages/EditProfilePage';
 import ListingManagementPage from './components/pages/ListingManagementPage';
 import EditListingPage from './components/pages/EditListingPage';
 import VerifyEmailPage from './components/pages/VerifyEmailPage';
+import ForgotPasswordPage from './components/pages/ForgotPasswordPage';
+import ResetPasswordPage from './components/pages/ResetPasswordPage';
 import ScrollToTop from './components/utils/ScrollToTop';
 import AboutPage from './components/pages/AboutPage';
 
@@ -33,6 +35,8 @@ function App() {
             <Route path="/me" element={<ProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/me/profile" element={<EditProfilePage />} errorElement={<PageErrorBoundary />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} errorElement={<PageErrorBoundary />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} errorElement={<PageErrorBoundary />} />
             <Route path="/about" element={<AboutPage />} errorElement={<PageErrorBoundary />} />
           </Routes>
         </ScrollVisibilityProvider>
