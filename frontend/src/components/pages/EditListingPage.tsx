@@ -19,6 +19,9 @@ import type { EditListingPage_listing$key } from '../../__generated__/EditListin
 import type { Photo } from '../../types/Photo';
 import styles from './EditListingPage.module.css';
 
+// Constants should match those in ListingPhotosField
+const MIN_PHOTOS = 3;
+
 const EditListingQuery = graphql`
   query EditListingPageQuery($id: ID!) {
     listing(id: $id) {
@@ -104,8 +107,8 @@ function EditListingView({ listingRef }: { listingRef: EditListingPage_listing$k
         .filter(photo => photo.dataUrl)
         .map(photo => photo.dataUrl);
       
-      if (imageUrls.length < 3) {
-        throw new Error('Please add at least 3 photos');
+      if (imageUrls.length < MIN_PHOTOS) {
+        throw new Error(`Please add at least ${MIN_PHOTOS} photos`);
       }
       
       commitUpdate({

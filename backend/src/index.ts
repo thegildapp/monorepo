@@ -18,6 +18,7 @@ import {
   verifyAuthentication
 } from './utils/webauthn';
 import { inquiryResolvers } from './graphql/inquiryResolvers';
+import { MIN_LISTING_IMAGES, MAX_LISTING_IMAGES } from './constants';
 import { closeValkeyClient } from './utils/valkey';
 import { 
   trackListingView, 
@@ -388,12 +389,12 @@ const resolvers = {
       }
       
       // Validate images
-      if (!input.images || input.images.length < 3) {
-        throw new Error('A listing must have at least 3 images');
+      if (!input.images || input.images.length < MIN_LISTING_IMAGES) {
+        throw new Error(`A listing must have at least ${MIN_LISTING_IMAGES} images`);
       }
       
-      if (input.images.length > 20) {
-        throw new Error('A listing cannot have more than 20 images');
+      if (input.images.length > MAX_LISTING_IMAGES) {
+        throw new Error(`A listing cannot have more than ${MAX_LISTING_IMAGES} images`);
       }
       
       // Create listing with PENDING status by default
@@ -566,12 +567,12 @@ const resolvers = {
       
       // Validate images if provided
       if (input.images) {
-        if (input.images.length < 3) {
-          throw new Error('A listing must have at least 3 images');
+        if (input.images.length < MIN_LISTING_IMAGES) {
+          throw new Error(`A listing must have at least ${MIN_LISTING_IMAGES} images`);
         }
         
-        if (input.images.length > 20) {
-          throw new Error('A listing cannot have more than 20 images');
+        if (input.images.length > MAX_LISTING_IMAGES) {
+          throw new Error(`A listing cannot have more than ${MAX_LISTING_IMAGES} images`);
         }
       }
       

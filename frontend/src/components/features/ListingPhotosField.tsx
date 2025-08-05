@@ -8,6 +8,10 @@ interface ListingPhotosFieldProps {
   onPhotosChange: (photos: Photo[]) => void;
 }
 
+const MIN_PHOTOS = 3;
+const MAX_PHOTOS = 10;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+
 const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   label,
   photos = [],
@@ -35,9 +39,6 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || !workerRef.current) return;
-
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
-    const MAX_PHOTOS = 20;
     
     // Check if we've reached the maximum number of photos
     if (photos.length >= MAX_PHOTOS) {
@@ -316,7 +317,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                 </button>
               </div>
             ))}
-            {photos.length < 20 && (
+            {photos.length < MAX_PHOTOS && (
               <button
                 type="button"
                 className={styles.addMoreButton}
@@ -334,7 +335,7 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
       </div>
 
       <p className={styles.helpText}>
-        {photos.length} photo{photos.length !== 1 ? 's' : ''} selected (min 3, max 20)
+        {photos.length} photo{photos.length !== 1 ? 's' : ''} selected (min {MIN_PHOTOS}, max {MAX_PHOTOS})
       </p>
     </div>
   );
