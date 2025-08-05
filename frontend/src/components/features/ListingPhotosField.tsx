@@ -37,20 +37,29 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
     if (!files || !workerRef.current) return;
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+    const MAX_PHOTOS = 20;
+    
+    // Check if we've reached the maximum number of photos
+    if (photos.length >= MAX_PHOTOS) {
+      return;
+    }
+    
     const validFiles = Array.from(files).filter(file => {
       if (!file.type.startsWith('image/')) {
-        console.warn(`File ${file.name} is not an image`);
         return false;
       }
       if (file.size > MAX_FILE_SIZE) {
-        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
         return false;
       }
       return true;
     });
     
+    // Limit the number of files to add based on current count
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    const filesToAdd = validFiles.slice(0, remainingSlots);
+    
     // Add loading placeholders immediately
-    const tempPhotos: Photo[] = validFiles.map((file, index) => ({
+    const tempPhotos: Photo[] = filesToAdd.map((file, index) => ({
       id: `${Date.now()}-${index}-${Math.random()}`,
       file,
       dataUrl: '',
@@ -307,23 +316,25 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
                 </button>
               </div>
             ))}
-            <button
-              type="button"
-              className={styles.addMoreButton}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>Add more</span>
-            </button>
+            {photos.length < 20 && (
+              <button
+                type="button"
+                className={styles.addMoreButton}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add more</span>
+              </button>
+            )}
           </div>
         )}
       </div>
 
       <p className={styles.helpText}>
-        {photos.length} photo{photos.length !== 1 ? 's' : ''} selected
+        {photos.length} photo{photos.length !== 1 ? 's' : ''} selected (min 3, max 20)
       </p>
     </div>
   );

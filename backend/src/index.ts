@@ -387,6 +387,15 @@ const resolvers = {
         throw new Error('You must be logged in to create a listing');
       }
       
+      // Validate images
+      if (!input.images || input.images.length < 3) {
+        throw new Error('A listing must have at least 3 images');
+      }
+      
+      if (input.images.length > 20) {
+        throw new Error('A listing cannot have more than 20 images');
+      }
+      
       // Create listing with PENDING status by default
       const listing = await prismaWrite.listing.create({
         data: {
@@ -553,6 +562,17 @@ const resolvers = {
       
       if (listing.sellerId !== context.userId) {
         throw new Error('You can only update your own listings');
+      }
+      
+      // Validate images if provided
+      if (input.images) {
+        if (input.images.length < 3) {
+          throw new Error('A listing must have at least 3 images');
+        }
+        
+        if (input.images.length > 20) {
+          throw new Error('A listing cannot have more than 20 images');
+        }
       }
       
       const updatedListing = await prismaWrite.listing.update({
