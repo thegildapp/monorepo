@@ -84,8 +84,8 @@ export const UpdateListingMutation = graphql`
 `;
 
 export const GenerateUploadUrlMutation = graphql`
-  mutation listingsGenerateUploadUrlMutation($filename: String!, $contentType: String!) {
-    generateUploadUrl(filename: $filename, contentType: $contentType) {
+  mutation listingsGenerateUploadUrlMutation($filename: String!, $contentType: String!, $fileSize: Int) {
+    generateUploadUrl(filename: $filename, contentType: $contentType, fileSize: $fileSize) {
       url
       key
     }

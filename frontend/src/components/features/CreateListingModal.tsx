@@ -69,6 +69,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             variables: {
               filename: photo.file.name,
               contentType: photo.file.type,
+              fileSize: photo.file.size,
             },
             onCompleted: resolve,
             onError: reject,

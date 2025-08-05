@@ -36,7 +36,18 @@ const ListingPhotosField: React.FC<ListingPhotosFieldProps> = ({
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || !workerRef.current) return;
 
-    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+    const validFiles = Array.from(files).filter(file => {
+      if (!file.type.startsWith('image/')) {
+        console.warn(`File ${file.name} is not an image`);
+        return false;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+        return false;
+      }
+      return true;
+    });
     
     // Add loading placeholders immediately
     const tempPhotos: Photo[] = validFiles.map((file, index) => ({

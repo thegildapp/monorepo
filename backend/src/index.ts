@@ -442,7 +442,7 @@ const resolvers = {
       };
     },
     
-    generateUploadUrl: async (_: any, { filename, contentType }: { filename: string; contentType: string }, context: YogaInitialContext & Context) => {
+    generateUploadUrl: async (_: any, { filename, contentType, fileSize }: { filename: string; contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to upload files');
       }
@@ -451,6 +451,12 @@ const resolvers = {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!allowedTypes.includes(contentType)) {
         throw new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      }
+      
+      // Validate file size (10MB limit)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      if (fileSize && fileSize > MAX_FILE_SIZE) {
+        throw new Error('File size exceeds the maximum limit of 10MB.');
       }
       
       // Generate unique key for the file
@@ -464,6 +470,7 @@ const resolvers = {
         Key: key,
         ContentType: contentType,
         ACL: 'public-read',
+        ContentLength: fileSize, // Add content length constraint
       });
       
       try {
@@ -482,7 +489,7 @@ const resolvers = {
       }
     },
     
-    generateAvatarUploadUrl: async (_: any, { filename, contentType }: { filename: string; contentType: string }, context: YogaInitialContext & Context) => {
+    generateAvatarUploadUrl: async (_: any, { filename, contentType, fileSize }: { filename: string; contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to upload an avatar');
       }
@@ -491,6 +498,12 @@ const resolvers = {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!allowedTypes.includes(contentType)) {
         throw new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      }
+      
+      // Validate file size (5MB limit for avatars)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      if (fileSize && fileSize > MAX_FILE_SIZE) {
+        throw new Error('File size exceeds the maximum limit of 5MB for avatars.');
       }
       
       // Generate unique key for the avatar
@@ -504,6 +517,7 @@ const resolvers = {
         Key: key,
         ContentType: contentType,
         ACL: 'public-read',
+        ContentLength: fileSize, // Add content length constraint
       });
       
       try {
