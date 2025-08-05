@@ -78,7 +78,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   hideRadius = false
 }) => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(currentLocation)
-  const [selectedRadius, setSelectedRadius] = useState(radius)
+  const [selectedRadius, setSelectedRadius] = useState(Math.max(10, radius))
   const [searchText, setSearchText] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [recentLocations, setRecentLocations] = useState<Array<{
@@ -113,9 +113,6 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       return 15
     } else {
       // Radius selection mode - zoom out to show full radius
-      if (radiusMiles <= 1) return 13
-      if (radiusMiles <= 3) return 12
-      if (radiusMiles <= 5) return 11
       if (radiusMiles <= 10) return 10
       if (radiusMiles <= 20) return 9
       if (radiusMiles <= 30) return 8
@@ -155,6 +152,11 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       setSelectedLocation(currentLocation)
     }
   }, [currentLocation])
+
+  useEffect(() => {
+    // Update selectedRadius when radius prop changes
+    setSelectedRadius(Math.max(10, radius))
+  }, [radius])
 
   const reverseGeocode = async (lat: number, lng: number, updateSelectedLocation = true) => {
     setIsGeocoding(true)
@@ -546,7 +548,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 <span className="radius-label">{selectedRadius} mile{selectedRadius !== 1 ? 's' : ''}</span>
                 <input
                   type="range"
-                  min="1"
+                  min="10"
                   max="50"
                   value={selectedRadius}
                   onChange={(e) => {

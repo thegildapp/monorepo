@@ -126,9 +126,11 @@ async function searchWithOpenSearch(options: SearchOptions): Promise<SearchResul
 
   // Add geospatial filter
   if (filters?.latitude && filters?.longitude && filters?.radius) {
+    // Enforce minimum radius of 10 miles
+    const radiusInMiles = Math.max(10, filters.radius);
     searchBody.query.bool.filter.push({
       geo_distance: {
-        distance: `${filters.radius}mi`,
+        distance: `${radiusInMiles}mi`,
         location: {
           lat: filters.latitude,
           lon: filters.longitude
@@ -264,9 +266,11 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
 
   // Add geospatial filter using Haversine formula for distance calculation
   if (filters?.latitude && filters?.longitude && filters?.radius) {
+    // Enforce minimum radius of 10 miles
+    const radiusInMiles = Math.max(10, filters.radius);
     // Convert radius from miles to degrees (approximate)
     // 1 degree of latitude ≈ 69 miles
-    const radiusInDegrees = filters.radius / 69;
+    const radiusInDegrees = radiusInMiles / 69;
     
     // Create a bounding box for initial filtering (more efficient)
     const minLat = filters.latitude - radiusInDegrees;
@@ -308,6 +312,8 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
   // Filter by exact distance if geospatial filter was applied
   let filteredListings = listings;
   if (filters?.latitude && filters?.longitude && filters?.radius) {
+    // Enforce minimum radius of 10 miles
+    const radiusInMiles = Math.max(10, filters.radius);
     filteredListings = listings.filter((listing: any) => {
       if (!listing.latitude || !listing.longitude) return false;
       const distance = calculateDistance(
@@ -316,7 +322,7 @@ async function searchWithDatabase(options: SearchOptions): Promise<SearchResult>
         listing.latitude,
         listing.longitude
       );
-      return distance <= filters.radius!;
+      return distance <= radiusInMiles;
     });
   }
 

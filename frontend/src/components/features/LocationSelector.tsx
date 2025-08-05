@@ -46,7 +46,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onLocationChange, h
       try {
         const loc = JSON.parse(savedLocation)
         setLocation(loc)
-        const rad = savedRadius ? parseInt(savedRadius) : DEFAULT_RADIUS
+        const rad = savedRadius ? Math.max(10, parseInt(savedRadius)) : DEFAULT_RADIUS
         setRadius(rad)
         onLocationChange(loc, rad)
       } catch (e) {
