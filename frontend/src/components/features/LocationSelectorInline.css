@@ -9,6 +9,7 @@
   cursor: pointer;
   transition: opacity 0.2s ease;
   font-family: 'Tinos', serif;
+  color: #000;
 }
 
 .location-selector-inline:hover {
@@ -19,7 +20,7 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  color: inherit;
+  color: #000;
 }
 
 .location-text {
@@ -30,15 +31,15 @@
 
 @media (max-width: 640px) {
   .location-selector-inline {
-    padding: 6px 10px;
+    padding: 0;
   }
 
   .location-text {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .location-icon {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
 }

@@ -50,20 +50,15 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
     <header className={`${styles.header} ${!isHeaderVisible && isMobile ? styles.headerHidden : ''}`}>
       <div className={styles.headerContent}>
         <div className={styles.leftSection}>
-          <button className={styles.profileButton} onClick={handleProfileClick}>
-            {user ? (
+          {user && (
+            <button className={styles.profileButton} onClick={handleProfileClick}>
               <Avatar 
                 src={user.avatarUrl} 
                 name={user.name} 
                 size="small"
               />
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="6.5" r="5" fill="white"/>
-                <path d="M0 26c0-6.63 5.37-12 12-12s12 5.37 12 12" fill="white"/>
-              </svg>
-            )}
-          </button>
+            </button>
+          )}
           {onBackClick && (
             <button className={styles.backButton} onClick={onBackClick}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -143,6 +138,15 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
           
           {showSearch && (
             <HeaderSearch className={styles.headerSearch} />
+          )}
+          
+          {!user && (
+            <button
+              onClick={() => navigate('/signin')}
+              className={styles.headerActionLink}
+            >
+              Sign in
+            </button>
           )}
         </div>
       </div>
