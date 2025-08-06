@@ -37,7 +37,6 @@ const MyListingsQuery = graphql`
           name
           avatarUrl
         }
-        contactEmail
         contactPhone
         createdAt
         respondedAt
@@ -173,18 +172,11 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
                         <span className={styles.offerPending}>Sent {formatDate(inquiry.createdAt)}</span>
                       ) : inquiry.status === 'REJECTED' ? (
                         <span className={styles.offerRejected}>Offer rejected</span>
-                      ) : inquiry.status === 'ACCEPTED' && (inquiry.contactEmail || inquiry.contactPhone) ? (
+                      ) : inquiry.status === 'ACCEPTED' && inquiry.contactPhone ? (
                         <div className={styles.contactInfo}>
-                          {inquiry.contactEmail && (
-                            <a href={`mailto:${inquiry.contactEmail}`} onClick={(e) => e.stopPropagation()} className={styles.contactLink}>
-                              {inquiry.contactEmail}
-                            </a>
-                          )}
-                          {inquiry.contactPhone && (
-                            <span className={styles.contactPhone}>
-                              {formatPhoneForDisplay(inquiry.contactPhone)}
-                            </span>
-                          )}
+                          <span className={styles.contactPhone}>
+                            {formatPhoneForDisplay(inquiry.contactPhone)}
+                          </span>
                         </div>
                       ) : (
                         <span className={styles.offerAccepted}>Contact shared</span>
@@ -236,18 +228,11 @@ function ProfilePageContent({ onCreateClick }: { onCreateClick: () => void }) {
                         </div>
                         
                         <div className={styles.contactBox}>
-                          {inquiry.contactEmail || inquiry.contactPhone ? (
+                          {inquiry.contactPhone ? (
                             <div className={styles.contactInfo}>
-                              {inquiry.contactEmail && (
-                                <a href={`mailto:${inquiry.contactEmail}`} onClick={(e) => e.stopPropagation()} className={styles.contactLink}>
-                                  {inquiry.contactEmail}
-                                </a>
-                              )}
-                              {inquiry.contactPhone && (
-                                <span className={styles.contactPhone}>
-                                  {formatPhoneForDisplay(inquiry.contactPhone)}
-                                </span>
-                              )}
+                              <span className={styles.contactPhone}>
+                                {formatPhoneForDisplay(inquiry.contactPhone)}
+                              </span>
                             </div>
                           ) : null}
                         </div>

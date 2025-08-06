@@ -114,9 +114,9 @@ type Mutation {
   
   # Inquiry mutations
   requestContact(listingId: ID!): RequestContactPayload!
-  acceptContactRequest(inquiryId: ID!, shareEmail: Boolean!, sharePhone: Boolean!): AcceptContactPayload!
+  acceptContactRequest(inquiryId: ID!): AcceptContactPayload!
   rejectContactRequest(inquiryId: ID!): RejectContactPayload!
-  respondToInquiry(inquiryId: ID!, accept: Boolean!, shareEmail: Boolean!, sharePhone: Boolean!): RespondToInquiryPayload!
+  respondToInquiry(inquiryId: ID!, accept: Boolean!): RespondToInquiryPayload!
   
   # View tracking
   trackListingView(listingId: ID!): TrackViewPayload!
@@ -218,7 +218,6 @@ type Inquiry {
   status: InquiryStatus!
   
   # Contact info (only visible when status is ACCEPTED)
-  contactEmail: String
   contactPhone: String
   
   createdAt: String!

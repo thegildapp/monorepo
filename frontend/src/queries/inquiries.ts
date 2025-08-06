@@ -32,7 +32,6 @@ export const InquiryFragment = graphql`
       id
       title
     }
-    contactEmail
     contactPhone
     createdAt
     respondedAt
@@ -52,12 +51,11 @@ export const MyInquiriesQuery = graphql`
 `;
 
 export const RespondToInquiryMutation = graphql`
-  mutation inquiriesRespondToInquiryMutation($inquiryId: ID!, $accept: Boolean!, $shareEmail: Boolean!, $sharePhone: Boolean!) {
-    respondToInquiry(inquiryId: $inquiryId, accept: $accept, shareEmail: $shareEmail, sharePhone: $sharePhone) {
+  mutation inquiriesRespondToInquiryMutation($inquiryId: ID!, $accept: Boolean!) {
+    respondToInquiry(inquiryId: $inquiryId, accept: $accept) {
       inquiry {
         id
         status
-        contactEmail
         contactPhone
         respondedAt
       }

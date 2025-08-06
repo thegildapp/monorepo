@@ -236,11 +236,7 @@ export const inquiryResolvers = {
 
     acceptContactRequest: async (
       _: any,
-      { inquiryId, shareEmail, sharePhone }: {
-        inquiryId: string;
-        shareEmail: boolean;
-        sharePhone: boolean;
-      },
+      { inquiryId }: { inquiryId: string },
       context: GraphQLContext
     ) => {
       if (!context.userId) {
@@ -294,11 +290,16 @@ export const inquiryResolvers = {
           };
         }
 
-        // Must share at least one contact method
-        if (!shareEmail && !sharePhone) {
+        // Check if seller has phone number
+        const seller = await context.prisma.user.findUnique({
+          where: { id: context.userId },
+          select: { phone: true }
+        });
+
+        if (!seller?.phone) {
           return {
             inquiry: null,
-            errors: [{ field: null, message: 'Must share at least one contact method' }]
+            errors: [{ field: null, message: 'You must add a phone number before accepting inquiries' }]
           };
         }
 
@@ -307,8 +308,6 @@ export const inquiryResolvers = {
           where: { id: inquiryId },
           data: {
             status: 'ACCEPTED',
-            shareEmail,
-            sharePhone,
             respondedAt: new Date()
           },
           include: {
@@ -436,11 +435,9 @@ export const inquiryResolvers = {
     
     respondToInquiry: async (
       _: any,
-      { inquiryId, accept, shareEmail, sharePhone }: {
+      { inquiryId, accept }: {
         inquiryId: string;
         accept: boolean;
-        shareEmail: boolean;
-        sharePhone: boolean;
       },
       context: GraphQLContext
     ) => {
@@ -495,13 +492,26 @@ export const inquiryResolvers = {
           };
         }
 
+        // If accepting, check if seller has phone number
+        if (accept) {
+          const seller = await context.prisma.user.findUnique({
+            where: { id: context.userId },
+            select: { phone: true }
+          });
+
+          if (!seller?.phone) {
+            return {
+              inquiry: null,
+              errors: [{ field: null, message: 'You must add a phone number before accepting inquiries' }]
+            };
+          }
+        }
+
         // Update the inquiry
         const updatedInquiry = await context.prisma.inquiry.update({
           where: { id: inquiryId },
           data: {
             status: accept ? 'ACCEPTED' : 'REJECTED',
-            shareEmail: accept ? shareEmail : false,
-            sharePhone: accept ? sharePhone : false,
             respondedAt: new Date()
           },
           include: {
@@ -537,23 +547,8 @@ export const inquiryResolvers = {
 
   Inquiry: {
     // Only show contact info if status is ACCEPTED and user is the buyer
-    contactEmail: async (inquiry: any, _: any, context: GraphQLContext) => {
-      if (inquiry.status !== 'ACCEPTED' || !inquiry.shareEmail) {
-        return null;
-      }
-      if (context.userId !== inquiry.buyerId) {
-        return null;
-      }
-      // Fetch seller with email since it's not included in safeUserSelect
-      const seller = await context.prisma.user.findUnique({
-        where: { id: inquiry.sellerId },
-        select: { email: true }
-      });
-      return seller?.email || null;
-    },
-    
     contactPhone: async (inquiry: any, _: any, context: GraphQLContext) => {
-      if (inquiry.status !== 'ACCEPTED' || !inquiry.sharePhone) {
+      if (inquiry.status !== 'ACCEPTED') {
         return null;
       }
       if (context.userId !== inquiry.buyerId) {

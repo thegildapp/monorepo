@@ -53,7 +53,6 @@ const ListingFragment = graphql`
         id
         title
       }
-      contactEmail
       contactPhone
       createdAt
       respondedAt
@@ -118,9 +117,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
     commitRespond({
       variables: {
         inquiryId,
-        accept,
-        shareEmail: false,
-        sharePhone: accept
+        accept
       },
       onCompleted: (response) => {
         if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {
@@ -147,9 +144,7 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
       commitRespond({
         variables: {
           inquiryId: pendingInquiryId,
-          accept: true,
-          shareEmail: false,
-          sharePhone: true
+          accept: true
         },
         onCompleted: (response) => {
           if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {

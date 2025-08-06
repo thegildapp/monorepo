@@ -13,7 +13,6 @@ interface InquiryCardProps {
     status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
     createdAt: string;
     respondedAt?: string | null;
-    contactEmail?: string | null;
   };
   onAccept?: (id: string) => void;
   onReject?: (id: string) => void;
@@ -86,7 +85,7 @@ const InquiryCard: React.FC<InquiryCardProps> = ({
       </div>
       
       
-      {isAccepted && inquiry.contactEmail && (
+      {isAccepted && (
         <div className={styles.status}>
           Contact info shared
         </div>
