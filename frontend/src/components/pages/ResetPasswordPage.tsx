@@ -58,7 +58,6 @@ export default function ResetPasswordPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(true);
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
@@ -132,13 +131,8 @@ export default function ResetPasswordPage() {
       },
       onCompleted: (response) => {
         setIsLoading(false);
-        if (response.resetPassword.user && response.resetPassword.token) {
-          setAuthToken(response.resetPassword.token);
-          localStorage.setItem('authToken', response.resetPassword.token);
+        if (response.resetPassword.user) {
           setShowSuccess(true);
-          setTimeout(() => {
-            navigate('/');
-          }, 2000);
         } else if (response.resetPassword.errors && response.resetPassword.errors.length > 0) {
           const errorMap: Record<string, string> = {};
           response.resetPassword.errors.forEach((error) => {
@@ -160,12 +154,8 @@ export default function ResetPasswordPage() {
   };
 
   const handlePasskeySuccess = (token: string) => {
-    setAuthToken(token);
-    localStorage.setItem('authToken', token);
+    // Don't auto-sign in, just show success
     setShowSuccess(true);
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
   };
 
   if (isValidating) {
@@ -214,11 +204,15 @@ export default function ResetPasswordPage() {
         <Main>
           <div className={styles.container}>
             <div className={styles.form}>
-              <h1 className={styles.title}>Account access restored!</h1>
+              <h1 className={styles.title}>{mode === 'passkey' ? 'Passkey added successfully!' : 'Password reset successful!'}</h1>
               <p className={styles.subtitle}>
-                {mode === 'passkey' ? 'Your passkey has been added successfully.' : 'Your password has been reset successfully.'}
-                <br />Redirecting to your account...
+                {mode === 'passkey' 
+                  ? 'Your passkey has been added successfully. You can now sign in with your passkey.'
+                  : 'Your password has been reset successfully. You can now sign in with your new password.'}
               </p>
+              <Link to="/signin" className={styles.primaryButton}>
+                Go to Sign In
+              </Link>
             </div>
           </div>
         </Main>

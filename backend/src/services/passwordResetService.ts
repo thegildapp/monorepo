@@ -5,7 +5,6 @@ import { checkRateLimit, RATE_LIMITS } from './rateLimitService';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { addHours } from 'date-fns';
-import { generateToken } from '../utils/auth';
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 const FRONTEND_URL = process.env['FRONTEND_URL'] || 'http://localhost:5173';
@@ -350,12 +349,9 @@ export async function resetPassword(token: string, newPassword: string) {
       });
     }
 
-    // Generate auth token for the user
-    const authToken = generateToken(updatedUser.id);
-
     return {
       user: updatedUser,
-      token: authToken,
+      token: null,
       errors: []
     };
   } catch (error) {
