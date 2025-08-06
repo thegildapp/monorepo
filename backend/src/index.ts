@@ -452,7 +452,7 @@ const resolvers = {
       };
     },
     
-    generateUploadUrl: async (_: any, { filename, contentType, fileSize }: { filename: string; contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
+    generateUploadUrl: async (_: any, { contentType, fileSize }: { contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to upload files');
       }
@@ -501,7 +501,7 @@ const resolvers = {
       }
     },
     
-    generateAvatarUploadUrl: async (_: any, { filename, contentType, fileSize }: { filename: string; contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
+    generateAvatarUploadUrl: async (_: any, { contentType, fileSize }: { contentType: string; fileSize?: number }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to upload an avatar');
       }
