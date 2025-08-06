@@ -1,129 +1,30 @@
 .container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: calc(100vh - 120px);
-  padding: var(--space-6);
   width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 .content {
+  padding: 40px 24px;
   width: 100%;
-  max-width: 480px;
 }
 
-.title {
-  font-size: 32px;
-  font-weight: 400;
-  margin: 0 0 var(--space-8) 0;
-  color: var(--color-text-primary);
-  line-height: 1.2;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.input {
-  width: 100%;
-  padding: var(--space-3) 0;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  background: transparent;
-  font-size: 16px;
-  font-family: inherit;
-  color: var(--color-text-primary);
-  transition: border-color 0.2s;
-}
-
-.input:focus {
-  outline: none;
-  border-bottom-color: var(--color-text-primary);
-}
-
-.input::placeholder {
-  color: var(--color-text-muted);
-}
-
-.error {
-  color: #c00;
-  font-size: 14px;
-  margin-top: var(--space-2);
-}
-
-.buttonGroup {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-}
-
-.submitButton {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-text-primary);
-  color: white;
-  border: none;
-  border-radius: 2px;
-  font-size: 15px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  font-family: inherit;
-}
-
-.submitButton:hover:not(:disabled) {
-  opacity: 0.8;
-}
-
-.submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.cancelButton {
-  padding: var(--space-3) var(--space-4);
-  background: none;
-  color: var(--color-text-secondary);
-  border: none;
-  font-size: 15px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: color 0.2s;
-  font-family: inherit;
-  text-decoration: underline;
-}
-
-.cancelButton:hover {
-  color: var(--color-text-primary);
-}
-
-.avatarSection {
-  margin-top: var(--space-4);
-}
-
-.avatarLabel {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-3);
-}
-
-.avatarContainer {
+.profileHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 24px;
+  margin-bottom: 32px;
+  position: relative;
 }
 
-.avatarPreview {
-  width: 80px;
-  height: 80px;
+.avatarWrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--color-bg-secondary);
-  flex-shrink: 0;
 }
 
 .avatarImage {
@@ -138,62 +39,230 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-muted);
+  background: rgba(0, 0, 0, 0.1);
+  font-size: 40px;
+  font-weight: normal;
+  color: rgba(0, 0, 0, 0.6);
 }
 
-.avatarActions {
+.avatarOverlay {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.avatarWrapper:hover .avatarOverlay {
+  opacity: 1;
 }
 
 .fileInput {
   display: none;
 }
 
-.uploadButton {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 2px;
-  font-size: 14px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-family: inherit;
+.changeAvatarIcon {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  pointer-events: none;
 }
 
-.uploadButton:hover:not(:disabled) {
-  background: var(--color-bg-tertiary);
+.profileInfo {
+  flex: 1;
+  min-width: 0;
 }
 
-.uploadButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.profileName {
+  font-size: 28px;
+  font-weight: normal;
+  margin: 0 0 4px 0;
+  color: #000;
+  line-height: 1.2;
 }
 
-.removeButton {
-  padding: var(--space-2) var(--space-3);
-  background: none;
-  color: var(--color-text-secondary);
+.nameInput {
+  width: 100%;
+  font-size: 28px;
+  font-weight: normal;
+  margin: 0 0 4px 0;
+  padding: 0;
   border: none;
-  font-size: 14px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: color 0.2s;
+  border-bottom: 2px solid #000;
+  background: transparent;
+  color: #000;
+  line-height: 1.2;
   font-family: inherit;
 }
 
-.removeButton:hover {
-  color: #c00;
+.nameInput:focus {
+  outline: none;
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: var(--space-4);
+.nameInput::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.profileEmail {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+}
+
+.headerActions {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 32px 0;
+}
+
+.section {
+  margin: 32px 0;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: normal;
+  margin: 0 0 16px 0;
+  color: #000;
+  line-height: 1.3;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.infoLabel {
+  flex: 0 0 80px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: normal;
+}
+
+.infoValue {
+  flex: 1;
+  font-size: 16px;
+  color: #000;
+  line-height: 1.4;
+}
+
+.infoInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  background: white;
+  font-size: 16px;
+  font-family: inherit;
+  color: #000;
+  transition: border-color 0.2s;
+}
+
+.infoInput:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.infoInput::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.placeholder {
+  color: rgba(0, 0, 0, 0.4);
+  font-style: italic;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  color: #991b1b;
+  font-size: 14px;
+  padding: 12px;
+  line-height: 1.4;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .content {
+    padding: 24px 16px;
   }
 
-  .title {
-    font-size: 28px;
+  .profileHeader {
+    gap: 16px;
+  }
+
+  .avatarWrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 32px;
+  }
+
+  .profileName {
+    font-size: 24px;
+  }
+
+  .nameInput {
+    font-size: 24px;
+  }
+
+  .divider {
+    margin: 24px 0;
+  }
+
+  .section {
+    margin: 24px 0;
+  }
+
+  .infoRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .infoLabel {
+    flex: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .infoValue,
+  .infoInput {
+    width: 100%;
+  }
+
+  .actionButtons {
+    flex-direction: column;
   }
 }

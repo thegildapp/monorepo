@@ -20,7 +20,7 @@ export default function Header({ logoText, categoryName, onBackClick, showSearch
   const { user, logout } = useAuth();
   const { isHeaderVisible, isMobile } = useScrollVisibility();
   
-  const isOnProfilePage = location.pathname === '/me';
+  const isOnProfilePage = location.pathname === '/me' || location.pathname === '/me/profile';
 
   const handleLogoClick = () => {
     if (location.pathname !== '/') {

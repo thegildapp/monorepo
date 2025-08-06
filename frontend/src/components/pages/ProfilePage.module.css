@@ -335,6 +335,12 @@
   flex-shrink: 0;
 }
 
+.contactPhone {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .separator {
   color: var(--color-text-secondary);
 }

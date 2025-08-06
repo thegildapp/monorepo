@@ -4,36 +4,96 @@ import { useMutation } from 'react-relay';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import Header from '../layout/Header';
+import CreateListingModal from '../features/CreateListingModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { UpdateProfileMutation, GenerateAvatarUploadUrlMutation } from '../../queries/auth';
 import type { authUpdateProfileMutation } from '../../__generated__/authUpdateProfileMutation.graphql';
 import type { authGenerateAvatarUploadUrlMutation } from '../../__generated__/authGenerateAvatarUploadUrlMutation.graphql';
+import Avatar from '../common/Avatar';
+import Button from '../common/Button';
 import styles from './EditProfilePage.module.css';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const { user, updateUser, isLoading } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Format phone number for display
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else if (phoneNumber.length <= 10) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6)}`;
+    } else {
+      // Handle international format with country code
+      return `+${phoneNumber.slice(0, phoneNumber.length - 10)} (${phoneNumber.slice(-10, -7)}) ${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
+    }
+  };
+
+  // Handle phone input change
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    // Allow only digits, spaces, parentheses, hyphens, and plus sign
+    const cleaned = input.replace(/[^\d\s()\-+]/g, '');
+    
+    // If user is deleting, allow the raw input
+    if (input.length < phone.length) {
+      setPhone(cleaned);
+      return;
+    }
+    
+    // Get just the digits for formatting
+    const digits = cleaned.replace(/\D/g, '');
+    
+    // Limit to reasonable phone number length (15 digits max for international)
+    if (digits.length <= 15) {
+      setPhone(formatPhoneNumber(digits));
+    }
+  };
+
+  // Validate phone number
+  const validatePhone = (phoneNumber: string): boolean => {
+    const digits = phoneNumber.replace(/\D/g, '');
+    // Valid if empty (optional field) or 10+ digits (US and international)
+    return digits.length === 0 || digits.length >= 10;
+  };
 
   const [commitUpdate, isUpdateInFlight] = useMutation<authUpdateProfileMutation>(UpdateProfileMutation);
   const [commitAvatarUpload] = useMutation<authGenerateAvatarUploadUrlMutation>(GenerateAvatarUploadUrlMutation);
 
-  // Redirect if not logged in
+  // Redirect if not logged in (but only after loading)
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       navigate('/signin');
     }
-  }, [user, navigate]);
+  }, [isLoading, user, navigate]);
 
-  if (!user) {
+  // Initialize form data when user loads
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setPhone(user.phone ? formatPhoneNumber(user.phone) : '');
+      setAvatarUrl(user.avatarUrl || '');
+    }
+  }, [user]);
+
+  if (isLoading || !user) {
     return null;
   }
 
@@ -112,9 +172,14 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setError('');
+
+    // Validate phone number
+    if (!validatePhone(phone)) {
+      setError('Please enter a valid phone number (at least 10 digits)');
+      return;
+    }
 
     // Handle avatar changes
     let finalAvatarUrl: string | null | undefined = undefined;
@@ -134,11 +199,14 @@ export default function EditProfilePage() {
     }
     // If neither removed nor new file, don't update avatarUrl (keep undefined)
 
+    // Clean phone number to store only digits
+    const cleanedPhone = phone ? phone.replace(/\D/g, '') : undefined;
+
     commitUpdate({
       variables: {
         input: {
           name: name || undefined,
-          phone: phone || undefined,
+          phone: cleanedPhone,
           avatarUrl: finalAvatarUrl,
         },
       },
@@ -147,7 +215,9 @@ export default function EditProfilePage() {
         if (response.updateProfile) {
           updateUser(response.updateProfile);
         }
-        navigate('/me');
+        setIsEditing(false);
+        setAvatarFile(null);
+        setAvatarPreview(null);
       },
       onError: (error) => {
         setError(error.message);
@@ -155,102 +225,187 @@ export default function EditProfilePage() {
     });
   };
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    setName(user?.name || '');
+    // Format the phone number when loading from user data
+    setPhone(user?.phone ? formatPhoneNumber(user.phone) : '');
+    setAvatarUrl(user?.avatarUrl || '');
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setAvatarRemoved(false);
+    setError('');
+  };
+
+  const handleCreateClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    // Modal will close itself and the page will update if needed
+  };
+
 
   return (
     <Layout>
-      <Header logoText="Gild" showSearch={false} />
+      <Header logoText="Gild" showSearch={false} onListClick={handleCreateClick} />
       <Main>
         <div className={styles.container}>
           <div className={styles.content}>
-            <h1 className={styles.title}>Edit Profile</h1>
-            
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name"
-                className={styles.input}
-                autoFocus
-              />
-
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Phone"
-                className={styles.input}
-              />
-
-              <div className={styles.avatarSection}>
-                <label className={styles.avatarLabel}>Profile Picture</label>
-                <div className={styles.avatarContainer}>
-                  <div className={styles.avatarPreview}>
-                    {avatarPreview || avatarUrl ? (
-                      <img 
-                        src={avatarPreview || avatarUrl} 
-                        alt="Avatar preview" 
-                        className={styles.avatarImage}
-                      />
-                    ) : (
-                      <div className={styles.avatarPlaceholder}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                      </div>
-                    )}
+            {/* Profile Header with Avatar and Name */}
+            <div className={styles.profileHeader}>
+              <div className={styles.avatarWrapper}>
+                {avatarPreview || avatarUrl ? (
+                  <img 
+                    src={avatarPreview || avatarUrl} 
+                    alt="Profile" 
+                    className={styles.avatarImage}
+                  />
+                ) : (
+                  <div className={styles.avatarPlaceholder}>
+                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <div className={styles.avatarActions}>
+                )}
+                {isEditing && (
+                  <div 
+                    className={styles.avatarOverlay}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <input
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleAvatarSelect}
                       className={styles.fileInput}
-                      style={{ display: 'none' }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className={styles.uploadButton}
-                      disabled={isUploadingAvatar}
-                    >
-                      {avatarFile ? 'Change Photo' : 'Upload Photo'}
-                    </button>
-                    {(avatarPreview || avatarUrl) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAvatarFile(null);
-                          setAvatarPreview(null);
-                          setAvatarUrl('');
-                          setAvatarRemoved(true);
-                        }}
-                        className={styles.removeButton}
-                      >
-                        Remove
-                      </button>
-                    )}
+                    <div className={styles.changeAvatarIcon}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    </div>
                   </div>
+                )}
+              </div>
+              
+              <div className={styles.profileInfo}>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    className={styles.nameInput}
+                    autoFocus
+                  />
+                ) : (
+                  <h1 className={styles.profileName}>
+                    {user?.name || 'Unnamed User'}
+                  </h1>
+                )}
+                <p className={styles.profileEmail}>{user?.email}</p>
+              </div>
+
+              {!isEditing ? (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  variant="secondary"
+                  size="small"
+                >
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className={styles.headerActions}>
+                  {(avatarPreview || avatarUrl) && (
+                    <Button
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                        setAvatarUrl('');
+                        setAvatarRemoved(true);
+                      }}
+                      variant="secondary"
+                      size="small"
+                    >
+                      Remove Photo
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.divider} />
+
+            {/* Contact Information */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Contact Information</h2>
+              <div className={styles.infoGrid}>
+                <div className={styles.infoRow}>
+                  <span className={styles.infoLabel}>Phone</span>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      placeholder="(555) 555-5555"
+                      className={styles.infoInput}
+                    />
+                  ) : (
+                    <span className={styles.infoValue}>
+                      {phone || <span className={styles.placeholder}>Not set</span>}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
 
-              {error && <div className={styles.error}>{error}</div>}
+            {error && (
+              <>
+                <div className={styles.divider} />
+                <div className={styles.section}>
+                  <div className={styles.errorMessage}>{error}</div>
+                </div>
+              </>
+            )}
 
-              <div className={styles.buttonGroup}>
-                <button
-                  type="submit"
-                  disabled={isUpdateInFlight || isUploadingAvatar}
-                  className={styles.submitButton}
-                >
-                  {isUploadingAvatar ? 'Uploading...' : isUpdateInFlight ? 'Saving...' : 'Save'}
-                </button>
-              </div>
-            </form>
+            {isEditing && (
+              <>
+                <div className={styles.divider} />
+                <div className={styles.section}>
+                  <div className={styles.actionButtons}>
+                    <Button
+                      onClick={handleCancel}
+                      variant="secondary"
+                      fullWidth
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      variant="primary"
+                      fullWidth
+                      disabled={isUpdateInFlight || isUploadingAvatar}
+                    >
+                      {isUploadingAvatar ? 'Uploading...' : isUpdateInFlight ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </Main>
+      
+      <CreateListingModal
+        isOpen={isCreateModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleCreateSuccess}
+      />
     </Layout>
   );
 }

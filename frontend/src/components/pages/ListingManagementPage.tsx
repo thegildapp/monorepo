@@ -9,6 +9,7 @@ import NotFound from '../feedback/NotFound';
 import ImageWithFallback from '../common/ImageWithFallback';
 import Button from '../common/Button';
 import InquiryCard from '../features/InquiryCard';
+import PhoneCollectionModal from '../features/PhoneCollectionModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { RespondToInquiryMutation } from '../../queries/inquiries';
 import type { ListingManagementPageQuery as QueryType } from '../../__generated__/ListingManagementPageQuery.graphql';
@@ -66,7 +67,9 @@ const ListingFragment = graphql`
 function ListingManagementView({ listingRef }: { listingRef: ListingManagementPage_listing$key }) {
   const listing = useFragment(ListingFragment, listingRef);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [pendingInquiryId, setPendingInquiryId] = useState<string | null>(null);
   
   
   const [commitRespond, isResponding] = useMutation<inquiriesRespondToInquiryMutation>(RespondToInquiryMutation);
@@ -104,12 +107,20 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
   
   
   const handleRespondToInquiry = (inquiryId: string, accept: boolean) => {
+    // If accepting and user has no phone, show phone collection modal
+    if (accept && !user?.phone) {
+      setPendingInquiryId(inquiryId);
+      setShowPhoneModal(true);
+      return;
+    }
+
+    // Proceed with responding to inquiry
     commitRespond({
       variables: {
         inquiryId,
         accept,
-        shareEmail: accept,
-        sharePhone: false
+        shareEmail: false,
+        sharePhone: accept
       },
       onCompleted: (response) => {
         if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {
@@ -120,6 +131,38 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
         alert('Failed to respond to inquiry: ' + error.message);
       }
     });
+  };
+
+  const handlePhoneCollected = (phone: string) => {
+    // Update the user object with the new phone
+    if (user) {
+      updateUser({ ...user, phone });
+    }
+    
+    // Close modal
+    setShowPhoneModal(false);
+    
+    // Now accept the inquiry with the saved phone
+    if (pendingInquiryId) {
+      commitRespond({
+        variables: {
+          inquiryId: pendingInquiryId,
+          accept: true,
+          shareEmail: false,
+          sharePhone: true
+        },
+        onCompleted: (response) => {
+          if (response.respondToInquiry.errors && response.respondToInquiry.errors.length > 0) {
+            alert(response.respondToInquiry.errors[0].message);
+          }
+          setPendingInquiryId(null);
+        },
+        onError: (error) => {
+          alert('Failed to respond to inquiry: ' + error.message);
+          setPendingInquiryId(null);
+        }
+      });
+    }
   };
   
   
@@ -220,6 +263,16 @@ function ListingManagementView({ listingRef }: { listingRef: ListingManagementPa
         </div>
         
       </div>
+      
+      <PhoneCollectionModal
+        isOpen={showPhoneModal}
+        onClose={() => {
+          setShowPhoneModal(false);
+          setPendingInquiryId(null);
+        }}
+        onSuccess={handlePhoneCollected}
+        userName={user?.name}
+      />
     </>
   );
 }
