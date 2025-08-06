@@ -469,9 +469,11 @@ const resolvers = {
         throw new Error('File size exceeds the maximum limit of 10MB.');
       }
       
-      // Generate unique key for the file
+      // Generate unique key for the file using random ID instead of filename
       const timestamp = Date.now();
-      const key = `listings/${context.userId}/${timestamp}-${filename}`;
+      const randomId = Math.random().toString(36).substring(2, 15);
+      const extension = contentType.split('/')[1]; // Extract extension from content type
+      const key = `listings/${context.userId}/${timestamp}-${randomId}.${extension}`;
       
       const bucketName = process.env['SPACES_BUCKET'] || 'gild';
       
@@ -516,9 +518,11 @@ const resolvers = {
         throw new Error('File size exceeds the maximum limit of 5MB for avatars.');
       }
       
-      // Generate unique key for the avatar
+      // Generate unique key for the avatar using random ID instead of filename
       const timestamp = Date.now();
-      const key = `avatars/${context.userId}/${timestamp}-${filename}`;
+      const randomId = Math.random().toString(36).substring(2, 15);
+      const extension = contentType.split('/')[1]; // Extract extension from content type
+      const key = `avatars/${context.userId}/${timestamp}-${randomId}.${extension}`;
       
       const bucketName = process.env['SPACES_BUCKET'] || 'gild';
       

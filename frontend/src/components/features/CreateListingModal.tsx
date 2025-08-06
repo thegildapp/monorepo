@@ -92,11 +92,11 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
           throw new Error(`Failed to upload image ${photo.file.name}`);
         }
 
-        // Construct the public URL from the key
-        // The backend returns the key in format: listings/userId/timestamp-filename
-        // We need to construct the full Digital Ocean Spaces URL
-        const publicUrl = `https://sfo3.digitaloceanspaces.com/gild/${key}`;
-        return publicUrl;
+        // Construct the CDN URL from the key
+        // The backend returns the key in format: listings/userId/timestamp-randomId.extension
+        // Use the CDN endpoint for better performance
+        const cdnUrl = `https://gild.sfo3.cdn.digitaloceanspaces.com/${key}`;
+        return cdnUrl;
       });
 
       const imageUrls = await Promise.all(uploadPromises);

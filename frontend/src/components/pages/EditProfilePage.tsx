@@ -98,9 +98,9 @@ export default function EditProfilePage() {
         throw new Error('Failed to upload avatar');
       }
 
-      // Construct the public URL
-      const spacesEndpoint = import.meta.env.VITE_SPACES_ENDPOINT || 'https://gild.sfo3.digitaloceanspaces.com';
-      const publicUrl = `${spacesEndpoint}/${key}`;
+      // Construct the CDN URL for better performance
+      const cdnEndpoint = import.meta.env.VITE_CDN_ENDPOINT || 'https://gild.sfo3.cdn.digitaloceanspaces.com';
+      const publicUrl = `${cdnEndpoint}/${key}`;
       
       return publicUrl;
     } catch (error) {
