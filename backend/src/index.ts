@@ -36,6 +36,7 @@ import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 import { cache } from './services/cacheService';
 import stripe, { validateStripeConfig, STRIPE_CONFIG } from './config/stripe';
+import { handleStripeWebhook } from './webhooks/stripeWebhooks';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -1594,6 +1595,13 @@ async function startServer(): Promise<void> {
   };
   
   app.use(cors(corsOptions));
+  
+  // Stripe webhook endpoint (must be before body parsing middleware)
+  app.post('/webhook/stripe', 
+    express.raw({ type: 'application/json' }), 
+    handleStripeWebhook
+  );
+  
   app.use(requestLoggingMiddleware);
   
   // Start log processing

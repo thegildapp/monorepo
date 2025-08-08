@@ -131,6 +131,12 @@ spec:
               name: stripe-secret
               key: STRIPE_PUBLISHABLE_KEY
               optional: true
+        - name: STRIPE_WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: stripe-secret
+              key: STRIPE_WEBHOOK_SECRET
+              optional: true
         resources:
           requests:
             memory: "512Mi"

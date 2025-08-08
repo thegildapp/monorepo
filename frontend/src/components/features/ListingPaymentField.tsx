@@ -112,42 +112,56 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
     setError(event.error ? event.error.message : null);
     setIsCardComplete(event.complete);
 
-    if (event.complete && stripe && elements && setupIntent) {
-      const cardElement = elements.getElement(CardElement);
-      if (cardElement) {
-        setIsSettingUp(true);
-        try {
-          // Confirm the SetupIntent to save the card
-          const { error, setupIntent: confirmedSetupIntent } = await stripe.confirmCardSetup(
-            setupIntent.clientSecret,
-            {
-              payment_method: {
-                card: cardElement,
-              },
-            }
-          );
-
-          if (error) {
-            setError(error.message || 'Card setup failed');
-            onPaymentMethodChange(null);
-          } else if (confirmedSetupIntent && confirmedSetupIntent.payment_method) {
-            // Card saved successfully
-            onPaymentMethodChange(confirmedSetupIntent.payment_method as string);
-            if (onSetupComplete) {
-              onSetupComplete(setupIntent.customerId);
-            }
-          }
-        } catch (err) {
-          setError('Failed to save payment information');
-          onPaymentMethodChange(null);
-        } finally {
-          setIsSettingUp(false);
-        }
-      }
-    } else if (!event.complete) {
+    // Mark as ready when card is valid (but don't save yet)
+    if (event.complete) {
+      onPaymentMethodChange('pending'); // Use 'pending' to indicate card is valid but not saved
+    } else {
       onPaymentMethodChange(null);
     }
   };
+
+  // Save the card when the component indicates it's ready (called by parent on Finish)
+  useEffect(() => {
+    const saveCard = async () => {
+      if (isCardComplete && stripe && elements && setupIntent && isProcessing) {
+        const cardElement = elements.getElement(CardElement);
+        if (cardElement) {
+          setIsSettingUp(true);
+          try {
+            // Confirm the SetupIntent to save the card
+            const { error, setupIntent: confirmedSetupIntent } = await stripe.confirmCardSetup(
+              setupIntent.clientSecret,
+              {
+                payment_method: {
+                  card: cardElement,
+                },
+              }
+            );
+
+            if (error) {
+              setError(error.message || 'Card setup failed');
+              onPaymentMethodChange(null);
+            } else if (confirmedSetupIntent && confirmedSetupIntent.payment_method) {
+              // Card saved successfully
+              onPaymentMethodChange(confirmedSetupIntent.payment_method as string);
+              if (onSetupComplete) {
+                onSetupComplete(setupIntent.customerId);
+              }
+            }
+          } catch (err) {
+            setError('Failed to save payment information');
+            onPaymentMethodChange(null);
+          } finally {
+            setIsSettingUp(false);
+          }
+        }
+      }
+    };
+
+    if (isProcessing) {
+      saveCard();
+    }
+  }, [isProcessing, isCardComplete, stripe, elements, setupIntent, onPaymentMethodChange, onSetupComplete]);
 
   const cardElementOptions = {
     style: {

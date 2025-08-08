@@ -54,7 +54,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       case 4: // Location
         return location !== null;
       case 5: // Payment
-        return paymentMethodId !== null;
+        return paymentMethodId !== null && paymentMethodId !== '';
       default:
         return false;
     }

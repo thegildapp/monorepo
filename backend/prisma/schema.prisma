@@ -52,6 +52,8 @@ enum ListingStatus {
   PENDING
   APPROVED
   REJECTED
+  PAYMENT_FAILED
+  DISPUTED
 }
 
 model Listing {
