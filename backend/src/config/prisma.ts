@@ -60,8 +60,14 @@ const prismaWrite = globalThis.prismaWrite ?? prismaWriteClientSingleton();
 const prismaRead = globalThis.prismaRead ?? prismaReadClientSingleton();
 
 // Log slow queries (without sensitive params)
+// Use different thresholds for different environments
+const SLOW_QUERY_THRESHOLD = process.env['NODE_ENV'] === 'production' ? 500 : 200;
+
 prismaWrite.$on('query', (e) => {
-  if (e.duration > 100) {
+  // Skip health check queries
+  if (e.query === 'SELECT 1') return;
+  
+  if (e.duration > SLOW_QUERY_THRESHOLD) {
     logger.warn('Slow write query', {
       duration: e.duration,
       metadata: {
@@ -74,7 +80,10 @@ prismaWrite.$on('query', (e) => {
 });
 
 prismaRead.$on('query', (e) => {
-  if (e.duration > 100) {
+  // Skip health check queries
+  if (e.query === 'SELECT 1') return;
+  
+  if (e.duration > SLOW_QUERY_THRESHOLD) {
     logger.warn('Slow read query', {
       duration: e.duration,
       metadata: {
