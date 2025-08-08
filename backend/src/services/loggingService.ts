@@ -50,6 +50,10 @@ class LoggingService {
       if (entry.method && entry.path) {
         logMessage = `${entry.method} ${entry.path} - ${entry.message}`;
       }
+      // Include duration if present
+      if (entry.duration) {
+        logMessage = `${logMessage} (${entry.duration}ms)`;
+      }
       
       console.log(`${color}[${timestamp}] [${level}]\x1b[0m ${logMessage}`);
       

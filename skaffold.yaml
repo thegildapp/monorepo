@@ -32,6 +32,7 @@ manifests:
     - k8s/openai-secret.yaml
     - k8s/valkey-secret.yaml
     - k8s/sendgrid-secret.yaml
+    - k8s/stripe-secret.yaml
     - k8s/backend-deployment.yaml
     - k8s/frontend-deployment.yaml
     # Note: HPA, PDB, and NetworkPolicy are for production only
@@ -90,6 +91,7 @@ profiles:
         - k8s/database-secret.yaml
         - k8s/spaces-secret.yaml
         - k8s/valkey-secret.yaml
+        - k8s/stripe-secret.yaml
         - k8s/backend-deployment.prod.yaml
         - k8s/frontend-deployment.prod.yaml
         - k8s/ingress.yaml

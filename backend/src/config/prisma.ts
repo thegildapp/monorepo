@@ -68,12 +68,13 @@ prismaWrite.$on('query', (e) => {
   if (e.query === 'SELECT 1') return;
   
   if (e.duration > SLOW_QUERY_THRESHOLD) {
-    logger.warn('Slow write query', {
-      duration: e.duration,
+    logger.warn(`Slow write query detected (${e.duration}ms)`, {
       metadata: {
         query: e.query,
         // Don't log params as they may contain sensitive data (passwords, tokens, etc.)
         target: e.target,
+        durationMs: e.duration,
+        threshold: SLOW_QUERY_THRESHOLD,
       },
     });
   }
@@ -84,12 +85,13 @@ prismaRead.$on('query', (e) => {
   if (e.query === 'SELECT 1') return;
   
   if (e.duration > SLOW_QUERY_THRESHOLD) {
-    logger.warn('Slow read query', {
-      duration: e.duration,
+    logger.warn(`Slow read query detected (${e.duration}ms)`, {
       metadata: {
         query: e.query,
         // Don't log params as they may contain sensitive data
         target: e.target,
+        durationMs: e.duration,
+        threshold: SLOW_QUERY_THRESHOLD,
       },
     });
   }

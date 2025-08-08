@@ -119,6 +119,18 @@ spec:
               name: sendgrid-secret
               key: SENDGRID_API_KEY
               optional: true
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stripe-secret
+              key: STRIPE_SECRET_KEY
+              optional: true
+        - name: STRIPE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: stripe-secret
+              key: STRIPE_PUBLISHABLE_KEY
+              optional: true
         resources:
           requests:
             memory: "512Mi"

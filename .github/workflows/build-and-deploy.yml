@@ -130,6 +130,13 @@ jobs:
             --from-literal=SENDGRID_API_KEY="${{ secrets.SENDGRID_API_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create Stripe secret
+        run: |
+          kubectl create secret generic stripe-secret \
+            --from-literal=STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+            --from-literal=STRIPE_PUBLISHABLE_KEY="${{ secrets.STRIPE_PUBLISHABLE_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to Kubernetes
         run: |
           # Apply nginx configurations

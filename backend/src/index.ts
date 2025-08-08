@@ -35,6 +35,7 @@ import { logger } from './services/loggingService';
 import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 import { cache } from './services/cacheService';
+import { validateStripeConfig } from './config/stripe';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -1535,6 +1536,9 @@ async function startServer(): Promise<void> {
         endpoint: `http://${HOST}:${PORT}/graphql`
       }
     });
+
+    // Validate Stripe configuration
+    validateStripeConfig();
 
     // Start log retention service
     logRetentionService.startRetentionJob();
