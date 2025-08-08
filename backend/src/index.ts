@@ -35,7 +35,7 @@ import { logger } from './services/loggingService';
 import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 import { cache } from './services/cacheService';
-import { validateStripeConfig } from './config/stripe';
+import stripe, { validateStripeConfig, STRIPE_CONFIG } from './config/stripe';
 
 // Polyfill for Web Crypto API in Node.js
 import { webcrypto } from 'crypto';
@@ -384,7 +384,7 @@ const resolvers = {
         };
       }
     },
-    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number } }, context: YogaInitialContext & Context) => {
+    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number; paymentMethodId: string } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');
       }
@@ -398,14 +398,56 @@ const resolvers = {
         throw new Error(`A listing cannot have more than ${MAX_LISTING_IMAGES} images`);
       }
       
+      // Process payment for listing fee
+      let paymentIntentId: string | null = null;
+      
+      try {
+        // Create payment intent with the listing fee
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: STRIPE_CONFIG.listingFee, // Amount in cents
+          currency: STRIPE_CONFIG.currency,
+          payment_method: input.paymentMethodId,
+          confirm: true,
+          metadata: {
+            userId: context.userId,
+            type: 'listing_fee',
+            listingTitle: input.title,
+          },
+          description: `Listing fee for: ${input.title}`,
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never'
+          },
+        });
+        
+        if (paymentIntent.status !== 'succeeded') {
+          throw new Error('Payment was not successful. Please try again.');
+        }
+        
+        paymentIntentId = paymentIntent.id;
+      } catch (error: any) {
+        logger.error('Payment processing failed', error, { metadata: { userId: context.userId } });
+        throw new Error(error.message || 'Payment processing failed. Please try again.');
+      }
+      
       // Create listing with PENDING status by default
       const listing = await prismaWrite.listing.create({
         data: {
-          ...input,
+          title: input.title,
+          description: input.description,
+          price: input.price,
+          images: input.images,
+          city: input.city,
+          state: input.state,
+          latitude: input.latitude,
+          longitude: input.longitude,
           seller: {
             connect: { id: context.userId }
           },
           status: 'PENDING',
+          paymentIntentId: paymentIntentId,
+          listingFeePaid: STRIPE_CONFIG.listingFee,
+          paidAt: new Date(),
         },
         include: { 
           seller: {

@@ -7,6 +7,7 @@ import ListingTitleField from './ListingTitleField';
 import ListingDescriptionField from './ListingDescriptionField';
 import ListingPriceField from './ListingPriceField';
 import ListingLocationField from './ListingLocationField';
+import ListingPaymentField from './ListingPaymentField';
 import ErrorBoundary from '../common/ErrorBoundary';
 import ErrorState from '../feedback/ErrorState';
 import { CreateListingMutation, GenerateUploadUrlMutation } from '../../queries/listings';
@@ -32,6 +33,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number; city?: string; state?: string } | null>(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,8 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
         return price.length > 0 && parseFloat(price) > 0;
       case 4: // Location
         return location !== null;
+      case 5: // Payment
+        return paymentMethodId !== null;
       default:
         return false;
     }
@@ -113,6 +117,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             state: location?.state || '',
             latitude: location?.lat || 0,
             longitude: location?.lng || 0,
+            paymentMethodId: paymentMethodId || '',
           },
         },
         updater: (store) => {
@@ -162,6 +167,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     setDescription('');
     setPrice('');
     setLocation(null);
+    setPaymentMethodId(null);
     setError(null);
     setIsSubmitting(false);
     onClose();
@@ -194,6 +200,11 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       onChange={(loc) => {
         setLocation(loc);
       }}
+    />,
+    <ListingPaymentField
+      key="payment"
+      onPaymentMethodChange={setPaymentMethodId}
+      isProcessing={isSubmitting}
     />
   ];
 

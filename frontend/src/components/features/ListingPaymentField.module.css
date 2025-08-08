@@ -1,0 +1,110 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.feeInfo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: var(--space-4);
+}
+
+.feeAmount {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.refundText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.cardElement {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  transition: border-color 0.2s;
+}
+
+.cardElement:focus-within {
+  border-color: var(--color-text-primary);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 14px;
+  margin-top: var(--space-2);
+}
+
+.securityNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: calc(var(--space-2) * -1);
+}
+
+.lockIcon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.processing {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 20px;
+  }
+  
+  .feeAmount {
+    font-size: 18px;
+  }
+  
+  .refundText {
+    font-size: 13px;
+  }
+}

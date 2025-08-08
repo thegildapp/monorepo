@@ -14,9 +14,11 @@
     "copy-schema": "cp ../packages/shared-schema/schema.graphql ./schema.graphql"
   },
   "dependencies": {
-    "@gild/shared-schema": "file:../packages/shared-schema",
     "@aws-sdk/client-s3": "^3.846.0",
+    "@gild/shared-schema": "file:../packages/shared-schema",
     "@simplewebauthn/browser": "^13.1.2",
+    "@stripe/react-stripe-js": "^3.9.0",
+    "@stripe/stripe-js": "^7.8.0",
     "@types/leaflet": "^1.9.20",
     "browser-image-compression": "^2.0.2",
     "graphql": "^16.11.0",
