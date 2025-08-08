@@ -24,6 +24,7 @@ const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 interface ListingPaymentFieldProps {
   onPaymentMethodChange: (paymentMethodId: string | null) => void;
+  onCardValidChange?: (isValid: boolean) => void;
   isProcessing?: boolean;
   onSetupComplete?: (customerId: string) => void;
 }
@@ -35,6 +36,7 @@ interface SetupIntentResponse {
 
 const PaymentForm: React.FC<ListingPaymentFieldProps> = ({ 
   onPaymentMethodChange,
+  onCardValidChange,
   isProcessing = false,
   onSetupComplete 
 }) => {
@@ -112,10 +114,13 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
     setError(event.error ? event.error.message : null);
     setIsCardComplete(event.complete);
 
-    // Mark as ready when card is valid (but don't save yet)
-    if (event.complete) {
-      onPaymentMethodChange('pending'); // Use 'pending' to indicate card is valid but not saved
-    } else {
+    // Update card validation state for the parent component
+    if (onCardValidChange) {
+      onCardValidChange(event.complete);
+    }
+
+    // Clear payment method if card is invalid
+    if (!event.complete) {
       onPaymentMethodChange(null);
     }
   };

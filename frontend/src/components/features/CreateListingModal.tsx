@@ -34,6 +34,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number; city?: string; state?: string } | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
+  const [isCardValid, setIsCardValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +55,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       case 4: // Location
         return location !== null;
       case 5: // Payment
-        return paymentMethodId !== null && paymentMethodId !== '';
+        return isCardValid;
       default:
         return false;
     }
@@ -63,6 +64,21 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const handleFinish = async () => {
     setIsSubmitting(true);
     setError(null);
+
+    // Wait for payment method to be saved (happens in ListingPaymentField when isProcessing=true)
+    // Poll for up to 5 seconds
+    let attempts = 0;
+    while ((!paymentMethodId || paymentMethodId === '') && attempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
+    // Check if payment method was saved
+    if (!paymentMethodId || paymentMethodId === '') {
+      setError('Failed to save payment method. Please try again.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       // Upload all photos to Digital Ocean Spaces in parallel
@@ -204,6 +220,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     <ListingPaymentField
       key="payment"
       onPaymentMethodChange={setPaymentMethodId}
+      onCardValidChange={setIsCardValid}
       isProcessing={isSubmitting}
     />
   ];
