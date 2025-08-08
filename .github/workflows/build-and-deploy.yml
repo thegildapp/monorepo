@@ -45,6 +45,7 @@ jobs:
             VITE_GRAPHQL_URL=https://api.thegild.app/graphql
             VITE_SPACES_ENDPOINT=https://gild.sfo3.digitaloceanspaces.com
             VITE_GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
 
   deploy:
     needs: build-and-push

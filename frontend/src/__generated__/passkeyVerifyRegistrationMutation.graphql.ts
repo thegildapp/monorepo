@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2fab647845d7d190bee0f0ceda16fbcd>>
+ * @generated SignedSource<<c8b03c7155f70d99e77c6ccf9a308ce8>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,26 +9,24 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type UpdateProfileInput = {
-  avatarUrl?: string | null | undefined;
+export type VerifyPasskeyRegistrationInput = {
   name?: string | null | undefined;
-  phone?: string | null | undefined;
+  response: string;
 };
-export type authUpdateProfileMutation$variables = {
-  input: UpdateProfileInput;
+export type passkeyVerifyRegistrationMutation$variables = {
+  input: VerifyPasskeyRegistrationInput;
 };
-export type authUpdateProfileMutation$data = {
-  readonly updateProfile: {
-    readonly avatarUrl: string | null | undefined;
-    readonly email: string;
+export type passkeyVerifyRegistrationMutation$data = {
+  readonly verifyPasskeyRegistration: {
+    readonly createdAt: string;
     readonly id: string;
-    readonly name: string;
-    readonly phone: string | null | undefined;
+    readonly lastUsedAt: string | null | undefined;
+    readonly name: string | null | undefined;
   };
 };
-export type authUpdateProfileMutation = {
-  response: authUpdateProfileMutation$data;
-  variables: authUpdateProfileMutation$variables;
+export type passkeyVerifyRegistrationMutation = {
+  response: passkeyVerifyRegistrationMutation$data;
+  variables: passkeyVerifyRegistrationMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -49,9 +47,9 @@ v1 = [
         "variableName": "input"
       }
     ],
-    "concreteType": "User",
+    "concreteType": "Passkey",
     "kind": "LinkedField",
-    "name": "updateProfile",
+    "name": "verifyPasskeyRegistration",
     "plural": false,
     "selections": [
       {
@@ -65,13 +63,6 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "email",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
         "name": "name",
         "storageKey": null
       },
@@ -79,14 +70,14 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "phone",
+        "name": "createdAt",
         "storageKey": null
       },
       {
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "avatarUrl",
+        "name": "lastUsedAt",
         "storageKey": null
       }
     ],
@@ -98,7 +89,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "authUpdateProfileMutation",
+    "name": "passkeyVerifyRegistrationMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -107,20 +98,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "authUpdateProfileMutation",
+    "name": "passkeyVerifyRegistrationMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "0027d127c1d4c70dfd64e1b2663ec968",
+    "cacheID": "b05030b051caf0608fc931a60957dc9c",
     "id": null,
     "metadata": {},
-    "name": "authUpdateProfileMutation",
+    "name": "passkeyVerifyRegistrationMutation",
     "operationKind": "mutation",
-    "text": "mutation authUpdateProfileMutation(\n  $input: UpdateProfileInput!\n) {\n  updateProfile(input: $input) {\n    id\n    email\n    name\n    phone\n    avatarUrl\n  }\n}\n"
+    "text": "mutation passkeyVerifyRegistrationMutation(\n  $input: VerifyPasskeyRegistrationInput!\n) {\n  verifyPasskeyRegistration(input: $input) {\n    id\n    name\n    createdAt\n    lastUsedAt\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "391496233aedb4032965c6055f509c8e";
+(node as any).hash = "7f6593da463162b38ee50215fba1f283";
 
 export default node;

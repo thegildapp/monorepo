@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9176a7e8c21c1586f6941ff071545c86>>
+ * @generated SignedSource<<575fa13e3ace61e75c004c20a740825e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,34 +9,27 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type RegisterInput = {
-  email: string;
-  name: string;
-  password: string;
-  phone?: string | null | undefined;
+export type ResetPasswordPageValidateResetTokenMutation$variables = {
+  token: string;
 };
-export type authRegisterMutation$variables = {
-  input: RegisterInput;
-};
-export type authRegisterMutation$data = {
-  readonly register: {
+export type ResetPasswordPageValidateResetTokenMutation$data = {
+  readonly validatePasswordResetToken: {
     readonly errors: ReadonlyArray<{
       readonly code: string | null | undefined;
       readonly field: string | null | undefined;
       readonly message: string;
     }> | null | undefined;
-    readonly token: string | null | undefined;
     readonly user: {
-      readonly avatarUrl: string | null | undefined;
       readonly email: string;
       readonly id: string;
       readonly name: string;
     } | null | undefined;
-  } | null | undefined;
+    readonly valid: boolean;
+  };
 };
-export type authRegisterMutation = {
-  response: authRegisterMutation$data;
-  variables: authRegisterMutation$variables;
+export type ResetPasswordPageValidateResetTokenMutation = {
+  response: ResetPasswordPageValidateResetTokenMutation$data;
+  variables: ResetPasswordPageValidateResetTokenMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -44,7 +37,7 @@ var v0 = [
   {
     "defaultValue": null,
     "kind": "LocalArgument",
-    "name": "input"
+    "name": "token"
   }
 ],
 v1 = [
@@ -53,20 +46,20 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "input",
-        "variableName": "input"
+        "name": "token",
+        "variableName": "token"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "PasswordResetTokenValidation",
     "kind": "LinkedField",
-    "name": "register",
+    "name": "validatePasswordResetToken",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "token",
+        "name": "valid",
         "storageKey": null
       },
       {
@@ -96,13 +89,6 @@ v1 = [
             "args": null,
             "kind": "ScalarField",
             "name": "name",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "avatarUrl",
             "storageKey": null
           }
         ],
@@ -149,7 +135,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "authRegisterMutation",
+    "name": "ResetPasswordPageValidateResetTokenMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -158,20 +144,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "authRegisterMutation",
+    "name": "ResetPasswordPageValidateResetTokenMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "e604808755f9f4d6417bf2fdde6bec0c",
+    "cacheID": "e34d93e1bb3cb109ff1bd335dfc7ad92",
     "id": null,
     "metadata": {},
-    "name": "authRegisterMutation",
+    "name": "ResetPasswordPageValidateResetTokenMutation",
     "operationKind": "mutation",
-    "text": "mutation authRegisterMutation(\n  $input: RegisterInput!\n) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation ResetPasswordPageValidateResetTokenMutation(\n  $token: String!\n) {\n  validatePasswordResetToken(token: $token) {\n    valid\n    user {\n      id\n      email\n      name\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "cc35cc79e36425650256927cedf75a82";
+(node as any).hash = "fde79502e0d93992e5146ad1a9cd6a1d";
 
 export default node;

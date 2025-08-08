@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9176a7e8c21c1586f6941ff071545c86>>
+ * @generated SignedSource<<80a37f0cc55f389df208213b4c76b6aa>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,17 +9,12 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type RegisterInput = {
-  email: string;
-  name: string;
-  password: string;
-  phone?: string | null | undefined;
+export type ResetPasswordPageResetPasswordMutation$variables = {
+  newPassword: string;
+  token: string;
 };
-export type authRegisterMutation$variables = {
-  input: RegisterInput;
-};
-export type authRegisterMutation$data = {
-  readonly register: {
+export type ResetPasswordPageResetPasswordMutation$data = {
+  readonly resetPassword: {
     readonly errors: ReadonlyArray<{
       readonly code: string | null | undefined;
       readonly field: string | null | undefined;
@@ -27,48 +22,48 @@ export type authRegisterMutation$data = {
     }> | null | undefined;
     readonly token: string | null | undefined;
     readonly user: {
-      readonly avatarUrl: string | null | undefined;
       readonly email: string;
       readonly id: string;
       readonly name: string;
     } | null | undefined;
-  } | null | undefined;
+  };
 };
-export type authRegisterMutation = {
-  response: authRegisterMutation$data;
-  variables: authRegisterMutation$variables;
+export type ResetPasswordPageResetPasswordMutation = {
+  response: ResetPasswordPageResetPasswordMutation$data;
+  variables: ResetPasswordPageResetPasswordMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "input"
-  }
-],
-v1 = [
+var v0 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "newPassword"
+},
+v1 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "token"
+},
+v2 = [
   {
     "alias": null,
     "args": [
       {
         "kind": "Variable",
-        "name": "input",
-        "variableName": "input"
+        "name": "newPassword",
+        "variableName": "newPassword"
+      },
+      {
+        "kind": "Variable",
+        "name": "token",
+        "variableName": "token"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "PasswordResetPayload",
     "kind": "LinkedField",
-    "name": "register",
+    "name": "resetPassword",
     "plural": false,
     "selections": [
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "token",
-        "storageKey": null
-      },
       {
         "alias": null,
         "args": null,
@@ -97,15 +92,15 @@ v1 = [
             "kind": "ScalarField",
             "name": "name",
             "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "avatarUrl",
-            "storageKey": null
           }
         ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "token",
         "storageKey": null
       },
       {
@@ -146,32 +141,38 @@ v1 = [
 ];
 return {
   "fragment": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v0/*: any*/),
+      (v1/*: any*/)
+    ],
     "kind": "Fragment",
     "metadata": null,
-    "name": "authRegisterMutation",
-    "selections": (v1/*: any*/),
+    "name": "ResetPasswordPageResetPasswordMutation",
+    "selections": (v2/*: any*/),
     "type": "Mutation",
     "abstractKey": null
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v1/*: any*/),
+      (v0/*: any*/)
+    ],
     "kind": "Operation",
-    "name": "authRegisterMutation",
-    "selections": (v1/*: any*/)
+    "name": "ResetPasswordPageResetPasswordMutation",
+    "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "e604808755f9f4d6417bf2fdde6bec0c",
+    "cacheID": "b5170001b7b0bf9a3e790a6abe46666d",
     "id": null,
     "metadata": {},
-    "name": "authRegisterMutation",
+    "name": "ResetPasswordPageResetPasswordMutation",
     "operationKind": "mutation",
-    "text": "mutation authRegisterMutation(\n  $input: RegisterInput!\n) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation ResetPasswordPageResetPasswordMutation(\n  $token: String!\n  $newPassword: String!\n) {\n  resetPassword(token: $token, newPassword: $newPassword) {\n    user {\n      id\n      email\n      name\n    }\n    token\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "cc35cc79e36425650256927cedf75a82";
+(node as any).hash = "9bdf563753a21407e889239f93246975";
 
 export default node;

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9176a7e8c21c1586f6941ff071545c86>>
+ * @generated SignedSource<<3825f53fb05db33dcd079c0a4dc234a6>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,17 +9,13 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type RegisterInput = {
-  email: string;
-  name: string;
-  password: string;
-  phone?: string | null | undefined;
+export type PasskeyResetAccessVerifyMutation$variables = {
+  name?: string | null | undefined;
+  resetToken: string;
+  response: string;
 };
-export type authRegisterMutation$variables = {
-  input: RegisterInput;
-};
-export type authRegisterMutation$data = {
-  readonly register: {
+export type PasskeyResetAccessVerifyMutation$data = {
+  readonly verifyPasskeyWithResetToken: {
     readonly errors: ReadonlyArray<{
       readonly code: string | null | undefined;
       readonly field: string | null | undefined;
@@ -31,35 +27,54 @@ export type authRegisterMutation$data = {
       readonly email: string;
       readonly id: string;
       readonly name: string;
+      readonly phone: string | null | undefined;
     } | null | undefined;
-  } | null | undefined;
+  };
 };
-export type authRegisterMutation = {
-  response: authRegisterMutation$data;
-  variables: authRegisterMutation$variables;
+export type PasskeyResetAccessVerifyMutation = {
+  response: PasskeyResetAccessVerifyMutation$data;
+  variables: PasskeyResetAccessVerifyMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "input"
-  }
-],
-v1 = [
+var v0 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "name"
+},
+v1 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "resetToken"
+},
+v2 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "response"
+},
+v3 = [
   {
     "alias": null,
     "args": [
       {
         "kind": "Variable",
-        "name": "input",
-        "variableName": "input"
+        "name": "name",
+        "variableName": "name"
+      },
+      {
+        "kind": "Variable",
+        "name": "resetToken",
+        "variableName": "resetToken"
+      },
+      {
+        "kind": "Variable",
+        "name": "response",
+        "variableName": "response"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "PasswordResetPayload",
     "kind": "LinkedField",
-    "name": "register",
+    "name": "verifyPasskeyWithResetToken",
     "plural": false,
     "selections": [
       {
@@ -96,6 +111,13 @@ v1 = [
             "args": null,
             "kind": "ScalarField",
             "name": "name",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "phone",
             "storageKey": null
           },
           {
@@ -146,32 +168,40 @@ v1 = [
 ];
 return {
   "fragment": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v0/*: any*/),
+      (v1/*: any*/),
+      (v2/*: any*/)
+    ],
     "kind": "Fragment",
     "metadata": null,
-    "name": "authRegisterMutation",
-    "selections": (v1/*: any*/),
+    "name": "PasskeyResetAccessVerifyMutation",
+    "selections": (v3/*: any*/),
     "type": "Mutation",
     "abstractKey": null
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": (v0/*: any*/),
+    "argumentDefinitions": [
+      (v1/*: any*/),
+      (v2/*: any*/),
+      (v0/*: any*/)
+    ],
     "kind": "Operation",
-    "name": "authRegisterMutation",
-    "selections": (v1/*: any*/)
+    "name": "PasskeyResetAccessVerifyMutation",
+    "selections": (v3/*: any*/)
   },
   "params": {
-    "cacheID": "e604808755f9f4d6417bf2fdde6bec0c",
+    "cacheID": "28c9add1b4f809a8e1faf221c2af7020",
     "id": null,
     "metadata": {},
-    "name": "authRegisterMutation",
+    "name": "PasskeyResetAccessVerifyMutation",
     "operationKind": "mutation",
-    "text": "mutation authRegisterMutation(\n  $input: RegisterInput!\n) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation PasskeyResetAccessVerifyMutation(\n  $resetToken: String!\n  $response: String!\n  $name: String\n) {\n  verifyPasskeyWithResetToken(resetToken: $resetToken, response: $response, name: $name) {\n    token\n    user {\n      id\n      email\n      name\n      phone\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "cc35cc79e36425650256927cedf75a82";
+(node as any).hash = "d34677ecc5b439375f78308733cd53bd";
 
 export default node;

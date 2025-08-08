@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d09d5e4e01137566f42b12c4d79d9b74>>
+ * @generated SignedSource<<4c7e9d00adfe621cbe1ea7748803729c>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -37,7 +37,42 @@ v1 = [
     "name": "id",
     "variableName": "id"
   }
-];
+],
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "title",
+  "storageKey": null
+},
+v4 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "createdAt",
+  "storageKey": null
+},
+v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "status",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+};
 return {
   "fragment": {
     "argumentDefinitions": (v0/*: any*/),
@@ -79,20 +114,8 @@ return {
         "name": "listing",
         "plural": false,
         "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "id",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "title",
-            "storageKey": null
-          },
+          (v2/*: any*/),
+          (v3/*: any*/),
           {
             "alias": null,
             "args": null,
@@ -128,18 +151,87 @@ return {
             "name": "state",
             "storageKey": null
           },
+          (v4/*: any*/),
+          (v5/*: any*/),
           {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "createdAt",
+            "name": "viewCount",
             "storageKey": null
           },
           {
             "alias": null,
             "args": null,
-            "kind": "ScalarField",
-            "name": "status",
+            "concreteType": "Inquiry",
+            "kind": "LinkedField",
+            "name": "inquiries",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              (v5/*: any*/),
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "User",
+                "kind": "LinkedField",
+                "name": "buyer",
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v6/*: any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "avatarUrl",
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "User",
+                "kind": "LinkedField",
+                "name": "seller",
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v6/*: any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "Listing",
+                "kind": "LinkedField",
+                "name": "listing",
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v3/*: any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "contactPhone",
+                "storageKey": null
+              },
+              (v4/*: any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "respondedAt",
+                "storageKey": null
+              }
+            ],
             "storageKey": null
           }
         ],
@@ -148,12 +240,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "31beb28695653d061f260f8b2b4f2a2f",
+    "cacheID": "f2b017fbc5526fbcc495089564d9e937",
     "id": null,
     "metadata": {},
     "name": "ListingManagementPageQuery",
     "operationKind": "query",
-    "text": "query ListingManagementPageQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingManagementPage_listing\n    id\n  }\n}\n\nfragment ListingManagementPage_listing on Listing {\n  id\n  title\n  description\n  price\n  images\n  city\n  state\n  createdAt\n  status\n}\n"
+    "text": "query ListingManagementPageQuery(\n  $id: ID!\n) {\n  listing(id: $id) {\n    ...ListingManagementPage_listing\n    id\n  }\n}\n\nfragment ListingManagementPage_listing on Listing {\n  id\n  title\n  description\n  price\n  images\n  city\n  state\n  createdAt\n  status\n  viewCount\n  inquiries {\n    id\n    status\n    buyer {\n      id\n      name\n      avatarUrl\n    }\n    seller {\n      id\n      name\n    }\n    listing {\n      id\n      title\n    }\n    contactPhone\n    createdAt\n    respondedAt\n  }\n}\n"
   }
 };
 })();

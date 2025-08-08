@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<530ca67dc3b6b121890071fd1741328a>>
+ * @generated SignedSource<<f37fec596681fa5d08871770ab7c9b97>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -13,18 +13,12 @@ export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added
 export type UpdateListingInput = {
   city?: string | null | undefined;
   description?: string | null | undefined;
-  imageVariants?: ReadonlyArray<ImageVariantsInput> | null | undefined;
   images?: ReadonlyArray<string> | null | undefined;
   latitude?: number | null | undefined;
   longitude?: number | null | undefined;
   price?: number | null | undefined;
   state?: string | null | undefined;
   title?: string | null | undefined;
-};
-export type ImageVariantsInput = {
-  card: string;
-  full: string;
-  thumbnail: string;
 };
 export type EditListingPageUpdateMutation$variables = {
   id: string;

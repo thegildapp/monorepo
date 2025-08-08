@@ -341,6 +341,64 @@ const resolvers = {
   Mutation: {
     ...inquiryResolvers.Mutation,
     
+    createSetupIntent: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to set up payment');
+      }
+
+      // Get or create Stripe customer
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      let customerId = user.stripeCustomerId;
+
+      // Create Stripe customer if doesn't exist
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.name,
+          metadata: {
+            userId: user.id,
+          },
+        });
+
+        // Save customer ID to database
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { stripeCustomerId: customer.id },
+        });
+
+        customerId = customer.id;
+      }
+
+      // Create SetupIntent for future payments
+      const setupIntent = await stripe.setupIntents.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session', // Allow reuse for future payments
+        metadata: {
+          userId: user.id,
+        },
+      });
+
+      // Create ephemeral key for mobile SDKs (optional, for future mobile support)
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: customerId },
+        { apiVersion: '2025-07-30.basil' }
+      );
+
+      return {
+        clientSecret: setupIntent.client_secret,
+        ephemeralKey: ephemeralKey.secret,
+        customerId,
+      };
+    },
+    
     trackListingView: async (_: any, { listingId }: { listingId: string }, context: YogaInitialContext & Context) => {
       try {
         // Get listing to check seller
@@ -398,15 +456,27 @@ const resolvers = {
         throw new Error(`A listing cannot have more than ${MAX_LISTING_IMAGES} images`);
       }
       
+      // Get user's Stripe customer ID
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+        select: { stripeCustomerId: true },
+      });
+      
+      if (!user?.stripeCustomerId) {
+        throw new Error('Payment method not set up. Please set up payment first.');
+      }
+      
       // Process payment for listing fee
       let paymentIntentId: string | null = null;
       
       try {
-        // Create payment intent with the listing fee
+        // Create payment intent with the listing fee using saved payment method
         const paymentIntent = await stripe.paymentIntents.create({
           amount: STRIPE_CONFIG.listingFee, // Amount in cents
           currency: STRIPE_CONFIG.currency,
+          customer: user.stripeCustomerId,
           payment_method: input.paymentMethodId,
+          off_session: true, // Charge saved card without user present
           confirm: true,
           metadata: {
             userId: context.userId,
@@ -414,10 +484,6 @@ const resolvers = {
             listingTitle: input.title,
           },
           description: `Listing fee for: ${input.title}`,
-          automatic_payment_methods: {
-            enabled: true,
-            allow_redirects: 'never'
-          },
         });
         
         if (paymentIntent.status !== 'succeeded') {
@@ -427,6 +493,14 @@ const resolvers = {
         paymentIntentId = paymentIntent.id;
       } catch (error: any) {
         logger.error('Payment processing failed', error, { metadata: { userId: context.userId } });
+        
+        // Handle specific Stripe errors for better UX
+        if (error.code === 'authentication_required') {
+          throw new Error('Card requires authentication. Please update your payment method.');
+        } else if (error.code === 'card_declined') {
+          throw new Error('Card was declined. Please use a different payment method.');
+        }
+        
         throw new Error(error.message || 'Payment processing failed. Please try again.');
       }
       

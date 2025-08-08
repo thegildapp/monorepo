@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<625563d565182c78850390ed335fab00>>
+ * @generated SignedSource<<01b6f5f8a65a5914c41d0d2fdc8b43b5>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,32 +9,23 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type LoginInput = {
+export type SignUpPageStartRegistrationMutation$variables = {
   email: string;
-  password: string;
+  name: string;
 };
-export type authLoginMutation$variables = {
-  input: LoginInput;
-};
-export type authLoginMutation$data = {
-  readonly login: {
+export type SignUpPageStartRegistrationMutation$data = {
+  readonly startPasskeyRegistration: {
     readonly errors: ReadonlyArray<{
       readonly code: string | null | undefined;
       readonly field: string | null | undefined;
       readonly message: string;
     }> | null | undefined;
-    readonly token: string | null | undefined;
-    readonly user: {
-      readonly avatarUrl: string | null | undefined;
-      readonly email: string;
-      readonly id: string;
-      readonly name: string;
-    } | null | undefined;
+    readonly publicKey: string | null | undefined;
   } | null | undefined;
 };
-export type authLoginMutation = {
-  response: authLoginMutation$data;
-  variables: authLoginMutation$variables;
+export type SignUpPageStartRegistrationMutation = {
+  response: SignUpPageStartRegistrationMutation$data;
+  variables: SignUpPageStartRegistrationMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -42,7 +33,12 @@ var v0 = [
   {
     "defaultValue": null,
     "kind": "LocalArgument",
-    "name": "input"
+    "name": "email"
+  },
+  {
+    "defaultValue": null,
+    "kind": "LocalArgument",
+    "name": "name"
   }
 ],
 v1 = [
@@ -51,59 +47,25 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "input",
-        "variableName": "input"
+        "name": "email",
+        "variableName": "email"
+      },
+      {
+        "kind": "Variable",
+        "name": "name",
+        "variableName": "name"
       }
     ],
     "concreteType": "AuthPayload",
     "kind": "LinkedField",
-    "name": "login",
+    "name": "startPasskeyRegistration",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "token",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "User",
-        "kind": "LinkedField",
-        "name": "user",
-        "plural": false,
-        "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "id",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "email",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "name",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "avatarUrl",
-            "storageKey": null
-          }
-        ],
+        "name": "publicKey",
         "storageKey": null
       },
       {
@@ -147,7 +109,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "authLoginMutation",
+    "name": "SignUpPageStartRegistrationMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -156,20 +118,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "authLoginMutation",
+    "name": "SignUpPageStartRegistrationMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "cb4687568d863829c68316362586fd00",
+    "cacheID": "7a85f0e0cf742afbf9426f0df5733d1d",
     "id": null,
     "metadata": {},
-    "name": "authLoginMutation",
+    "name": "SignUpPageStartRegistrationMutation",
     "operationKind": "mutation",
-    "text": "mutation authLoginMutation(\n  $input: LoginInput!\n) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation SignUpPageStartRegistrationMutation(\n  $email: String!\n  $name: String!\n) {\n  startPasskeyRegistration(email: $email, name: $name) {\n    publicKey\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "b0da9ef3a43b40ec275bd83c6e9b7c4d";
+(node as any).hash = "6a6585996228207c61b02aa324783efa";
 
 export default node;

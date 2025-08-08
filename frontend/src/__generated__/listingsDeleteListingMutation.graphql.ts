@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<65a99c40d56909b4ef94250878271544>>
+ * @generated SignedSource<<3bc8c60169231ee57dbf94d4fbde3f57>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,15 +9,15 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type ListingManagementPageDeleteMutation$variables = {
+export type listingsDeleteListingMutation$variables = {
   id: string;
 };
-export type ListingManagementPageDeleteMutation$data = {
+export type listingsDeleteListingMutation$data = {
   readonly deleteListing: boolean;
 };
-export type ListingManagementPageDeleteMutation = {
-  response: ListingManagementPageDeleteMutation$data;
-  variables: ListingManagementPageDeleteMutation$variables;
+export type listingsDeleteListingMutation = {
+  response: listingsDeleteListingMutation$data;
+  variables: listingsDeleteListingMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -48,7 +48,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "ListingManagementPageDeleteMutation",
+    "name": "listingsDeleteListingMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -57,20 +57,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "ListingManagementPageDeleteMutation",
+    "name": "listingsDeleteListingMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "c9bc75df2db694e651ddcd892a0df29a",
+    "cacheID": "2adcae9fd5edf523241622fd1a66e37d",
     "id": null,
     "metadata": {},
-    "name": "ListingManagementPageDeleteMutation",
+    "name": "listingsDeleteListingMutation",
     "operationKind": "mutation",
-    "text": "mutation ListingManagementPageDeleteMutation(\n  $id: ID!\n) {\n  deleteListing(id: $id)\n}\n"
+    "text": "mutation listingsDeleteListingMutation(\n  $id: ID!\n) {\n  deleteListing(id: $id)\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f61c511924a6c2d64f60c90d76abc4f2";
+(node as any).hash = "94bcb4e07b3a872a5c686bf070a486a4";
 
 export default node;

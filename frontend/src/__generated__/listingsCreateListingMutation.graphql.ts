@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9f5b0cdee02adc06757ffe2323803a73>>
+ * @generated SignedSource<<e95e993e1aee9bca7d3ab0c57735c1d3>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -13,18 +13,13 @@ export type ListingStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added
 export type CreateListingInput = {
   city: string;
   description: string;
-  imageVariants?: ReadonlyArray<ImageVariantsInput> | null | undefined;
   images: ReadonlyArray<string>;
   latitude?: number | null | undefined;
   longitude?: number | null | undefined;
+  paymentMethodId: string;
   price: number;
   state: string;
   title: string;
-};
-export type ImageVariantsInput = {
-  card: string;
-  full: string;
-  thumbnail: string;
 };
 export type listingsCreateListingMutation$variables = {
   input: CreateListingInput;
@@ -35,15 +30,9 @@ export type listingsCreateListingMutation$data = {
     readonly createdAt: string;
     readonly description: string;
     readonly id: string;
-    readonly imageVariants: ReadonlyArray<{
-      readonly card: string;
-      readonly full: string;
-      readonly thumbnail: string;
-    }> | null | undefined;
     readonly images: ReadonlyArray<string>;
     readonly price: number;
     readonly seller: {
-      readonly email: string;
       readonly id: string;
       readonly name: string;
     };
@@ -120,38 +109,6 @@ v2 = [
       {
         "alias": null,
         "args": null,
-        "concreteType": "ImageVariants",
-        "kind": "LinkedField",
-        "name": "imageVariants",
-        "plural": true,
-        "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "thumbnail",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "card",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "full",
-            "storageKey": null
-          }
-        ],
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
         "kind": "ScalarField",
         "name": "city",
         "storageKey": null
@@ -199,13 +156,6 @@ v2 = [
             "kind": "ScalarField",
             "name": "name",
             "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "email",
-            "storageKey": null
           }
         ],
         "storageKey": null
@@ -232,16 +182,16 @@ return {
     "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "c8c9ed59b74f0c0437a62a988a3a916e",
+    "cacheID": "2a5fa265afdcd4f7741f50fa656beca1",
     "id": null,
     "metadata": {},
     "name": "listingsCreateListingMutation",
     "operationKind": "mutation",
-    "text": "mutation listingsCreateListingMutation(\n  $input: CreateListingInput!\n) {\n  createListing(input: $input) {\n    id\n    title\n    description\n    price\n    images\n    imageVariants {\n      thumbnail\n      card\n      full\n    }\n    city\n    state\n    status\n    createdAt\n    updatedAt\n    seller {\n      id\n      name\n      email\n    }\n  }\n}\n"
+    "text": "mutation listingsCreateListingMutation(\n  $input: CreateListingInput!\n) {\n  createListing(input: $input) {\n    id\n    title\n    description\n    price\n    images\n    city\n    state\n    status\n    createdAt\n    updatedAt\n    seller {\n      id\n      name\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "1a45ee7e8715f9285f2c726f38d327b5";
+(node as any).hash = "5f60bfed529c5832faa8739f5d140c35";
 
 export default node;

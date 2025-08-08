@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<443b97792e75f9effd58698ea1698424>>
+ * @generated SignedSource<<b96c7aa1e167b5abcc2c8d49edc7679e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -163,38 +163,6 @@ return {
           {
             "alias": null,
             "args": null,
-            "concreteType": "ImageVariants",
-            "kind": "LinkedField",
-            "name": "imageVariants",
-            "plural": true,
-            "selections": [
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "thumbnail",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "card",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "full",
-                "storageKey": null
-              }
-            ],
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
             "kind": "ScalarField",
             "name": "city",
             "storageKey": null
@@ -219,12 +187,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "61ca13287952b90e36a71844c43e6cc0",
+    "cacheID": "0b9c47760a03d59fcc1cfbd64f0b3aa3",
     "id": null,
     "metadata": {},
     "name": "listingsSearchQuery",
     "operationKind": "query",
-    "text": "query listingsSearchQuery(\n  $query: String!\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsSearchQuery(\n  $query: String!\n  $limit: Int\n  $offset: Int\n  $filters: SearchFilters\n) {\n  searchListings(query: $query, limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();

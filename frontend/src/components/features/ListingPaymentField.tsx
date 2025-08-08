@@ -3,63 +3,148 @@ import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
+  PaymentRequestButtonElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
+import { useMutation, graphql } from 'react-relay';
 import { STRIPE_PUBLIC_KEY, stripeConfig } from '../../config/stripe';
 import styles from './ListingPaymentField.module.css';
+
+const CREATE_SETUP_INTENT = graphql`
+  mutation ListingPaymentFieldCreateSetupIntentMutation {
+    createSetupIntent {
+      clientSecret
+      customerId
+    }
+  }
+`;
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 interface ListingPaymentFieldProps {
   onPaymentMethodChange: (paymentMethodId: string | null) => void;
   isProcessing?: boolean;
+  onSetupComplete?: (customerId: string) => void;
+}
+
+interface SetupIntentResponse {
+  clientSecret: string;
+  customerId: string;
 }
 
 const PaymentForm: React.FC<ListingPaymentFieldProps> = ({ 
   onPaymentMethodChange,
-  isProcessing = false 
+  isProcessing = false,
+  onSetupComplete 
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
   const [isCardComplete, setIsCardComplete] = useState(false);
+  const [paymentRequest, setPaymentRequest] = useState<any>(null);
+  const [canMakePayment, setCanMakePayment] = useState(false);
+  const [setupIntent, setSetupIntent] = useState<{ clientSecret: string; customerId: string } | null>(null);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const cardRef = useRef<any>(null);
+  
+  const [createSetupIntent, isInFlight] = useMutation(CREATE_SETUP_INTENT);
+
+  // Create SetupIntent when component mounts
+  useEffect(() => {
+    if (isInFlight) return;
+    
+    createSetupIntent({
+      variables: {},
+      onCompleted: (data: any) => {
+        if (data?.createSetupIntent) {
+          setSetupIntent(data.createSetupIntent);
+        }
+      },
+      onError: (error: Error) => {
+        console.error('Failed to create setup intent:', error);
+        setError('Failed to initialize payment setup');
+      },
+    });
+  }, []);
 
   useEffect(() => {
-    // Focus on card element when component mounts
-    setTimeout(() => {
-      if (cardRef.current) {
-        cardRef.current.focus();
+    if (!stripe) return;
+
+    const pr = stripe.paymentRequest({
+      country: 'US',
+      currency: 'usd',
+      total: {
+        label: 'Listing Fee',
+        amount: Math.round(stripeConfig.listingFee * 100), // Amount in cents
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    // Check if the Payment Request API is available
+    pr.canMakePayment().then(result => {
+      if (result) {
+        setPaymentRequest(pr);
+        setCanMakePayment(true);
       }
-    }, 100);
-  }, []);
+    });
+
+    // Handle payment method creation for Apple Pay/Google Pay
+    pr.on('paymentmethod', async (event) => {
+      onPaymentMethodChange(event.paymentMethod.id);
+      event.complete('success');
+    });
+  }, [stripe, onPaymentMethodChange]);
+
+  useEffect(() => {
+    // Focus on card element when component mounts (only if no payment request button)
+    if (!canMakePayment) {
+      setTimeout(() => {
+        if (cardRef.current) {
+          cardRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [canMakePayment]);
 
   const handleCardChange = async (event: any) => {
     setError(event.error ? event.error.message : null);
     setIsCardComplete(event.complete);
 
-    if (event.complete && stripe && elements) {
+    if (event.complete && stripe && elements && setupIntent) {
       const cardElement = elements.getElement(CardElement);
       if (cardElement) {
+        setIsSettingUp(true);
         try {
-          const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: 'card',
-            card: cardElement,
-          });
+          // Confirm the SetupIntent to save the card
+          const { error, setupIntent: confirmedSetupIntent } = await stripe.confirmCardSetup(
+            setupIntent.clientSecret,
+            {
+              payment_method: {
+                card: cardElement,
+              },
+            }
+          );
 
           if (error) {
-            setError(error.message || 'Payment method creation failed');
+            setError(error.message || 'Card setup failed');
             onPaymentMethodChange(null);
-          } else if (paymentMethod) {
-            onPaymentMethodChange(paymentMethod.id);
+          } else if (confirmedSetupIntent && confirmedSetupIntent.payment_method) {
+            // Card saved successfully
+            onPaymentMethodChange(confirmedSetupIntent.payment_method as string);
+            if (onSetupComplete) {
+              onSetupComplete(setupIntent.customerId);
+            }
           }
         } catch (err) {
-          setError('Failed to process payment information');
+          setError('Failed to save payment information');
           onPaymentMethodChange(null);
+        } finally {
+          setIsSettingUp(false);
         }
       }
-    } else {
+    } else if (!event.complete) {
       onPaymentMethodChange(null);
     }
   };
@@ -92,9 +177,34 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
           ${stripeConfig.listingFee.toFixed(2)} listing fee
         </div>
         <p className={styles.refundText}>
-          Fully refundable if you receive no inquiries within {stripeConfig.refundPeriodDays} days
+          Fully refundable if you receive no inquiries within {stripeConfig.refundPeriodDays} days.
+          Your card will be saved for future listings.
         </p>
       </div>
+
+      {/* Show Apple Pay/Google Pay button if available */}
+      {canMakePayment && paymentRequest && (
+        <div className={styles.expressPaymentContainer}>
+          <div className={styles.divider}>
+            <span>Express checkout</span>
+          </div>
+          <PaymentRequestButtonElement
+            options={{
+              paymentRequest,
+              style: {
+                paymentRequestButton: {
+                  type: 'default',
+                  theme: 'dark',
+                  height: '48px',
+                },
+              },
+            }}
+          />
+          <div className={styles.divider}>
+            <span>Or pay with card</span>
+          </div>
+        </div>
+      )}
 
       <div className={styles.cardContainer}>
         <label className={styles.label}>Card information</label>
@@ -118,8 +228,10 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
         Your payment information is secure and encrypted
       </div>
 
-      {isProcessing && (
-        <div className={styles.processing}>Processing payment...</div>
+      {(isProcessing || isSettingUp) && (
+        <div className={styles.processing}>
+          {isSettingUp ? 'Saving payment method...' : 'Processing payment...'}
+        </div>
       )}
     </div>
   );

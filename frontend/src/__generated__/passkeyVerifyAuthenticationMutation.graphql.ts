@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9176a7e8c21c1586f6941ff071545c86>>
+ * @generated SignedSource<<1d189d6e8d1b023a8f68a2c2a7a6714c>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,34 +9,28 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type RegisterInput = {
+export type VerifyPasskeyAuthenticationInput = {
   email: string;
-  name: string;
-  password: string;
-  phone?: string | null | undefined;
+  response: string;
 };
-export type authRegisterMutation$variables = {
-  input: RegisterInput;
+export type passkeyVerifyAuthenticationMutation$variables = {
+  input: VerifyPasskeyAuthenticationInput;
 };
-export type authRegisterMutation$data = {
-  readonly register: {
-    readonly errors: ReadonlyArray<{
-      readonly code: string | null | undefined;
-      readonly field: string | null | undefined;
-      readonly message: string;
-    }> | null | undefined;
+export type passkeyVerifyAuthenticationMutation$data = {
+  readonly verifyPasskeyAuthentication: {
     readonly token: string | null | undefined;
     readonly user: {
       readonly avatarUrl: string | null | undefined;
       readonly email: string;
       readonly id: string;
       readonly name: string;
+      readonly phone: string | null | undefined;
     } | null | undefined;
   } | null | undefined;
 };
-export type authRegisterMutation = {
-  response: authRegisterMutation$data;
-  variables: authRegisterMutation$variables;
+export type passkeyVerifyAuthenticationMutation = {
+  response: passkeyVerifyAuthenticationMutation$data;
+  variables: passkeyVerifyAuthenticationMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -59,7 +53,7 @@ v1 = [
     ],
     "concreteType": "AuthPayload",
     "kind": "LinkedField",
-    "name": "register",
+    "name": "verifyPasskeyAuthentication",
     "plural": false,
     "selections": [
       {
@@ -102,39 +96,14 @@ v1 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
+            "name": "phone",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
             "name": "avatarUrl",
-            "storageKey": null
-          }
-        ],
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "FieldError",
-        "kind": "LinkedField",
-        "name": "errors",
-        "plural": true,
-        "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "field",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "message",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "code",
             "storageKey": null
           }
         ],
@@ -149,7 +118,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "authRegisterMutation",
+    "name": "passkeyVerifyAuthenticationMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -158,20 +127,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "authRegisterMutation",
+    "name": "passkeyVerifyAuthenticationMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "e604808755f9f4d6417bf2fdde6bec0c",
+    "cacheID": "4ec5fbd88c2aa82a4b636e305430d00e",
     "id": null,
     "metadata": {},
-    "name": "authRegisterMutation",
+    "name": "passkeyVerifyAuthenticationMutation",
     "operationKind": "mutation",
-    "text": "mutation authRegisterMutation(\n  $input: RegisterInput!\n) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation passkeyVerifyAuthenticationMutation(\n  $input: VerifyPasskeyAuthenticationInput!\n) {\n  verifyPasskeyAuthentication(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      phone\n      avatarUrl\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "cc35cc79e36425650256927cedf75a82";
+(node as any).hash = "2d5793861dd487219481908436239c62";
 
 export default node;

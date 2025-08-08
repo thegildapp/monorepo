@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<0348eedf7c5777f1dfbe1d69a2b2a308>>
+ * @generated SignedSource<<e45283dd578001d43e591a03d0ed2a06>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,19 +9,19 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type imageUploadGenerateUploadUrlMutation$variables = {
+export type authGenerateAvatarUploadUrlMutation$variables = {
   contentType: string;
   filename: string;
 };
-export type imageUploadGenerateUploadUrlMutation$data = {
-  readonly generateUploadUrl: {
+export type authGenerateAvatarUploadUrlMutation$data = {
+  readonly generateAvatarUploadUrl: {
     readonly key: string;
     readonly url: string;
   };
 };
-export type imageUploadGenerateUploadUrlMutation = {
-  response: imageUploadGenerateUploadUrlMutation$data;
-  variables: imageUploadGenerateUploadUrlMutation$variables;
+export type authGenerateAvatarUploadUrlMutation = {
+  response: authGenerateAvatarUploadUrlMutation$data;
+  variables: authGenerateAvatarUploadUrlMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -52,7 +52,7 @@ v2 = [
     ],
     "concreteType": "UploadUrl",
     "kind": "LinkedField",
-    "name": "generateUploadUrl",
+    "name": "generateAvatarUploadUrl",
     "plural": false,
     "selections": [
       {
@@ -81,7 +81,7 @@ return {
     ],
     "kind": "Fragment",
     "metadata": null,
-    "name": "imageUploadGenerateUploadUrlMutation",
+    "name": "authGenerateAvatarUploadUrlMutation",
     "selections": (v2/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -93,20 +93,20 @@ return {
       (v0/*: any*/)
     ],
     "kind": "Operation",
-    "name": "imageUploadGenerateUploadUrlMutation",
+    "name": "authGenerateAvatarUploadUrlMutation",
     "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "50f66f315b25800192ec95bae3c950d5",
+    "cacheID": "6a7270854dbea8e950d7e45dcf2f7f72",
     "id": null,
     "metadata": {},
-    "name": "imageUploadGenerateUploadUrlMutation",
+    "name": "authGenerateAvatarUploadUrlMutation",
     "operationKind": "mutation",
-    "text": "mutation imageUploadGenerateUploadUrlMutation(\n  $filename: String!\n  $contentType: String!\n) {\n  generateUploadUrl(filename: $filename, contentType: $contentType) {\n    url\n    key\n  }\n}\n"
+    "text": "mutation authGenerateAvatarUploadUrlMutation(\n  $filename: String!\n  $contentType: String!\n) {\n  generateAvatarUploadUrl(filename: $filename, contentType: $contentType) {\n    url\n    key\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "d8d574603e206df984bafc61c9d5df62";
+(node as any).hash = "829e4d1ee1e15054a66829bade1a9558";
 
 export default node;

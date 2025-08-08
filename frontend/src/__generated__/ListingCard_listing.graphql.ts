@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<44cc03eeade7f024b69b05c8291a068d>>
+ * @generated SignedSource<<db899b98182884c60bc296cd8a511762>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,11 +14,6 @@ export type ListingCard_listing$data = {
   readonly city: string | null | undefined;
   readonly createdAt: string;
   readonly id: string;
-  readonly imageVariants: ReadonlyArray<{
-    readonly card: string;
-    readonly full: string;
-    readonly thumbnail: string;
-  }> | null | undefined;
   readonly images: ReadonlyArray<string>;
   readonly price: number;
   readonly state: string | null | undefined;
@@ -67,38 +62,6 @@ const node: ReaderFragment = {
     {
       "alias": null,
       "args": null,
-      "concreteType": "ImageVariants",
-      "kind": "LinkedField",
-      "name": "imageVariants",
-      "plural": true,
-      "selections": [
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "thumbnail",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "card",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "full",
-          "storageKey": null
-        }
-      ],
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
       "kind": "ScalarField",
       "name": "city",
       "storageKey": null
@@ -122,6 +85,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "6fa93b527d7e72c586c67dd8be9a2baa";
+(node as any).hash = "0a1d855e80bb2d301d66ff96ca7ae36a";
 
 export default node;

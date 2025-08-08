@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5bb3a574480a2e71c0194e138e89cde7>>
+ * @generated SignedSource<<9b850233f222958850d5adecea96098e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -143,38 +143,6 @@ return {
           {
             "alias": null,
             "args": null,
-            "concreteType": "ImageVariants",
-            "kind": "LinkedField",
-            "name": "imageVariants",
-            "plural": true,
-            "selections": [
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "thumbnail",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "card",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "full",
-                "storageKey": null
-              }
-            ],
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
             "kind": "ScalarField",
             "name": "city",
             "storageKey": null
@@ -199,12 +167,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "d6c5db5ff03ac436fd5bf1a3650b5a26",
+    "cacheID": "d4aba8c271f73a1b3a023a18fedebd7e",
     "id": null,
     "metadata": {},
     "name": "listingsQuery",
     "operationKind": "query",
-    "text": "query listingsQuery(\n  $limit: Int\n  $offset: Int\n  $filters: LocationFilter\n) {\n  listings(limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  imageVariants {\n    thumbnail\n    card\n    full\n  }\n  city\n  state\n  createdAt\n}\n"
+    "text": "query listingsQuery(\n  $limit: Int\n  $offset: Int\n  $filters: LocationFilter\n) {\n  listings(limit: $limit, offset: $offset, filters: $filters) {\n    ...ListingCard_listing\n    id\n  }\n}\n\nfragment ListingCard_listing on Listing {\n  id\n  title\n  price\n  images\n  city\n  state\n  createdAt\n}\n"
   }
 };
 })();

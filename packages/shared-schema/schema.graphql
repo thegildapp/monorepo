@@ -90,12 +90,19 @@ type UploadUrl {
   key: String!
 }
 
+type SetupIntent {
+  clientSecret: String!
+  ephemeralKey: String
+  customerId: String!
+}
+
 type Mutation {
   createListing(input: CreateListingInput!): Listing!
   updateListing(id: ID!, input: UpdateListingInput!): Listing!
   deleteListing(id: ID!): Boolean!
   generateUploadUrl(filename: String!, contentType: String!, fileSize: Int): UploadUrl!
   generateAvatarUploadUrl(filename: String!, contentType: String!, fileSize: Int): UploadUrl!
+  createSetupIntent: SetupIntent!
   register(input: RegisterInput!): AuthPayload
   login(input: LoginInput!): AuthPayload
   refreshToken: AuthPayload!

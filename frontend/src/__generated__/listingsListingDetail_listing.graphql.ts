@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<444190c837b0bc3809d078b117867de5>>
+ * @generated SignedSource<<479652650daee9c6e55fcf19fbbf4a85>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,20 +14,14 @@ export type listingsListingDetail_listing$data = {
   readonly city: string | null | undefined;
   readonly createdAt: string;
   readonly description: string;
+  readonly hasInquired: boolean;
   readonly id: string;
-  readonly imageVariants: ReadonlyArray<{
-    readonly card: string;
-    readonly full: string;
-    readonly thumbnail: string;
-  }> | null | undefined;
   readonly images: ReadonlyArray<string>;
   readonly price: number;
   readonly seller: {
     readonly avatarUrl: string | null | undefined;
-    readonly email: string;
     readonly id: string;
     readonly name: string;
-    readonly phone: string | null | undefined;
   };
   readonly state: string | null | undefined;
   readonly title: string;
@@ -85,38 +79,6 @@ return {
     {
       "alias": null,
       "args": null,
-      "concreteType": "ImageVariants",
-      "kind": "LinkedField",
-      "name": "imageVariants",
-      "plural": true,
-      "selections": [
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "thumbnail",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "card",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "full",
-          "storageKey": null
-        }
-      ],
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
       "kind": "ScalarField",
       "name": "city",
       "storageKey": null
@@ -148,24 +110,17 @@ return {
           "alias": null,
           "args": null,
           "kind": "ScalarField",
-          "name": "email",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "phone",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
           "name": "avatarUrl",
           "storageKey": null
         }
       ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "hasInquired",
       "storageKey": null
     },
     {
@@ -188,6 +143,6 @@ return {
 };
 })();
 
-(node as any).hash = "8565dbace5189eb2a7440ebff944ddd8";
+(node as any).hash = "8c4153d6ad7c478ccbaea07e40aa3ace";
 
 export default node;

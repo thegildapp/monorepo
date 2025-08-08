@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9176a7e8c21c1586f6941ff071545c86>>
+ * @generated SignedSource<<8b3c088ccff839629d6e262ad06949a8>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,34 +9,26 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type RegisterInput = {
-  email: string;
-  name: string;
-  password: string;
-  phone?: string | null | undefined;
+export type InquiryStatus = "ACCEPTED" | "PENDING" | "REJECTED" | "%future added value";
+export type inquiriesRequestContactMutation$variables = {
+  listingId: string;
 };
-export type authRegisterMutation$variables = {
-  input: RegisterInput;
-};
-export type authRegisterMutation$data = {
-  readonly register: {
+export type inquiriesRequestContactMutation$data = {
+  readonly requestContact: {
     readonly errors: ReadonlyArray<{
-      readonly code: string | null | undefined;
       readonly field: string | null | undefined;
       readonly message: string;
     }> | null | undefined;
-    readonly token: string | null | undefined;
-    readonly user: {
-      readonly avatarUrl: string | null | undefined;
-      readonly email: string;
+    readonly inquiry: {
+      readonly createdAt: string;
       readonly id: string;
-      readonly name: string;
+      readonly status: InquiryStatus;
     } | null | undefined;
-  } | null | undefined;
+  };
 };
-export type authRegisterMutation = {
-  response: authRegisterMutation$data;
-  variables: authRegisterMutation$variables;
+export type inquiriesRequestContactMutation = {
+  response: inquiriesRequestContactMutation$data;
+  variables: inquiriesRequestContactMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -44,7 +36,7 @@ var v0 = [
   {
     "defaultValue": null,
     "kind": "LocalArgument",
-    "name": "input"
+    "name": "listingId"
   }
 ],
 v1 = [
@@ -53,28 +45,21 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "input",
-        "variableName": "input"
+        "name": "listingId",
+        "variableName": "listingId"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "RequestContactPayload",
     "kind": "LinkedField",
-    "name": "register",
+    "name": "requestContact",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
-        "kind": "ScalarField",
-        "name": "token",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "User",
+        "concreteType": "Inquiry",
         "kind": "LinkedField",
-        "name": "user",
+        "name": "inquiry",
         "plural": false,
         "selections": [
           {
@@ -88,21 +73,14 @@ v1 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "email",
+            "name": "status",
             "storageKey": null
           },
           {
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "name",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "avatarUrl",
+            "name": "createdAt",
             "storageKey": null
           }
         ],
@@ -129,13 +107,6 @@ v1 = [
             "kind": "ScalarField",
             "name": "message",
             "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "code",
-            "storageKey": null
           }
         ],
         "storageKey": null
@@ -149,7 +120,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "authRegisterMutation",
+    "name": "inquiriesRequestContactMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -158,20 +129,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "authRegisterMutation",
+    "name": "inquiriesRequestContactMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "e604808755f9f4d6417bf2fdde6bec0c",
+    "cacheID": "9e7fd14d457398fe74d53f2e93ff14a6",
     "id": null,
     "metadata": {},
-    "name": "authRegisterMutation",
+    "name": "inquiriesRequestContactMutation",
     "operationKind": "mutation",
-    "text": "mutation authRegisterMutation(\n  $input: RegisterInput!\n) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      name\n      avatarUrl\n    }\n    errors {\n      field\n      message\n      code\n    }\n  }\n}\n"
+    "text": "mutation inquiriesRequestContactMutation(\n  $listingId: ID!\n) {\n  requestContact(listingId: $listingId) {\n    inquiry {\n      id\n      status\n      createdAt\n    }\n    errors {\n      field\n      message\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "cc35cc79e36425650256927cedf75a82";
+(node as any).hash = "7fe75daf56d21b0474f68de7c9b5e06e";
 
 export default node;
