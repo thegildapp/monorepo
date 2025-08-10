@@ -139,11 +139,11 @@ spec:
               optional: true
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "100m"
-          limits:
             memory: "1Gi"
-            cpu: "500m"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1500m"
         livenessProbe:
           httpGet:
             path: /graphql?query=%7B__typename%7D
