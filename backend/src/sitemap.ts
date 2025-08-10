@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Generate sitemap index that points to sub-sitemaps
-export async function generateSitemapIndex(baseUrl: string): Promise<string> {
+export async function generateSitemapIndex(_baseUrl: string): Promise<string> {
   // Always use the main domain for sitemap URLs
   const mainUrl = 'https://thegild.app';
   
