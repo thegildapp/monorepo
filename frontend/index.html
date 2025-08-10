@@ -5,22 +5,54 @@
     <link rel="icon" type="image/png" href="/icongild.png" />
     <link rel="apple-touch-icon" href="/icongild.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Gild" />
+    <meta name="description" content="Buy and sell unique items locally on Gild. Find vintage furniture, electronics, collectibles, and more in your area. Safe, simple marketplace for quality pre-owned goods." />
+    <meta name="keywords" content="buy sell locally, marketplace, vintage furniture, electronics, collectibles, pre-owned, second hand, local marketplace" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://thegild.app/" />
-    <meta property="og:title" content="Gild" />
-    <meta property="og:description" content="Gild" />
-    <meta property="og:image" content="/logogild.png" />
+    <meta property="og:title" content="Gild - Local Marketplace for Unique Items" />
+    <meta property="og:description" content="Buy and sell unique items locally. Find vintage furniture, electronics, collectibles, and more in your area." />
+    <meta property="og:image" content="https://thegild.app/logogild.png" />
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://thegild.app/" />
-    <meta property="twitter:title" content="Gild" />
-    <meta property="twitter:description" content="Gild" />
-    <meta property="twitter:image" content="/logogild.png" />
+    <meta property="twitter:title" content="Gild - Local Marketplace for Unique Items" />
+    <meta property="twitter:description" content="Buy and sell unique items locally. Find vintage furniture, electronics, collectibles, and more in your area." />
+    <meta property="twitter:image" content="https://thegild.app/logogild.png" />
     <title>Gild</title>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Gild",
+      "description": "Buy and sell unique items locally on Gild. Safe, simple marketplace for quality pre-owned goods.",
+      "url": "https://thegild.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://thegild.app/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Gild",
+      "url": "https://thegild.app",
+      "logo": "https://thegild.app/logogild.png",
+      "description": "Local marketplace for buying and selling unique items",
+      "sameAs": []
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,0 +1,14 @@
+# Robots.txt for Gild
+User-agent: *
+Allow: /
+Disallow: /me
+Disallow: /me/
+Disallow: /signin
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /listing/*/manage
+Disallow: /listing/*/edit
+
+Sitemap: https://thegild.app/sitemap.xml

@@ -5,6 +5,7 @@ import Header from '../layout/Header';
 import Layout from '../layout/Layout';
 import Main from '../layout/Main';
 import NotFound from '../feedback/NotFound';
+import SEOHead from '../common/SEOHead';
 import { GetListingQuery } from '../../queries/listings';
 import { RequestContactMutation } from '../../queries/inquiries';
 import { TrackListingViewMutation } from '../../queries/viewTracking';
@@ -486,8 +487,42 @@ export default function ItemPage() {
     return <NotFound />;
   }
 
+  // Generate structured data for SEO
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": listing.title,
+    "description": listing.description,
+    "image": images.length > 0 ? images : ['/logogild.png'],
+    "offers": {
+      "@type": "Offer",
+      "price": listing.price,
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Person",
+        "name": listing.seller.name
+      }
+    },
+    "brand": {
+      "@type": "Brand",
+      "name": "User Listed"
+    }
+  };
+
   return (
     <Layout>
+      <SEOHead
+        title={`${listing.title} - Gild`}
+        description={listing.description.length > 160 
+          ? listing.description.substring(0, 157) + '...' 
+          : listing.description}
+        image={images.length > 0 ? images[0] : '/logogild.png'}
+        url={`https://thegild.app/listing/${listing.id}`}
+        type="product"
+        price={listing.price}
+        jsonLd={jsonLd}
+      />
       <Header 
         logoText="Gild"
         showSearch={false}

@@ -37,8 +37,29 @@ function HomePageContent({ location, radius }: HomePageContentProps) {
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className={styles.locationIcon}>
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
         </svg>
-        <h2 className={styles.noLocationTitle}>Select a location</h2>
-        <p className={styles.noLocationText}>Choose a location above to see listings in your area</p>
+        <h1 className={styles.noLocationTitle}>Welcome to Gild - Your Local Marketplace</h1>
+        <p className={styles.noLocationText}>
+          Discover unique items in your area. Buy and sell vintage furniture, electronics, 
+          collectibles, and more with trusted local sellers.
+        </p>
+        <p className={styles.noLocationSubtext}>
+          Choose a location above to start browsing listings near you
+        </p>
+        
+        <div className={styles.features}>
+          <div className={styles.feature}>
+            <h3>Safe & Secure</h3>
+            <p>Verified sellers and secure payment processing</p>
+          </div>
+          <div className={styles.feature}>
+            <h3>Local First</h3>
+            <p>Find items in your neighborhood, no shipping needed</p>
+          </div>
+          <div className={styles.feature}>
+            <h3>Unique Finds</h3>
+            <p>Discover one-of-a-kind items you won't find elsewhere</p>
+          </div>
+        </div>
       </div>
     );
   }

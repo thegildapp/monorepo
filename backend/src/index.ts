@@ -1,6 +1,13 @@
 import express from 'express';
 import { createYoga, createSchema, YogaInitialContext } from 'graphql-yoga';
 import cors from 'cors';
+import { 
+  generateSitemapIndex, 
+  generateStaticSitemap,
+  generateRecentListingsSitemap,
+  generatePopularListingsSitemap,
+  generateRobotsTxt 
+} from './sitemap';
 import { typeDefs } from '@gild/shared-schema';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -1739,6 +1746,89 @@ async function startServer(): Promise<void> {
   );
   
   app.use(requestLoggingMiddleware);
+  
+  // Root endpoint for API
+  app.get('/', (_req, res) => {
+    res.json({
+      name: 'Gild API',
+      version: '1.0.0',
+      status: 'healthy',
+      endpoints: {
+        graphql: '/graphql',
+        robots: '/robots.txt'
+      }
+    });
+  });
+  
+  // SEO endpoints
+  app.get('/sitemap.xml', async (_req, res) => {
+    try {
+      const baseUrl = process.env['BASE_URL'] || 'https://thegild.app';
+      const sitemapIndex = await generateSitemapIndex(baseUrl);
+      res.header('Content-Type', 'application/xml');
+      res.header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.send(sitemapIndex);
+    } catch (error) {
+      logger.error('Failed to generate sitemap index', error as Error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+  
+  app.get('/sitemap-static.xml', async (_req, res) => {
+    try {
+      const baseUrl = process.env['BASE_URL'] || 'https://thegild.app';
+      const sitemap = await generateStaticSitemap(baseUrl);
+      res.header('Content-Type', 'application/xml');
+      res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      res.send(sitemap);
+    } catch (error) {
+      logger.error('Failed to generate static sitemap', error as Error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+  
+  app.get('/sitemap-recent.xml', async (_req, res) => {
+    try {
+      const baseUrl = process.env['BASE_URL'] || 'https://thegild.app';
+      const sitemap = await generateRecentListingsSitemap(baseUrl);
+      res.header('Content-Type', 'application/xml');
+      res.header('Cache-Control', 'public, max-age=1800'); // Cache for 30 minutes
+      res.send(sitemap);
+    } catch (error) {
+      logger.error('Failed to generate recent listings sitemap', error as Error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+  
+  app.get('/sitemap-popular.xml', async (_req, res) => {
+    try {
+      const baseUrl = process.env['BASE_URL'] || 'https://thegild.app';
+      const sitemap = await generatePopularListingsSitemap(baseUrl);
+      res.header('Content-Type', 'application/xml');
+      res.header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.send(sitemap);
+    } catch (error) {
+      logger.error('Failed to generate popular listings sitemap', error as Error);
+      res.status(500).send('Error generating sitemap');
+    }
+  });
+  
+  app.get('/robots.txt', async (req, res) => {
+    try {
+      // Determine the base URL from the request host
+      const host = req.get('host') || 'thegild.app';
+      const protocol = req.protocol || 'https';
+      const baseUrl = `${protocol}://${host}`;
+      
+      const robots = await generateRobotsTxt(baseUrl);
+      res.header('Content-Type', 'text/plain');
+      res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      res.send(robots);
+    } catch (error) {
+      logger.error('Failed to generate robots.txt', error as Error);
+      res.status(500).send('Error generating robots.txt');
+    }
+  });
   
   // Start log processing
   logger.startProcessing();

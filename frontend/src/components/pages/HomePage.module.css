@@ -57,16 +57,55 @@
 }
 
 .noLocationTitle {
-  font-size: 24px;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+  font-family: 'Tinos', serif;
+  line-height: 1.2;
+}
+
+.noLocationText {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  max-width: 600px;
+  font-family: 'Tinos', serif;
+  margin-bottom: var(--space-3);
+  line-height: 1.5;
+}
+
+.noLocationSubtext {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  font-family: 'Tinos', serif;
+  margin-bottom: var(--space-8);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-6);
+  max-width: 800px;
+  margin-top: var(--space-8);
+  width: 100%;
+}
+
+.feature {
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.feature h3 {
+  font-size: 20px;
   font-weight: 400;
   color: var(--color-text-primary);
   margin-bottom: var(--space-2);
   font-family: 'Tinos', serif;
 }
 
-.noLocationText {
-  font-size: 16px;
+.feature p {
+  font-size: 14px;
   color: var(--color-text-secondary);
-  max-width: 400px;
   font-family: 'Tinos', serif;
+  line-height: 1.4;
 }
