@@ -55,6 +55,9 @@ type Query {
   me: User
   myListings: [Listing!]!
   
+  # Payment methods
+  myPaymentMethods: [PaymentMethod!]!
+  
   # Inquiry queries
   inquiry(id: ID!): Inquiry
   myInquiries(type: InquiryType!, status: InquiryStatus, limit: Int, offset: Int): InquiryConnection!
@@ -96,6 +99,15 @@ type SetupIntent {
   customerId: String!
 }
 
+type PaymentMethod {
+  id: String!
+  brand: String!
+  last4: String!
+  expMonth: Int!
+  expYear: Int!
+  isDefault: Boolean!
+}
+
 type Mutation {
   createListing(input: CreateListingInput!): Listing!
   updateListing(id: ID!, input: UpdateListingInput!): Listing!
@@ -127,6 +139,11 @@ type Mutation {
   
   # View tracking
   trackListingView(listingId: ID!): TrackViewPayload!
+  
+  # Payment methods
+  savePaymentMethod(paymentMethodId: String!): PaymentMethod!
+  setDefaultPaymentMethod(paymentMethodId: String!): PaymentMethod!
+  deletePaymentMethod(paymentMethodId: String!): Boolean!
   
   # Password reset
   requestPasswordReset(email: String!): PasswordResetRequestPayload!

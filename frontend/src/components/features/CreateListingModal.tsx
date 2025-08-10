@@ -34,6 +34,7 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number; city?: string; state?: string } | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [isCardValid, setIsCardValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,29 +56,35 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       case 4: // Location
         return location !== null;
       case 5: // Payment
-        return isCardValid;
+        return isCardValid || isPaymentReady;
       default:
         return false;
     }
   };
 
   const handleFinish = async () => {
+    // Don't start if payment isn't ready
+    if (!isCardValid && currentPage === 5) {
+      setError('Please complete the payment information.');
+      return;
+    }
+    
     setIsSubmitting(true);
     setError(null);
-
-    // Wait for payment method to be saved (happens in ListingPaymentField when isProcessing=true)
-    // Poll for up to 5 seconds
-    let attempts = 0;
-    while ((!paymentMethodId || paymentMethodId === '') && attempts < 50) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    // Check if payment method was saved
-    if (!paymentMethodId || paymentMethodId === '') {
-      setError('Failed to save payment method. Please try again.');
-      setIsSubmitting(false);
-      return;
+    
+    // Wait for payment method to be set (up to 10 seconds)
+    if (!paymentMethodId) {
+      let attempts = 0;
+      while (!paymentMethodId && attempts < 100) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (!paymentMethodId) {
+        setError('Failed to save payment method. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -219,9 +226,16 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     />,
     <ListingPaymentField
       key="payment"
-      onPaymentMethodChange={setPaymentMethodId}
+      onPaymentMethodChange={(methodId) => {
+        setPaymentMethodId(methodId);
+        setIsPaymentReady(!!methodId);
+      }}
       onCardValidChange={setIsCardValid}
       isProcessing={isSubmitting}
+      onError={(error: string) => {
+        setError(error);
+        setIsSubmitting(false);
+      }}
     />
   ];
 

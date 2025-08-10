@@ -337,6 +337,45 @@ const resolvers = {
         updatedAt: listing.updatedAt.toISOString(),
       }));
     },
+    
+    myPaymentMethods: async (_: any, __: any, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to view payment methods');
+      }
+      
+      const user = await prismaRead.user.findUnique({
+        where: { id: context.userId },
+        select: { stripeCustomerId: true }
+      });
+      
+      if (!user?.stripeCustomerId) {
+        return [];
+      }
+      
+      try {
+        // Get payment methods from Stripe
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: user.stripeCustomerId,
+          type: 'card',
+        });
+        
+        // Get the default payment method
+        const customer = await stripe.customers.retrieve(user.stripeCustomerId) as any;
+        const defaultPaymentMethodId = customer.invoice_settings?.default_payment_method;
+        
+        return paymentMethods.data.map(pm => ({
+          id: pm.id,
+          brand: pm.card?.brand || 'unknown',
+          last4: pm.card?.last4 || '****',
+          expMonth: pm.card?.exp_month || 0,
+          expYear: pm.card?.exp_year || 0,
+          isDefault: pm.id === defaultPaymentMethodId
+        }));
+      } catch (error) {
+        logger.error('Failed to fetch payment methods', error as Error, { metadata: { userId: context.userId } });
+        return [];
+      }
+    },
   },
   
   Mutation: {
@@ -443,6 +482,103 @@ const resolvers = {
         };
       }
     },
+    
+    savePaymentMethod: async (_: any, { paymentMethodId }: { paymentMethodId: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to save a payment method');
+      }
+      
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+        select: { stripeCustomerId: true }
+      });
+      
+      if (!user?.stripeCustomerId) {
+        throw new Error('No Stripe customer found. Please complete setup first.');
+      }
+      
+      try {
+        // Attach the payment method to the customer
+        await stripe.paymentMethods.attach(paymentMethodId, {
+          customer: user.stripeCustomerId,
+        });
+        
+        // Set as default payment method for invoices
+        await stripe.customers.update(user.stripeCustomerId, {
+          invoice_settings: {
+            default_payment_method: paymentMethodId,
+          },
+        });
+        
+        // Retrieve the payment method details
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+        
+        return {
+          id: paymentMethod.id,
+          brand: paymentMethod.card?.brand || 'unknown',
+          last4: paymentMethod.card?.last4 || '****',
+          expMonth: paymentMethod.card?.exp_month || 0,
+          expYear: paymentMethod.card?.exp_year || 0,
+          isDefault: true
+        };
+      } catch (error: any) {
+        logger.error('Failed to save payment method', error, { metadata: { userId: context.userId } });
+        throw new Error(error.message || 'Failed to save payment method');
+      }
+    },
+    
+    setDefaultPaymentMethod: async (_: any, { paymentMethodId }: { paymentMethodId: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to set a default payment method');
+      }
+      
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+        select: { stripeCustomerId: true }
+      });
+      
+      if (!user?.stripeCustomerId) {
+        throw new Error('No Stripe customer found');
+      }
+      
+      try {
+        // Update the default payment method
+        await stripe.customers.update(user.stripeCustomerId, {
+          invoice_settings: {
+            default_payment_method: paymentMethodId,
+          },
+        });
+        
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+        
+        return {
+          id: paymentMethod.id,
+          brand: paymentMethod.card?.brand || 'unknown',
+          last4: paymentMethod.card?.last4 || '****',
+          expMonth: paymentMethod.card?.exp_month || 0,
+          expYear: paymentMethod.card?.exp_year || 0,
+          isDefault: true
+        };
+      } catch (error: any) {
+        logger.error('Failed to set default payment method', error, { metadata: { userId: context.userId } });
+        throw new Error(error.message || 'Failed to set default payment method');
+      }
+    },
+    
+    deletePaymentMethod: async (_: any, { paymentMethodId }: { paymentMethodId: string }, context: YogaInitialContext & Context) => {
+      if (!context.userId) {
+        throw new Error('You must be logged in to delete a payment method');
+      }
+      
+      try {
+        await stripe.paymentMethods.detach(paymentMethodId);
+        return true;
+      } catch (error: any) {
+        logger.error('Failed to delete payment method', error, { metadata: { userId: context.userId } });
+        throw new Error(error.message || 'Failed to delete payment method');
+      }
+    },
+    
     createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number; paymentMethodId: string } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');

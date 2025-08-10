@@ -129,6 +129,142 @@
   letter-spacing: 0.5px;
 }
 
+/* Saved payment methods styles */
+.savedCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.savedCardsTitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.savedCardOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.savedCardOption:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-surface);
+}
+
+.savedCardOption input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.savedCardOption input[type="radio"]:checked + .cardInfo {
+  opacity: 1;
+}
+
+.savedCardOption input[type="radio"]:checked ~ .cardInfo {
+  opacity: 1;
+}
+
+.savedCardOption:has(input[type="radio"]:checked) {
+  border-color: var(--color-text-primary);
+  border-width: 2px;
+  padding: calc(var(--space-4) - 1px);
+}
+
+.cardInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  font-family: 'Tinos', serif;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  position: relative;
+}
+
+.cardBrand {
+  text-transform: capitalize;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.cardLast4 {
+  color: var(--color-text-secondary);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.cardExpiry {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+.defaultBadge {
+  background: var(--color-text-primary);
+  color: var(--color-background);
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.addNewCardButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: 'Tinos', serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: var(--space-2);
+}
+
+.addNewCardButton:hover {
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-family: 'Tinos', serif;
+}
+
+/* Responsive styles */
 @media (max-width: 768px) {
   .title {
     font-size: 20px;
@@ -139,6 +275,19 @@
   }
   
   .refundText {
+    font-size: 13px;
+  }
+  
+  .savedCardOption {
+    padding: var(--space-3);
+  }
+  
+  .cardInfo {
+    font-size: 14px;
+  }
+  
+  .cardLast4,
+  .cardExpiry {
     font-size: 13px;
   }
 }

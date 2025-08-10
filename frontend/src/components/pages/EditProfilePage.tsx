@@ -11,6 +11,7 @@ import type { authUpdateProfileMutation } from '../../__generated__/authUpdatePr
 import type { authGenerateAvatarUploadUrlMutation } from '../../__generated__/authGenerateAvatarUploadUrlMutation.graphql';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
+import PaymentMethodsSection from '../features/PaymentMethodsSection';
 import styles from './EditProfilePage.module.css';
 
 export default function EditProfilePage() {
@@ -363,6 +364,11 @@ export default function EditProfilePage() {
                 </div>
               </div>
             </div>
+
+            <div className={styles.divider} />
+
+            {/* Payment Methods Section */}
+            <PaymentMethodsSection />
 
             {error && (
               <>
