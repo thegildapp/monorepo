@@ -6,6 +6,11 @@ metadata:
     app: backend
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: backend
@@ -133,11 +138,11 @@ spec:
                   key: STRIPE_WEBHOOK_SECRET
           resources:
             requests:
-              memory: "1Gi"
-              cpu: "500m"
+              memory: "512Mi"
+              cpu: "200m"
             limits:
-              memory: "2Gi"
-              cpu: "2000m"
+              memory: "1Gi"
+              cpu: "1000m"
           livenessProbe:
             httpGet:
               path: /graphql?query=%7B__typename%7D
