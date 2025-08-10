@@ -16,6 +16,41 @@ spec:
   - host: thegild.app
     http:
       paths:
+      - path: /sitemap.xml
+        pathType: Exact
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 4000
+      - path: /sitemap-static.xml
+        pathType: Exact
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 4000
+      - path: /sitemap-recent.xml
+        pathType: Exact
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 4000
+      - path: /sitemap-popular.xml
+        pathType: Exact
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 4000
+      - path: /robots.txt
+        pathType: Exact
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 4000
       - path: /
         pathType: Prefix
         backend:

@@ -4,24 +4,27 @@ const prisma = new PrismaClient();
 
 // Generate sitemap index that points to sub-sitemaps
 export async function generateSitemapIndex(baseUrl: string): Promise<string> {
+  // Always use the main domain for sitemap URLs
+  const mainUrl = 'https://thegild.app';
+  
   let sitemapIndex = '<?xml version="1.0" encoding="UTF-8"?>\n';
   sitemapIndex += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
   
   // Static pages sitemap
   sitemapIndex += '  <sitemap>\n';
-  sitemapIndex += `    <loc>${baseUrl}/sitemap-static.xml</loc>\n`;
+  sitemapIndex += `    <loc>${mainUrl}/sitemap-static.xml</loc>\n`;
   sitemapIndex += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
   sitemapIndex += '  </sitemap>\n';
   
   // Recent listings sitemap (last 7 days)
   sitemapIndex += '  <sitemap>\n';
-  sitemapIndex += `    <loc>${baseUrl}/sitemap-recent.xml</loc>\n`;
+  sitemapIndex += `    <loc>${mainUrl}/sitemap-recent.xml</loc>\n`;
   sitemapIndex += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
   sitemapIndex += '  </sitemap>\n';
   
   // Popular listings sitemap (top viewed)
   sitemapIndex += '  <sitemap>\n';
-  sitemapIndex += `    <loc>${baseUrl}/sitemap-popular.xml</loc>\n`;
+  sitemapIndex += `    <loc>${mainUrl}/sitemap-popular.xml</loc>\n`;
   sitemapIndex += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
   sitemapIndex += '  </sitemap>\n';
   
