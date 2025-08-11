@@ -3,7 +3,6 @@ import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
-  PaymentRequestButtonElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
@@ -123,8 +122,6 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
   const [isCardComplete, setIsCardComplete] = useState(false);
-  const [paymentRequest, setPaymentRequest] = useState<any>(null);
-  const [canMakePayment, setCanMakePayment] = useState(false);
   const [setupIntent, setSetupIntent] = useState<{ clientSecret: string; customerId: string } | null>(null);
   const [isSettingUp, setIsSettingUp] = useState(false);
   const cardRef = useRef<any>(null);
@@ -153,44 +150,13 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!stripe) return;
-
-    const pr = stripe.paymentRequest({
-      country: 'US',
-      currency: 'usd',
-      total: {
-        label: 'Listing Fee',
-        amount: Math.round(stripeConfig.listingFee * 100), // Amount in cents
-      },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
-
-    // Check if the Payment Request API is available
-    pr.canMakePayment().then(result => {
-      if (result) {
-        setPaymentRequest(pr);
-        setCanMakePayment(true);
+    // Focus on card element when component mounts
+    setTimeout(() => {
+      if (cardRef.current) {
+        cardRef.current.focus();
       }
-    });
-
-    // Handle payment method creation for Apple Pay/Google Pay
-    pr.on('paymentmethod', async (event) => {
-      onPaymentMethodChange(event.paymentMethod.id);
-      event.complete('success');
-    });
-  }, [stripe, onPaymentMethodChange]);
-
-  useEffect(() => {
-    // Focus on card element when component mounts (only if no payment request button)
-    if (!canMakePayment) {
-      setTimeout(() => {
-        if (cardRef.current) {
-          cardRef.current.focus();
-        }
-      }, 100);
-    }
-  }, [canMakePayment]);
+    }, 100);
+  }, []);
 
   const handleCardChange = (event: any) => {
     setError(event.error ? event.error.message : null);
@@ -345,30 +311,6 @@ const PaymentForm: React.FC<ListingPaymentFieldProps> = ({
         >
           + Add new payment method
         </button>
-      )}
-
-      {/* Show Apple Pay/Google Pay button if available */}
-      {canMakePayment && paymentRequest && (
-        <div className={styles.expressPaymentContainer}>
-          <div className={styles.divider}>
-            <span>Express checkout</span>
-          </div>
-          <PaymentRequestButtonElement
-            options={{
-              paymentRequest,
-              style: {
-                paymentRequestButton: {
-                  type: 'default',
-                  theme: 'dark',
-                  height: '48px',
-                },
-              },
-            }}
-          />
-          <div className={styles.divider}>
-            <span>Or pay with card</span>
-          </div>
-        </div>
       )}
 
       {showNewCard && (

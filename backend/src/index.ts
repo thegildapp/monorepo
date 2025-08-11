@@ -346,41 +346,74 @@ const resolvers = {
     },
     
     myPaymentMethods: async (_: any, __: any, context: YogaInitialContext & Context) => {
-      if (!context.userId) {
-        throw new Error('You must be logged in to view payment methods');
-      }
-      
-      const user = await prismaRead.user.findUnique({
-        where: { id: context.userId },
-        select: { stripeCustomerId: true }
-      });
-      
-      if (!user?.stripeCustomerId) {
-        return [];
-      }
-      
       try {
-        // Get payment methods from Stripe
-        const paymentMethods = await stripe.paymentMethods.list({
-          customer: user.stripeCustomerId,
-          type: 'card',
+        logger.info('myPaymentMethods called', { 
+          metadata: { userId: context.userId }
         });
         
-        // Get the default payment method
-        const customer = await stripe.customers.retrieve(user.stripeCustomerId) as any;
-        const defaultPaymentMethodId = customer.invoice_settings?.default_payment_method;
+        if (!context.userId) {
+          throw new Error('You must be logged in to view payment methods');
+        }
         
-        return paymentMethods.data.map(pm => ({
-          id: pm.id,
-          brand: pm.card?.brand || 'unknown',
-          last4: pm.card?.last4 || '****',
-          expMonth: pm.card?.exp_month || 0,
-          expYear: pm.card?.exp_year || 0,
-          isDefault: pm.id === defaultPaymentMethodId
-        }));
-      } catch (error) {
-        logger.error('Failed to fetch payment methods', error as Error, { metadata: { userId: context.userId } });
-        return [];
+        const user = await prismaRead.user.findUnique({
+          where: { id: context.userId },
+          select: { stripeCustomerId: true }
+        });
+        
+        if (!user?.stripeCustomerId) {
+          logger.info('No Stripe customer found for user', { 
+            metadata: { userId: context.userId }
+          });
+          return [];
+        }
+        
+        try {
+          // Get payment methods from Stripe
+          const paymentMethods = await stripe.paymentMethods.list({
+            customer: user.stripeCustomerId,
+            type: 'card',
+          });
+          
+          // Get the default payment method
+          const customer = await stripe.customers.retrieve(user.stripeCustomerId) as any;
+          const defaultPaymentMethodId = customer.invoice_settings?.default_payment_method;
+          
+          logger.info('Payment methods retrieved successfully', { 
+            metadata: { 
+              userId: context.userId,
+              customerId: user.stripeCustomerId,
+              methodCount: paymentMethods.data.length
+            }
+          });
+          
+          return paymentMethods.data.map(pm => ({
+            id: pm.id,
+            brand: pm.card?.brand || 'unknown',
+            last4: pm.card?.last4 || '****',
+            expMonth: pm.card?.exp_month || 0,
+            expYear: pm.card?.exp_year || 0,
+            isDefault: pm.id === defaultPaymentMethodId
+          }));
+        } catch (stripeError: any) {
+          logger.error('Failed to fetch payment methods from Stripe', stripeError as Error, { 
+            metadata: { 
+              userId: context.userId,
+              customerId: user.stripeCustomerId,
+              errorCode: (stripeError as any).code,
+              errorType: (stripeError as any).type
+            }
+          });
+          return [];
+        }
+      } catch (error: any) {
+        logger.error('myPaymentMethods failed', error as Error, {
+          metadata: { 
+            userId: context.userId,
+            errorName: error.name,
+            errorMessage: error.message
+          }
+        });
+        throw error;
       }
     },
   },
@@ -389,61 +422,104 @@ const resolvers = {
     ...inquiryResolvers.Mutation,
     
     createSetupIntent: async (_: any, __: any, context: YogaInitialContext & Context) => {
-      if (!context.userId) {
-        throw new Error('You must be logged in to set up payment');
-      }
+      try {
+        logger.info('createSetupIntent called', { 
+          metadata: { userId: context.userId }
+        });
+        
+        if (!context.userId) {
+          const error = new Error('You must be logged in to set up payment');
+          logger.error('createSetupIntent - Authentication required', error as Error, {
+            metadata: { userId: context.userId }
+          });
+          throw error;
+        }
 
-      // Get or create Stripe customer
-      const user = await prisma.user.findUnique({
-        where: { id: context.userId },
-      });
+        // Get or create Stripe customer
+        const user = await prisma.user.findUnique({
+          where: { id: context.userId },
+        });
 
-      if (!user) {
-        throw new Error('User not found');
-      }
+        if (!user) {
+          const error = new Error('User not found');
+          logger.error('createSetupIntent - User not found', error as Error, {
+            metadata: { userId: context.userId }
+          });
+          throw error;
+        }
 
-      let customerId = user.stripeCustomerId;
+        let customerId = user.stripeCustomerId;
 
-      // Create Stripe customer if doesn't exist
-      if (!customerId) {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          name: user.name,
+        // Create Stripe customer if doesn't exist
+        if (!customerId) {
+          logger.info('Creating new Stripe customer', {
+            metadata: { userId: user.id, email: user.email }
+          });
+          
+          const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.name,
+            metadata: {
+              userId: user.id,
+            },
+          });
+
+          // Save customer ID to database
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { stripeCustomerId: customer.id },
+          });
+
+          customerId = customer.id;
+          logger.info('Stripe customer created', {
+            metadata: { userId: user.id, customerId }
+          });
+        }
+
+        // Create SetupIntent for future payments
+        logger.info('Creating SetupIntent', {
+          metadata: { userId: user.id, customerId }
+        });
+        
+        const setupIntent = await stripe.setupIntents.create({
+          customer: customerId,
+          payment_method_types: ['card'],
+          usage: 'off_session', // Allow reuse for future payments
           metadata: {
             userId: user.id,
           },
         });
 
-        // Save customer ID to database
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { stripeCustomerId: customer.id },
+        // Create ephemeral key for mobile SDKs (optional, for future mobile support)
+        const ephemeralKey = await stripe.ephemeralKeys.create(
+          { customer: customerId },
+          { apiVersion: '2025-07-30.basil' }
+        );
+
+        logger.info('SetupIntent created successfully', {
+          metadata: { 
+            userId: user.id, 
+            customerId,
+            setupIntentId: setupIntent.id 
+          }
         });
 
-        customerId = customer.id;
+        return {
+          clientSecret: setupIntent.client_secret,
+          ephemeralKey: ephemeralKey.secret,
+          customerId,
+        };
+      } catch (error) {
+        logger.error('createSetupIntent failed', error as Error, {
+          metadata: { 
+            userId: context.userId,
+            errorName: (error as any).name,
+            errorMessage: (error as any).message,
+            errorStack: (error as any).stack
+          }
+        });
+        throw error;
       }
-
-      // Create SetupIntent for future payments
-      const setupIntent = await stripe.setupIntents.create({
-        customer: customerId,
-        payment_method_types: ['card'],
-        usage: 'off_session', // Allow reuse for future payments
-        metadata: {
-          userId: user.id,
-        },
-      });
-
-      // Create ephemeral key for mobile SDKs (optional, for future mobile support)
-      const ephemeralKey = await stripe.ephemeralKeys.create(
-        { customer: customerId },
-        { apiVersion: '2025-07-30.basil' }
-      );
-
-      return {
-        clientSecret: setupIntent.client_secret,
-        ephemeralKey: ephemeralKey.secret,
-        customerId,
-      };
     },
     
     trackListingView: async (_: any, { listingId }: { listingId: string }, context: YogaInitialContext & Context) => {
@@ -1847,6 +1923,35 @@ async function startServer(): Promise<void> {
         : '*', // Allow all origins in development
       credentials: true,
     },
+    plugins: [
+      {
+        // Log GraphQL errors
+        onExecute: async ({ args }) => {
+          return {
+            onExecuteDone: async ({ result }) => {
+              // Check if there are any errors in the result
+              if (result && 'errors' in result && result.errors) {
+                const operation = args.document.definitions[0] as any;
+                const operationName = operation.selectionSet?.selections?.[0]?.name?.value || 'unknown';
+                
+                result.errors.forEach((error: any) => {
+                  logger.error('GraphQL execution error', error as Error, {
+                    metadata: {
+                      operationName,
+                      errorMessage: error.message,
+                      errorPath: error.path,
+                      errorExtensions: error.extensions,
+                      userId: (args.contextValue as any).userId,
+                      variables: args.variableValues,
+                    }
+                  });
+                });
+              }
+            }
+          };
+        }
+      }
+    ],
     context: async (initialContext) => {
       // Extract token from Authorization header
       const token = extractTokenFromHeader(initialContext.request.headers.get('authorization') || undefined);
