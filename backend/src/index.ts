@@ -1926,9 +1926,9 @@ async function startServer(): Promise<void> {
     plugins: [
       {
         // Log GraphQL errors
-        onExecute: async ({ args }) => {
+        onExecute: async ({ args }: any) => {
           return {
-            onExecuteDone: async ({ result }) => {
+            onExecuteDone: async ({ result }: any) => {
               // Check if there are any errors in the result
               if (result && 'errors' in result && result.errors) {
                 const operation = args.document.definitions[0] as any;
