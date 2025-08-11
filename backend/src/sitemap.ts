@@ -147,9 +147,13 @@ export async function generateSitemap(baseUrl: string): Promise<string> {
 export async function generateRobotsTxt(baseUrl: string): Promise<string> {
   // Check if this is the API subdomain
   if (baseUrl.includes('api.')) {
-    // Block all crawling on API subdomain
+    // Allow GraphQL endpoint for Googlebot but block everything else
     let robots = '# Robots.txt for Gild API\n';
-    robots += '# API endpoints should not be crawled\n';
+    robots += '# Allow GraphQL for rendering but block other endpoints\n';
+    robots += 'User-agent: Googlebot\n';
+    robots += 'Allow: /graphql\n';
+    robots += 'Disallow: /\n';
+    robots += '\n';
     robots += 'User-agent: *\n';
     robots += 'Disallow: /\n';
     return robots;
