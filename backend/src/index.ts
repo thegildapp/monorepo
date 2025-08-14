@@ -42,7 +42,7 @@ import { logger } from './services/loggingService';
 import { logRetentionService } from './services/logRetentionService';
 import { requestLoggingMiddleware, errorLoggingMiddleware } from './middleware/requestLogging';
 import { cache } from './services/cacheService';
-import stripe, { validateStripeConfig, STRIPE_CONFIG } from './config/stripe';
+import stripe, { validateStripeConfig } from './config/stripe';
 import { handleStripeWebhook } from './webhooks/stripeWebhooks';
 
 // Polyfill for Web Crypto API in Node.js
@@ -662,7 +662,7 @@ const resolvers = {
       }
     },
     
-    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number; paymentMethodId: string } }, context: YogaInitialContext & Context) => {
+    createListing: async (_: any, { input }: { input: { title: string; description: string; price: number; images: string[]; city: string; state: string; latitude?: number; longitude?: number } }, context: YogaInitialContext & Context) => {
       if (!context.userId) {
         throw new Error('You must be logged in to create a listing');
       }
@@ -676,53 +676,7 @@ const resolvers = {
         throw new Error(`A listing cannot have more than ${MAX_LISTING_IMAGES} images`);
       }
       
-      // Get user's Stripe customer ID
-      const user = await prisma.user.findUnique({
-        where: { id: context.userId },
-        select: { stripeCustomerId: true },
-      });
-      
-      if (!user?.stripeCustomerId) {
-        throw new Error('Payment method not set up. Please set up payment first.');
-      }
-      
-      // Process payment for listing fee
-      let paymentIntentId: string | null = null;
-      
-      try {
-        // Create payment intent with the listing fee using saved payment method
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: STRIPE_CONFIG.listingFee, // Amount in cents
-          currency: STRIPE_CONFIG.currency,
-          customer: user.stripeCustomerId,
-          payment_method: input.paymentMethodId,
-          off_session: true, // Charge saved card without user present
-          confirm: true,
-          metadata: {
-            userId: context.userId,
-            type: 'listing_fee',
-            listingTitle: input.title,
-          },
-          description: `Listing fee for: ${input.title}`,
-        });
-        
-        if (paymentIntent.status !== 'succeeded') {
-          throw new Error('Payment was not successful. Please try again.');
-        }
-        
-        paymentIntentId = paymentIntent.id;
-      } catch (error: any) {
-        logger.error('Payment processing failed', error, { metadata: { userId: context.userId } });
-        
-        // Handle specific Stripe errors for better UX
-        if (error.code === 'authentication_required') {
-          throw new Error('Card requires authentication. Please update your payment method.');
-        } else if (error.code === 'card_declined') {
-          throw new Error('Card was declined. Please use a different payment method.');
-        }
-        
-        throw new Error(error.message || 'Payment processing failed. Please try again.');
-      }
+      // No payment required - listings are now free
       
       // Create listing with PENDING status by default
       const listing = await prismaWrite.listing.create({
@@ -739,9 +693,6 @@ const resolvers = {
             connect: { id: context.userId }
           },
           status: 'PENDING',
-          paymentIntentId: paymentIntentId,
-          listingFeePaid: STRIPE_CONFIG.listingFee,
-          paidAt: new Date(),
         },
         include: { 
           seller: {

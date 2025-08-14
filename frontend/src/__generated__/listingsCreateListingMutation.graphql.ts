@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e95e993e1aee9bca7d3ab0c57735c1d3>>
+ * @generated SignedSource<<0cb74f3aa9e4c94ac490f35df40b8740>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -16,7 +16,6 @@ export type CreateListingInput = {
   images: ReadonlyArray<string>;
   latitude?: number | null | undefined;
   longitude?: number | null | undefined;
-  paymentMethodId: string;
   price: number;
   state: string;
   title: string;

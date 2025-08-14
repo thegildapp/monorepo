@@ -214,7 +214,6 @@ input CreateListingInput {
   state: String!
   latitude: Float
   longitude: Float
-  paymentMethodId: String!
 }
 
 input UpdateListingInput {

@@ -7,7 +7,6 @@ import ListingTitleField from './ListingTitleField';
 import ListingDescriptionField from './ListingDescriptionField';
 import ListingPriceField from './ListingPriceField';
 import ListingLocationField from './ListingLocationField';
-import ListingPaymentField from './ListingPaymentField';
 import ErrorBoundary from '../common/ErrorBoundary';
 import ErrorState from '../feedback/ErrorState';
 import { CreateListingMutation, GenerateUploadUrlMutation } from '../../queries/listings';
@@ -33,9 +32,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number; city?: string; state?: string } | null>(null);
-  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
-  const [isPaymentReady, setIsPaymentReady] = useState(false);
-  const [isCardValid, setIsCardValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,37 +51,14 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
         return price.length > 0 && parseFloat(price) > 0;
       case 4: // Location
         return location !== null;
-      case 5: // Payment
-        return isCardValid || isPaymentReady;
       default:
         return false;
     }
   };
 
   const handleFinish = async () => {
-    // Don't start if payment isn't ready
-    if (!isCardValid && currentPage === 5) {
-      setError('Please complete the payment information.');
-      return;
-    }
-    
     setIsSubmitting(true);
     setError(null);
-    
-    // Wait for payment method to be set (up to 10 seconds)
-    if (!paymentMethodId) {
-      let attempts = 0;
-      while (!paymentMethodId && attempts < 100) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-      
-      if (!paymentMethodId) {
-        setError('Failed to save payment method. Please try again.');
-        setIsSubmitting(false);
-        return;
-      }
-    }
 
     try {
       // Upload all photos to Digital Ocean Spaces in parallel
@@ -140,7 +113,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
             state: location?.state || '',
             latitude: location?.lat || 0,
             longitude: location?.lng || 0,
-            paymentMethodId: paymentMethodId || '',
           },
         },
         updater: (store) => {
@@ -190,7 +162,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
     setDescription('');
     setPrice('');
     setLocation(null);
-    setPaymentMethodId(null);
     setError(null);
     setIsSubmitting(false);
     onClose();
@@ -222,19 +193,6 @@ const CreateListingModal: React.FC<CreateListingModalProps> = ({
       location={location}
       onChange={(loc) => {
         setLocation(loc);
-      }}
-    />,
-    <ListingPaymentField
-      key="payment"
-      onPaymentMethodChange={(methodId) => {
-        setPaymentMethodId(methodId);
-        setIsPaymentReady(!!methodId);
-      }}
-      onCardValidChange={setIsCardValid}
-      isProcessing={isSubmitting}
-      onError={(error: string) => {
-        setError(error);
-        setIsSubmitting(false);
       }}
     />
   ];
